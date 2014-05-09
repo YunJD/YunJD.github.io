@@ -7,4 +7,6 @@ window.animFrame = (function(){
 			};
 })();
 
-var Z = {};
+var Z = {
+	EPS: 0.000001
+};
