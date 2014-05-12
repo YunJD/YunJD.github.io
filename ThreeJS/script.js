@@ -12,10 +12,10 @@
 		1,		//Aspect
 		0.1,	//Near plane
 		10000);	//Far plane
-	camera.position.z = 20;
+	camera.position.z = 30;
 
 	var camControl = new Z.CameraControl(camera, renderer.domElement);
-	camControl.setMovementSpeed( 3, renderer.domElement.height );
+	camControl.setSpeed( 1, renderer.domElement.height );
 	var scene = new THREE.Scene();
 	
 	var light = new THREE.PointLight( 0xfefefe );
@@ -52,20 +52,23 @@
 		hatMesh = new THREE.Mesh(geometry, hatMaterial);
 		scene.add(hatMesh);
 	});
-	
+	var plane = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), charMaterial);
+	plane.rotation.x = -Math.PI * 0.5;
+	plane.position.y = -4.6;
 	scene.add(light);
 	scene.add(dirLight);
 	scene.add(bluePtLt);
 	scene.add(lowLight);
 	scene.add(camera);
+	scene.add(plane);
 
-	$(window).resize(function(){
+	$(window).resize(function() {
 		var w = window.innerWidth;
 		var h = window.innerHeight;
 		camera.aspect = w / h;
 		camera.updateProjectionMatrix();
 		renderer.setSize(w, h);
-		camControl.setMovementSpeed( 3, h );
+		camControl.setSpeed( 1, h );
 	}).resize();
 
 	var wndX;
@@ -73,23 +76,39 @@
 	var dX;
 	var dY;
 	var mousedown = false;
+
+	$(renderer.domElement).on("click", function(e) {
+		if(e.which != 2)
+			return;
+
+		e.preventDefault();
+
+	})
+
 	$(renderer.domElement).on("mousedown", function(e) {
 		e.preventDefault();
-		wndX = e.clientX;
-		wndY = e.clientY;
-		dX = 0;
-		dY = 0;
+		switch(e.which) {
+		case 1:
+			$(window).on('mousemove.camera', rotateHandler);
+			break;
+		case 2:
+			$(window).on('mousemove.camera', dollyHandler);
+			break;
+		case 3:
+			$(window).on('mousemove.camera', moveHandler);
+			break;
+		default: return;
+		}
 
 		if(!mousedown) {
+			wndX = e.clientX;
+			wndY = e.clientY;
+			dX = 0;
+			dY = 0;
 			$(window).on("mouseup.camera", mouseUpHandler);
 			$(window).on("mousemove.camera", deltaHandler);
-		}
-		switch(e.which){
-			case 1:
-				$(window).on('mousemove.camera', rotateHandler)
-				break;
-			case 3:
-				$(window).on('mousemove.camera', moveHandler);
+
+			mousedown = true;
 		}
 	});
 
@@ -104,8 +123,12 @@
 		wndY = e.clientY;
 	}
 
+	function dollyHandler(e) {
+		camControl.dolly (dY);
+	}
+
 	function moveHandler(e) {
-		camControl.moveUp(dY);
+		camControl.moveUp(-dY);
 		camControl.moveRight(dX);
 	}
 
@@ -117,6 +140,7 @@
 	function mouseUpHandler(e) {
 		$(window).off('mousemove.camera');
 		$(window).off('mouseup.camera');
+		mousedown = false;
 	}
 
 	(function animate(){
