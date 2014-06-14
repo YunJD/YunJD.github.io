@@ -7,6 +7,9 @@ window.animFrame = (function(){
 			};
 })();
 
+//Initialize globals and namespaces
 var Z = {
 	EPS: 0.000001
 };
+
+ZCollision = {};

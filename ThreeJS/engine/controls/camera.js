@@ -44,7 +44,8 @@ Z.CameraControl = function(camera, params) {
 	//x = cosPhi * sinTheta
 	//y = cosTheta
 	//z = sinPhi * sinTheta
-	this.rquat = new THREE.Quaternion().setFromUnitVectors(camera.up, new THREE.Vector3(0,0,1));
+	this.cUp = new THREE.Vector3(0,0,1);
+	this.rquat = new THREE.Quaternion().setFromUnitVectors(camera.up, this.cUp);
 	this.rquatInv = this.rquat.clone().inverse();
 
 	//Force an update to synchronize.
@@ -81,7 +82,7 @@ Z.CameraControl.prototype.update = function() {
 		//When theta reaches the extents, flip the quaternion's vertical view.
 		if(theta < 0 || theta >= Math.PI) {
 			this.camera.up.multiplyScalar(-1);
-			this.rquat.setFromUnitVectors(this.camera.up, new THREE.Vector3(0,0,1));
+			this.rquat.setFromUnitVectors(this.camera.up, this.cUp);
 			this.rquatInv = this.rquat.clone().inverse();
 		}
 	}
