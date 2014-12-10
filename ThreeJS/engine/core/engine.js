@@ -11,5 +11,3 @@ window.animFrame = (function(){
 var Z = {
 	EPS: 0.000001
 };
-
-ZCollision = {};

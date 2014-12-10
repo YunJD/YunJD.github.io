@@ -1,25 +1,17 @@
-ZCollision.Primitive = function() {}
+Z.CollisionPrimitive = function() {}
 
-ZCollision.Primitive.prototype.intersect = function(prim, isect) {
+Z.CollisionPrimitive.prototype.intersect = function(isect) {
 	return false;
 }
 
-ZCollision.Primitive.prototype.inside = function(p) {
+Z.CollisionPrimitive.prototype.inside = function(p) {
 	return false;
 }
 
-ZCollision.Primitive.prototype.clone = function() {
-	return new ZCollision.primitive();
+Z.CollisionPrimitive.prototype.clone = function() {
+	return new Z.CollisionPrimitive();
 }
 
-ZCollision.Primitive.prototype.copy = function(other) {
-	return new ZCollision();
-}
-
-ZCollision.ConvexPrimitive = function(){}
-
-ZCollision.ConvexPrimitive.prototype = Object.create( ZCollision.Primitive.prototype );
-
-ZCollision.ConvexPrimitive.prototype.support = function(v) {
-	return -1;
+Z.CollisionPrimitive.prototype.copy = function(other) {
+	return new Z.Collision);
 }
