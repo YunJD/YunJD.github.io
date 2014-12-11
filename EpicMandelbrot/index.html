@@ -1,21 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>
-Experimental Engine
-</title>
-<link rel="stylesheet" href="style.css" />
+	<title>
+		Experimental Engine
+	</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css" />
+	<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-<div id="debug"></div>
-<canvas id="view">
-</canvas>
-<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
-<script type="text/javascript" src="threejs/Detector.js"></script>
-<script type="text/javascript" src="threejs/three.min.js"></script>
-<script type="text/javascript" src="threejs/stats.min.js"></script>
-<script type="text/javascript" src="script.js"></script>
+	<div class="tool-wrapper">
+		<div class="fade-panel btn">
+			<a href="javascript:void(0);" id="toggle-frag">
+				I'll write my own shader!
+			</a>
+		</div>
+		<div class="fade-panel btn" style="display:none">
+			<a href="javascript:void(0);" id="recompile"><span class="glyphicon glyphicon-refresh"></span></a>
+		</div>
+		<div class="pull-right">
+			<div class="fade-panel">
+				W: <input id="width" type="text" class="code-area" value="2000"/>
+				H: <input id="height" type="text" class="code-area" value="2000"/>
+			</div>
+			<div class="fade-panel btn">
+				<a href="javascript:void(0);" id="resize"><span class="glyphicon glyphicon-refresh"></span></a>
+			</div>
+		</div>
+		<div id="fragment-shader" style="display:none">
+<textarea class="code-area">
+</textarea>
+		</div>
+	</div>
+	<canvas id="view">
+	</canvas>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<script type="text/javascript" src="threejs/Detector.js"></script>
+	<script type="text/javascript" src="threejs/three.min.js"></script>
+	<script type="text/javascript" src="threejs/stats.min.js"></script>
+	<script type="text/javascript" src="script.js"></script>
 
 </body>
 </html>
