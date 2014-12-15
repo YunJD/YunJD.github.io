@@ -29,6 +29,7 @@
 
 (function() {
 	'use strict';
+	var update = false;
 
 	if( !Detector.webgl ){
 		Detector.addGetWebGLMessage();
@@ -38,7 +39,6 @@
 	var renderer = new THREE.WebGLRenderer({canvas: document.getElementById("view")});
 	renderer.setClearColor( 0x000000, 1 );
 	var w, h;
-	
 
 	var camera = new THREE.OrthographicCamera(
 		0,0,0,0,1,1000
@@ -52,9 +52,12 @@
 	var scene = new THREE.Scene();
 	scene.add(mesh);
 
+	var renderTex = null;
+
 	resize();
 
 	function resize() {
+		update = true;
 		//Maybe I'll comment this.  Maybe.
 		w = $("#width").val();
 		h = $("#height").val();
@@ -72,8 +75,6 @@
 		}
 
 		var $canv = $("#view").css({'margin-left': -w * 0.5, 'margin-top': -h * 0.5});
-		$canv[0].width = w;
-		$canv[0].height = h;
 
 		var asp = w / h;
 
@@ -85,11 +86,21 @@
 
 		mesh.scale.x = 2 * asp;
 
+		//RGBA so that alpha can be used as # of samples.
+		//The filters are more or less redundant as the canvas size changes
+		//with the size of the requested pic.
+		renderTex = new THREE.WebGLRenderTarget(w, h, {
+			minFilter: THREE.LinearFilter,
+			format: THREE.RGBAFormat,
+			type: THREE.FloatType
+		});
+
 		renderer.setSize(w, h);
 		renderer.render(scene, camera);
 	}
 
 	function recompile() {
+		update = true;
 	}
 
 	$("#resize").click(resize);
