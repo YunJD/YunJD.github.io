@@ -36,17 +36,21 @@
     }
 </textarea>
 <textarea id="mandelbrot-shader" class="code-area">
-    //Totally the most important part of all this!
-    //This function is sampled 16 times from the Javascript.
+    //This shader is sampled 16 times from the Javascript.
+
+    //Don't be fooled, the precision is still pathetic.
     precision highp float;
 
+    //Don't meddle with these.
     uniform sampler2D mandelbrotTex;
+
+    //No I didn't bother to use a matrix.
     uniform vec2 scale;
     uniform vec2 translate;
     uniform vec2 pxDisp;
     varying vec2 vUv;
 
-    //Map to -asp, -1, asp, 1 box.
+    //Map to the proper window extents.
     vec2 coord() 
     {
         float x = vUv.x * 2.0 * scale.x - scale.x;
@@ -54,22 +58,15 @@
         return (vec2(x, y) + pxDisp + translate) * scale.y;
     }
 
-    float rand(vec2 co){
-            return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-    }
-
 #define ITERATIONS 300
 #define LOG2 0.69314718056
 #define BAILOUT 100.0
+#define BAILOUT2 10000.0
 
     vec3 mandelbrot() 
     {
         vec2 c = coord();
         vec2 z = vec2(0.0, 0.0);
-
-        float totalr = 0.0;
-        float totalg = 0.0;
-        float totalb = 0.0;
 
         for(int i = 1; i <= ITERATIONS; ++i)
         {
@@ -78,13 +75,17 @@
             z.x = z.x * z.x - temp * temp + c.x;
 
             float r = z.x * z.x + z.y * z.y;
-            if(r >= BAILOUT * BAILOUT)
+
+            if(r >= BAILOUT2)
             {
+                //Smooth it out.
                 float ii = float(i);
                 ii = ii - log(log(sqrt(r)) / log(BAILOUT)) / LOG2;
+
                 float r = cos(ii * 0.1) * 0.5 + 0.5;
                 float g = cos(ii * 0.1 + 0.8) * 0.5 + 0.5;
                 float b = cos(ii * 0.1 + 1.6) * 0.5 + 0.5;
+
                 return vec3(r,g,b);
             }
         }
