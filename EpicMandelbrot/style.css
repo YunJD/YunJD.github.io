@@ -43,7 +43,7 @@ textarea.code-area {
 }
 
 #fragment-shader {
-	width: 50%;
+	width: 75%;
 }
 
 .pull-right {
@@ -68,8 +68,8 @@ textarea.code-area {
 	position: relative;
 	z-index: 100;
 	margin-left: 7px;
-	margin-top: 7px;
 	margin-right: 7px;
+	top: 7px;
 }
 a {
 	color: inherit;

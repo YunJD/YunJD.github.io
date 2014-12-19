@@ -1,43 +1,126 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>
-		Experimental Engine
-	</title>
-	<link rel="stylesheet" href="css/bootstrap.min.css" />
-	<link rel="stylesheet" href="style.css" />
+    <title>
+        Experimental Engine
+    </title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-	<div class="tool-wrapper">
-		<div class="fade-panel btn">
-			<a href="javascript:void(0);" id="toggle-frag">
-				I'll write my own shader!
-			</a>
-		</div>
-		<div class="fade-panel btn" style="display:none">
-			<a href="javascript:void(0);" id="recompile"><span class="glyphicon glyphicon-refresh"></span></a>
-		</div>
-		<div class="pull-right">
-			<div class="fade-panel">
-				W: <input id="width" type="text" class="code-area" value="2000"/>
-				H: <input id="height" type="text" class="code-area" value="2000"/>
-			</div>
-			<div class="fade-panel btn">
-				<a href="javascript:void(0);" id="resize"><span class="glyphicon glyphicon-refresh"></span></a>
-			</div>
-		</div>
-		<div id="fragment-shader" style="display:none">
-<textarea class="code-area">
+    <div class="tool-wrapper">
+        <div class="fade-panel btn">
+            <a href="javascript:void(0);" id="toggle-frag">
+                I'll write my own shader!
+            </a>
+        </div>
+        <div class="fade-panel btn" style="display:none">
+            <a href="javascript:void(0);" id="recompile"><span class="glyphicon glyphicon-refresh"></span></a>
+        </div>
+        <div class="pull-right">
+            <div class="fade-panel">
+                W: <input id="width" type="text" class="code-area" value="1920"/>
+                H: <input id="height" type="text" class="code-area" value="1080"/>
+            </div>
+            <div class="fade-panel btn">
+                <a href="javascript:void(0);" id="resize"><span class="glyphicon glyphicon-refresh"></span></a>
+            </div>
+        </div>
+        <div id="fragment-shader" style="display:none">
+<textarea id="mandel-vert-shader" style="display:none">
+    varying vec2 vUv;
+    void main()
+    {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
 </textarea>
-		</div>
-	</div>
-	<canvas id="view">
-	</canvas>
-	<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
-	<script type="text/javascript" src="threejs/Detector.js"></script>
-	<script type="text/javascript" src="threejs/three.min.js"></script>
-	<script type="text/javascript" src="threejs/stats.min.js"></script>
-	<script type="text/javascript" src="script.js"></script>
+<textarea id="mandelbrot-shader" class="code-area">
+    //Totally the most important part of all this!
+    //This function is sampled 16 times from the Javascript.
+    precision highp float;
+
+    uniform sampler2D mandelbrotTex;
+    uniform vec2 scale;
+    uniform vec2 translate;
+    uniform vec2 pxDisp;
+    varying vec2 vUv;
+
+    //Map to -asp, -1, asp, 1 box.
+    vec2 coord() 
+    {
+        float x = vUv.x * 2.0 * scale.x - scale.x;
+        float y = vUv.y * 2.0 - 1.0;
+        return (vec2(x, y) + pxDisp + translate) * scale.y;
+    }
+
+    float rand(vec2 co){
+            return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+    }
+
+#define ITERATIONS 300
+#define LOG2 0.69314718056
+#define BAILOUT 100.0
+
+    vec3 mandelbrot() 
+    {
+        vec2 c = coord();
+        vec2 z = vec2(0.0, 0.0);
+
+        float totalr = 0.0;
+        float totalg = 0.0;
+        float totalb = 0.0;
+
+        for(int i = 1; i <= ITERATIONS; ++i)
+        {
+            float temp = z.y;
+            z.y = 2.0 * z.x * z.y + c.y;
+            z.x = z.x * z.x - temp * temp + c.x;
+
+            float r = z.x * z.x + z.y * z.y;
+            if(r >= BAILOUT * BAILOUT)
+            {
+                float ii = float(i);
+                ii = ii - log(log(sqrt(r)) / log(BAILOUT)) / LOG2;
+                float r = cos(ii * 0.1) * 0.5 + 0.5;
+                float g = cos(ii * 0.1 + 0.8) * 0.5 + 0.5;
+                float b = cos(ii * 0.1 + 1.6) * 0.5 + 0.5;
+                return vec3(r,g,b);
+            }
+        }
+
+        return vec3(0.0,0.0,0.0);
+    }
+
+    void main()
+    {
+        vec4 color = texture2D(mandelbrotTex, vUv);
+        color += vec4(mandelbrot(), 1.0);
+        gl_FragColor = vec4(color.xyz, 1.0);
+    }
+</textarea>
+<textarea id="draw-shader" style="display:none">
+    varying vec2 vUv;
+    uniform float passes;
+    uniform sampler2D mandelbrotTex;
+
+    void main()
+    {
+        vec4 color = texture2D(mandelbrotTex, vUv);
+        color /= passes;
+        
+        gl_FragColor = vec4(color.xyz, 1.0);
+    }
+</textarea>
+        </div>
+    </div>
+    <canvas id="view">
+    </canvas>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="threejs/Detector.js"></script>
+    <script type="text/javascript" src="threejs/three.min.js"></script>
+    <script type="text/javascript" src="threejs/stats.min.js"></script>
+    <script type="text/javascript" src="script.js"></script>
 
 </body>
 </html>

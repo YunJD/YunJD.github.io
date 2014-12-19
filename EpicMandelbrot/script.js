@@ -16,7 +16,7 @@
 
 	$("#toggle-frag").click(function() {
 		if($("#fragment-shader").css('display') == 'none') {
-			$("#toggle-frag").text("I regret looking at this code.");
+			$("#toggle-frag").text("Nevermind.");
 			$("#fragment-shader").show();
 			$("#recompile").parent().show();
 		} else {
@@ -29,7 +29,6 @@
 
 (function() {
 	'use strict';
-	var update = false;
 
 	if( !Detector.webgl ){
 		Detector.addGetWebGLMessage();
@@ -38,24 +37,96 @@
 
 	var renderer = new THREE.WebGLRenderer({canvas: document.getElementById("view")});
 	renderer.setClearColor( 0x000000, 1 );
+	renderer.autoClear = false;
+
 	var w, h;
 
 	var camera = new THREE.OrthographicCamera(
 		0,0,0,0,1,1000
 	);
+	var mandelbrotTex = {
+		type: 't',
+		value: null
+	};
+	var texMat = new THREE.ShaderMaterial({
+		uniforms: {
+			mandelbrotTex: mandelbrotTex,
+			scale: {
+				type: 'v2',
+				value: new THREE.Vector2(1.0, 2.0)
+			},
+			translate: {
+				type: 'v2',
+				value: new THREE.Vector2(-0.2, 0)
+			},
+			pxDisp: {
+				type: 'v2',
+				value: new THREE.Vector2(0, 0)
+			}
+		},
+		vertexShader: $("#mandel-vert-shader").val(),
+		fragmentShader: $("#mandelbrot-shader").val(),
+		depthWrite: false
+	});
+
+	var drawMat = new THREE.ShaderMaterial({
+		uniforms: {
+			mandelbrotTex: mandelbrotTex,
+			passes: {
+				type: 'f',
+				value: 0.0
+			}
+		},
+		vertexShader: $("#mandel-vert-shader").val(),
+		fragmentShader: $("#draw-shader").val(),
+		depthWrite: false
+	});
 
 	var plane = new THREE.PlaneGeometry(1, 1);
-	var mesh = new THREE.Mesh(plane, new THREE.MeshBasicMaterial({color: 'orange'}));
+	var mesh = new THREE.Mesh(plane, texMat);
 	mesh.scale.y = 2;
-	mesh.translateZ(-1);
+	//WebGL coordinate system is right-handed.
+	mesh.translateZ(-100);
 
 	var scene = new THREE.Scene();
 	scene.add(mesh);
 
-	var renderTex = null;
-
+	updateShader();
 	resize();
+	var update = false;
 
+	//Actually draw what was computed.
+	draw();
+	function draw() {
+		if(update) {
+			update = false;
+			renderer.render(scene, camera, mandelbrotTex.value, true);
+			drawMat.uniforms.passes.value = 1.0;
+		}
+
+		if(drawMat.uniforms.passes.value == 16) {
+			requestAnimationFrame(draw);
+			return;
+		}
+
+
+		renderer.render(scene, camera, mandelbrotTex.value);
+
+		texMat.uniforms.pxDisp.value.x = Math.random() / w;
+		texMat.uniforms.pxDisp.value.y = Math.random() / h;
+
+
+		++drawMat.uniforms.passes.value;
+		
+		var oldMat = mesh.material
+		mesh.material = drawMat;
+
+		renderer.render(scene, camera);
+
+		mesh.material = oldMat;
+		requestAnimationFrame(draw);
+	}
+	
 	function resize() {
 		update = true;
 		//Maybe I'll comment this.  Maybe.
@@ -84,25 +155,75 @@
 		camera.bottom = -1;
 		camera.updateProjectionMatrix();
 
-		mesh.scale.x = 2 * asp;
-
-		//RGBA so that alpha can be used as # of samples.
-		//The filters are more or less redundant as the canvas size changes
-		//with the size of the requested pic.
-		renderTex = new THREE.WebGLRenderTarget(w, h, {
+		mandelbrotTex.value = new THREE.WebGLRenderTarget(w, h, {
 			minFilter: THREE.LinearFilter,
+			magFilter: THREE.LinearFilter,
 			format: THREE.RGBAFormat,
 			type: THREE.FloatType
 		});
 
+
+		texMat.uniforms.scale.value.x = asp;
+
+		mesh.scale.x = 2 * asp;
+
 		renderer.setSize(w, h);
-		renderer.render(scene, camera);
 	}
 
-	function recompile() {
+	function updateShader() {
 		update = true;
+		texMat.fragmentShader = $("#mandelbrot-shader").val();
+		texMat = texMat.clone();
+		mesh.material = texMat;
 	}
 
 	$("#resize").click(resize);
-	$("#recompile").click(recompile);
+	$("#recompile").click(updateShader);
+
+	var mDown = false;
+	var mx, my;
+
+	$("#view").mousedown(function(e) {
+		if(e.button == 0) {
+			mDown = true;
+
+			mx = e.screenX;
+			my = e.screenY;
+		}
+	});
+
+	$("#view").dblclick(function(e) {
+		if(e.button == 0) {
+			update = true;
+			mDown = false;
+			e.preventDefault();
+
+			if(e.ctrlKey) {
+				texMat.uniforms.scale.value.y *= 2.0;
+				texMat.uniforms.translate.value.x *= 0.5;
+				texMat.uniforms.translate.value.y *= 0.5;
+			} else {
+				texMat.uniforms.scale.value.y *= 0.5;
+				texMat.uniforms.translate.value.x *= 2;
+				texMat.uniforms.translate.value.y *= 2;
+			}
+		}
+	});
+
+	$(window).mousemove(function(e) {
+		if(mDown) {
+			var dx = e.screenX - mx;
+			var dy = e.screenY - my;
+			texMat.uniforms.translate.value.x -= dx / h;
+			texMat.uniforms.translate.value.y += dy / h;
+			mx = e.screenX;
+			my = e.screenY;
+			update = true;
+			e.preventDefault();
+		}
+	});
+
+	$(window).mouseup(function() {
+		mDown = false;
+	});
 })();
