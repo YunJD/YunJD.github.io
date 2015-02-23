@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href='css/bootstrap.min.css' />
+		<script type="text/javascript" src='mathjax/MathJax.js?config=TeX-AMS_HTML'></script>
+		<script type="text/javascript">
+			MathJax.Hub.Config({
+				tex2jax: {inlineMath: [['$/', '/$']]},
+			});
+		</script>
+	</head>
+	<body>
+
+		<div class="container">
+			<article>
+				<h1>Linear Regression I <small><a href="./exercises/linreg1.tar.gz">Exercise Solutions (linreg1.tar.gz)</a></small></h1>
+				
+				<div class="page-header">
+					<h2>Definitions</h2>
+				</div>
+				<div class="row">
+					<div class="col-xs-1"><p>$/n_m/$</p></div>
+					<div class="col-xs-6">Number of learning examples</div>
+				</div>
+
+				<div class="row">
+					<div class="col-xs-1"><p>$/x/$</p></div>
+					<div class="col-xs-6">Independant Variable / Feature</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-1"><p>$/y/$</p></div>
+					<div class="col-xs-6">Dependant Variable / Prediction Target</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-1"><p>$/h : x \rightarrow y/$</p></div>
+					<div class="col-xs-6"><p>Hypothesis: The function used to map $/x/$ to $/y/$ for predictions, not to be confused with other kinds such as scientific hypotheses</p></div>
+				</div>
+				<div class="row">
+					<div class="col-xs-1"><p>$/(x^{(i)}, y^{(i)})/$</p></div>
+					<div class="col-xs-6"><p>The $/i^{th}/$ training example</p></div>
+				</div>
+
+
+				<div class="page-header">
+					<h2>Model Representation</h2>
+				</div>
+
+				<p>So how do we represent $/h/$?</p>
+
+				<p>The line equation: $$h(x) = \theta_0 + \theta_1 x$$ Clearly here we have only one feature, though there can potentially be more than one.  It is possible to then express the hypothesis as: $$h(x) = \theta_0 + \theta_1 x_1 + \theta_2 x_2$$ </p>
+				<h3><small>Note: can be notated as $/h_{\theta}(x)/$ for clarity.</small></h3>
+
+				<p>This generalizes to a hyperplane: $$h(x) = \sum_{i=0}^{n}{\theta_i x_i}$$ Where we let $/x_0 = 1/$ for conciseness (a feature that is always 1 to form the intercept).</p>
+				<p>Vector notation for those who like to be efficient: $$\boldsymbol \theta \cdot \mathbf x = \boldsymbol \theta^\top \mathbf x$$</p>
+
+				<div class="page-header">
+					<h2>Cost Function</h2>
+				</div>
+
+				<p>Used to fit the parameters of the models.</p>
+				<p>$/\theta_i/$ : These are known as parameters, and are what we want to solve for.</p>
+				<p>To fit the line, attempt to make $/h_\theta(x)/$ close to $/y/$ from the training set.</p>
+				<p>We can try to minimize $/\theta/$ for the following function (cost function):$$J(\theta) = \frac{1}{2n_m} \sum_{i=1}^{n_m} {(h_\theta(x^{(i)}) - y^{(i)})^2}$$</p>
+				<h3><small>Note: This is just the mean squared error. The division by 2 simplifies differentiating. $/J(\theta)/$ is just some extra notation that will be used.</small></h3>
+				<h3><small>Note 2: The minimization is also known as <label>ordinary least-squares.</label></small></h3>
+				<div class="page-header">
+					<h2>Gradient Descent</h2>
+				</div>
+
+				<p>
+					A fairly general algorithm used in many different problems:
+					<ul>
+						<li>
+							Start with some $/\theta_0, \theta_1/$ (e.g. $/(0, 0)/$)
+						</li>
+						<li>
+							Keep changing $/\theta_0, \theta_1/$ to reduce $/J(\theta_0, \theta_1)/$ until a minimum is reached
+						</li>
+					</ul>
+
+					Given a graph:
+				</p>
+				<div class="jumbotron text-center">
+					<img src="images/fff.png"/>
+				</div>
+				<p>
+					We can start by asking, if we were to take a step, which direction would result in the greatest decrease (seems like a greedy algorithm).  In mathy pseudocode:
+				</p>
+				<p> Repeat until convergence {
+					$$\theta_j := \theta_j - \alpha \frac{\partial}{\partial \theta_j}J(\theta_0, \theta_1),\forall j$$ 
+				}
+				</p>
+				<p>
+					$/\alpha/$ is called the 'learning rate' and controls the size of the step.  This is clearly only good for finding local minima though.
+				</p>
+				<h3><small>Note that we are updating $/\theta_0, \theta_1/$ in this case but are also using them in $/\theta_j - \alpha \frac{\partial}{\partial \theta_j}J(\theta_0, \theta_1)/$.  Temp variables, wink wink nudge nudge.</small></h3>
+				<p>
+					Some intuition: imagine that the partial derivative $/\frac{\partial}{\partial \theta_0}J(\theta_0, \theta_1)/$ has a positive slope.  This means that as $/\theta_0/$ increases, $/J(\theta_0, \theta_1)/$ increases, and by subtracting from the partial derivative, we clearly decrease $/J(\theta_0, \theta_1)/$. Works similarly in the negative slope case due to the negation.
+				</p>
+				<div class="jumbotron text-center">
+					<img src="images/gradient_desc_1.png" style="height: 400px"/>
+				</div>
+
+				<p>
+					If $/\alpha/$ is either too small or too large, it can take too long or overshoot, respectively.
+				</p>
+				<p>
+					Interestingly, as we approach a local minimum, the slope decreases and will force smaller steps with constant $/\alpha/$(kindergarten math, a tangent's slope decreases as it reaches local minimum and switches signs. Minima/Maxima have tangents with slope 0).
+				</p>
+
+				<div class="page-header">
+					<h2>Gradient Descent for Linear Regression</h2>
+				</div>
+
+				<p>
+					Recalling the cost function from before, we can compute its partial derivatives: $$J(\theta) = \frac{1}{2 n_m} \sum_{i = 1}^{n_m} (h(x^{(i)}) - y^{(i)})^2$$
+
+					Substituting $/ h(x) = \theta_0 + \theta_1 x /$:
+
+					$$ = \frac{1}{2 n_m} \sum_{i = 1}^{n_m}(\theta_0 + \theta_1 x^{(i)} - y^{(i)})^2$$
+					And so, (these partial derivatives also require some kindergarten math...)
+					$$\frac{\partial J}{\partial \theta_0} = \frac{1}{n_m} \sum_{i = 1}^{n_m}(\theta_0 + \theta_1 x^{(i)} - y^{(i)})$$
+					$$ = \frac{1}{n_m}\sum_{i = 1}^{n_m}(h(x^{(i)}) - y^{(i)}),$$
+
+					$$\frac{\partial J}{\partial \theta_1} = \frac{1}{n_m} \sum_{i = 1}^{n_m}\Big[(\theta_0 + \theta_1 x^{(i)} - y^{(i)}) x^{(i)}\Big]$$
+					$$ = \frac{1}{n_m} \sum_{i = 1}^{n_m}\Big[(h(x^{(i)}) - y^{(i)}) x^{(i)}\Big]$$
+
+					Back to the gradient descent algorithm:<br />
+					Repeat until convergence {
+						$$\theta_0 := \theta_0 - \alpha \frac{1}{n_m} \sum_{i = 1}^{n_m}(h(x^{(i)}) - y^{(i)})$$
+						$$\theta_1 := \theta_1 - \alpha \frac{1}{n_m} \sum_{i = 1}^{n_m}\Big[(h(x^{(i)}) - y^{(i)}) x^{(i)}\Big]$$
+					}
+				</p>
+				<p>
+					But what about that local minima issue?  Well, our nice cost function is convex.  In other words, it's like a parabola.
+				</p>
+
+				<h3><strong>"Batch" Gradient Descent</strong></h3>
+
+				<p>
+					As a final note, the above algorithm is referred to as "batch" gradient descent since each step uses all of the training examples. That's what I'm told anyways.
+				</p>
+				<div class="page-header">
+					<h2>Note to Self: Matrix Notation</h2>
+				</div>
+				<p>It is possible to take the sum and completely replace it with matrix notation. This can help condense the implementation in Octave/Matlab.  Probably more efficient too since loops are bad in these languages apparently.</p>
+				<p>Define:</p>
+				$$\mathbf X = \begin{bmatrix}
+					1 & x^{(0)}_1 & x^{(0)}_2 & \cdots \\
+					1 & x^{(1)}_1 & x^{(1)}_2 & \cdots \\
+					\vdots & \vdots & \vdots & \ddots \\
+					1 & x^{(n_m)}_1 & x^{(n_m)}_2 & \cdots
+				\end{bmatrix},
+				\boldsymbol\theta = \begin{bmatrix}
+					\theta_0 \\ \theta_1 \\ \theta_2 \\ \vdots
+				\end{bmatrix},
+				\mathbf Y = \begin{bmatrix}
+					y^{(0)} \\
+					y^{(1)} \\
+					y^{(2)} \\
+					\vdots \\
+					y^{(n_m)}
+				\end{bmatrix}$$
+				<p>Then, it follows that the gradient descent step becomes:</p>
+				$$ \boldsymbol \theta := \boldsymbol \theta - \alpha \frac{1}{n_m} \mathbf X^\top (\mathbf X \boldsymbol \theta - \mathbf Y) $$
+				<p>Obviously, the reason it's called 'gradient' descent is because:</p>
+				$$ \boldsymbol \theta := \boldsymbol \theta - \alpha \nabla J$$
+			</article>
+		</div>
+
+		<script type="text/javascript" src='js/jquery.min.js'></script>
+		<script type="text/javascript" src='js/bootstrap.min.js'></script>
+	</body>
+</html>
