@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href='css/bootstrap.min.css' />
+		<script type="text/javascript" src='mathjax/MathJax.js?config=TeX-AMS_HTML'></script>
+		<script type="text/javascript">
+			MathJax.Hub.Config({
+				tex2jax: {inlineMath: [['$/', '/$']]},
+			});
+		</script>
+	</head>
+	<body>
+
+		<div class="container">
+			<article>
+				<h1>Linear Regression II <small><a href="./exercises/linreg2.tar.gz">Exercise Solutions (linreg2.tar.gz - not available yet)</a></small></h1>
+				These notes are based on Andrew Ng's online course found <a href="http://openclassroom.stanford.edu/MainFolder/CoursePage.php?course=MachineLearning">here</a>
+				<div class="page-header">
+					<h2>Definitions</h2>
+				</div>
+				<div class="row">
+					<div class="col-xs-1"><p>$/n_m/$</p></div>
+					<div class="col-xs-6">Number of learning examples</div>
+				</div>
+
+				<div class="row">
+					<div class="col-xs-1"><p>$/x/$</p></div>
+					<div class="col-xs-6">Independant Variable / Feature</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-1"><p>$/y/$</p></div>
+					<div class="col-xs-6">Dependant Variable / Prediction Target</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-1"><p>$/h : x \rightarrow y/$</p></div>
+					<div class="col-xs-6"><p>Hypothesis: The function used to map $/x/$ to $/y/$ for predictions</p></div>
+				</div>
+				<div class="row">
+					<div class="col-xs-1"><p>$/(x^{(i)}, y^{(i)})/$</p></div>
+					<div class="col-xs-6"><p>The $/i^{th}/$ training example</p></div>
+				</div>
+
+
+				<div class="page-header">
+					<h2>Feature Scaling</h2>
+				</div>
+				<p>Remember how $/J(\theta)/$ (least squares) is a parabolic function.  If, say, there are two features $/x_1: [0, 2000]/$ and $/x_2: [0, 4]/$, the parabola will be elongated in one direction to the proportion of $/\frac{x_2}{x_1} = \frac{2000}{4}/$.  Gradient descent will then be prone to oscillations. The countour graph below captures the gist of it.</p>
+				<div class="jumbotron text-center">
+					<img src="images/grad_desc_2.gif" style="height:200px"/>
+				</div>
+				<p>One possible fix is to scale/normalize all the features: $$x^{(j)} = \frac{x^{(j)}}{\max \{\forall j: x^{(j)}\}}$$
+				</p>
+				<p>It is also possible to normalize the mean: $$ x^{(j)} = \frac{x^{(j)} - E(x)}{\max \{\forall j: x^{(j)}\}} $$ Which makes the mean 0.</p>
+				<p>We can scale by dividing the standard deviation or use max - min.  So many options.  As long as they're similarly proportioned.</p>
+
+				<div class="page-header">
+					<h2>Feature Selection and Polynomial Regression</h2>
+				</div>
+
+				<p>At times in linear regression, we have a choice of what features we can use.  For example, we can calculate the price of a house via its lot size: $$h_\theta(width, height) = \theta_0 + \theta_1 \cdot width + \theta_2 \cdot height$$ Or we can calculate it based on the area, which may be a much better metric:
+					$$h_\theta(width, height) = \theta_0 + \theta_1 \cdot width \cdot height$$
+				</p>
+				<p>At times polynomial regression may be desirable over lines: $$h(x) = \theta_0 + \theta_1 x + \theta_2 x^2 + \cdots$$
+				Don't forget to normalize $/x/$, $/x^2/$, and $/x^3/$ to comparable sizes for gradient descent.
+				There's also nothing wrong with choosing models in the form of $$h(\theta) = \theta_0 + \theta_1 x^{a_1} + \theta_2 x^{a_2} + \cdots$$
+				</p>
+				<div class="page-header">
+					<h2>Normal Equation (analytic solution)</h2>
+				</div>
+
+				<p>It is possible to solve least squares analytically, without gradient descent. With some kindergarten math, we know that at the minimum, the derivative is 0.  So, beginning with: 
+				</p>
+				<p>Define:</p>
+				$$\mathbf X = \begin{bmatrix}
+					1 & x^{(0)}_1 & x^{(0)}_2 & \cdots \\
+					1 & x^{(1)}_1 & x^{(1)}_2 & \cdots \\
+					\vdots & \vdots & \vdots & \ddots \\
+					1 & x^{(n_m)}_1 & x^{(n_m)}_2 & \cdots
+				\end{bmatrix},
+				\boldsymbol\theta = \begin{bmatrix}
+					\theta_0 \\ \theta_1 \\ \theta_2 \\ \vdots
+				\end{bmatrix},
+				\mathbf Y = \begin{bmatrix}
+					y^{(0)} \\
+					y^{(1)} \\
+					y^{(2)} \\
+					\vdots \\
+					y^{(n_m)}
+				\end{bmatrix}$$
+				<p>Gradient descent step:</p>
+				$$ \boldsymbol \theta := \boldsymbol \theta - \alpha \frac{1}{n_m} \mathbf X^\top (\mathbf X \boldsymbol \theta - \mathbf Y) $$</p>
+				<p>Instead solve the partial derivative when set to 0:</p>
+				$$ \mathbf X^\top (\mathbf X \boldsymbol \theta - \mathbf Y) = \mathbf 0$$
+				$$ \mathbf X^\top \mathbf X \boldsymbol \theta - \mathbf X^{\top} \mathbf Y = \mathbf 0 $$
+				$$ \mathbf X^\top \mathbf X \boldsymbol \theta = \mathbf X^{\top} \mathbf Y $$
+				$$ \boldsymbol \theta = (\mathbf X^\top \mathbf X)^{-1} \mathbf X^{\top} \mathbf Y $$
+				<p>Where $/\mathbf X^\top \mathbf X/$ can be singular:</p>
+				<ul>
+					<li>
+						Too many features (i.e. $/n_m \leq n/$).
+						<br />
+						<strong>Solution:</strong> regularization or feature deletion.
+					</li>
+					<li>
+						Redundant features (i.e. Linearly dependant features).
+					</li>
+				</ul>
+			</article>
+		</div>
+
+		<script type="text/javascript" src='js/jquery.min.js'></script>
+		<script type="text/javascript" src='js/bootstrap.min.js'></script>
+	</body>
+</html>
