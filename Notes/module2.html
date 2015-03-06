@@ -90,8 +90,8 @@
 				<p>Gradient descent step:</p>
 				$$ \boldsymbol \theta := \boldsymbol \theta - \alpha \frac{1}{n_m} \mathbf X^\top (\mathbf X \boldsymbol \theta - \mathbf Y) $$</p>
 				<p>Instead solve the partial derivative when set to 0:</p>
-				$$ \mathbf X^\top (\mathbf X \boldsymbol \theta - \mathbf Y) = \mathbf 0$$
-				$$ \mathbf X^\top \mathbf X \boldsymbol \theta - \mathbf X^{\top} \mathbf Y = \mathbf 0 $$
+				$$ \frac{1}{n_m} \mathbf X^\top (\mathbf X \boldsymbol \theta - \mathbf Y) = \mathbf 0$$
+				$$ \mathbf X^\top \mathbf X \boldsymbol \theta - \mathbf X^{\top} \mathbf Y = n_m \mathbf 0$$
 				$$ \mathbf X^\top \mathbf X \boldsymbol \theta = \mathbf X^{\top} \mathbf Y $$
 				$$ \boldsymbol \theta = (\mathbf X^\top \mathbf X)^{-1} \mathbf X^{\top} \mathbf Y $$
 				<p>Where $/\mathbf X^\top \mathbf X/$ can be singular:</p>
