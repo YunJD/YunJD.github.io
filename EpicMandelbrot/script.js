@@ -35,6 +35,14 @@
 		return false;
 	}
 
+
+  var texSettings = {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    format: THREE.RGBAFormat,
+    type: THREE.FloatType
+  };
+
 	var renderer = new THREE.WebGLRenderer({canvas: document.getElementById("view")});
 	renderer.setClearColor( 0x000000, 1 );
 	renderer.autoClear = false;
@@ -87,6 +95,7 @@
 		fragmentShader: $("#draw-shader").val(),
 		depthWrite: false
 	});
+	var update;
 
 	var plane = new THREE.PlaneGeometry(1, 1);
 	var mesh = new THREE.Mesh(plane, texMat);
@@ -99,31 +108,26 @@
 
 	updateShader();
 	resize();
-	var update = false;
 
 	//Actually draw what was computed.
 	draw();
 
-  function swapValues() {
-  }
 	function draw() {
 		if(update) {
 			update = false;
-			renderer.render(scene, camera, mandelbrotTex.value, true);
-			drawMat.uniforms.passes.value = 1.0;
+      mandelbrotTex.value = new THREE.WebGLRenderTarget(w, h, texSettings);
+      mandelbrotTexTarget.value = new THREE.WebGLRenderTarget(w, h, texSettings);
+			drawMat.uniforms.passes.value = 0;
 		}
 
-		if(drawMat.uniforms.passes.value == 16) {
+		if(drawMat.uniforms.passes.value >= 16) {
 			requestAnimationFrame(draw);
 			return;
 		}
 
-
 		renderer.render(scene, camera, mandelbrotTexTarget.value);
     //Swap!
-    var oldTex = mandelbrotTex.value;
-    mandelbrotTex.value = mandelbrotTexTarget.value;
-    mandelbrotTexTarget.value = oldTex;
+    mandelbrotTexTarget.value = [mandelbrotTex.value, mandelbrotTex.value = mandelbrotTexTarget.value][0];
 
 		texMat.uniforms.pxDisp.value.x = Math.random() / w;
 		texMat.uniforms.pxDisp.value.y = Math.random() / h;
@@ -131,7 +135,7 @@
 
 		++drawMat.uniforms.passes.value;
 		
-		var oldMat = mesh.material
+		var oldMat = mesh.material;
 		mesh.material = drawMat;
 
 		renderer.render(scene, camera);
@@ -167,15 +171,6 @@
 		camera.top = 1;
 		camera.bottom = -1;
 		camera.updateProjectionMatrix();
-
-		mandelbrotTex.value = new THREE.WebGLRenderTarget(w, h, {
-			minFilter: THREE.LinearFilter,
-			magFilter: THREE.LinearFilter,
-			format: THREE.RGBAFormat,
-			type: THREE.FloatType
-		});
-    mandelbrotTexTarget.value = mandelbrotTex.value.clone();
-
 
 		texMat.uniforms.scale.value.x = asp;
 

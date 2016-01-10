@@ -98,7 +98,7 @@
 
     void main()
     {
-        vec4 color = texture2D(mandelbrotTex, vUv) + vec4(mandelbrot(), 1.0);
+        vec4 color = texture2D(mandelbrotTex, vUv) + vec4(mandelbrot(), 1.);
         gl_FragColor = color;
     }
 </textarea>
@@ -110,7 +110,8 @@
     void main()
     {
         vec4 color = texture2D(mandelbrotTex, vUv);
-        gl_FragColor = color / passes;
+        color = color / (color.a - 1.);
+        gl_FragColor = vec4(vec3(color), 1.0);
     }
 </textarea>
         </div>
