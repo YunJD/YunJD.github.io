@@ -48,6 +48,12 @@
 		type: 't',
 		value: null
 	};
+  //Input cannot be the same as output, so use this to swap textures around.
+  var mandelbrotTexTarget = {
+    type: 't',
+    value: null
+  };
+
 	var texMat = new THREE.ShaderMaterial({
 		uniforms: {
 			mandelbrotTex: mandelbrotTex,
@@ -97,6 +103,9 @@
 
 	//Actually draw what was computed.
 	draw();
+
+  function swapValues() {
+  }
 	function draw() {
 		if(update) {
 			update = false;
@@ -110,7 +119,11 @@
 		}
 
 
-		renderer.render(scene, camera, mandelbrotTex.value);
+		renderer.render(scene, camera, mandelbrotTexTarget.value);
+    //Swap!
+    var oldTex = mandelbrotTex.value;
+    mandelbrotTex.value = mandelbrotTexTarget.value;
+    mandelbrotTexTarget.value = oldTex;
 
 		texMat.uniforms.pxDisp.value.x = Math.random() / w;
 		texMat.uniforms.pxDisp.value.y = Math.random() / h;
@@ -161,6 +174,7 @@
 			format: THREE.RGBAFormat,
 			type: THREE.FloatType
 		});
+    mandelbrotTexTarget.value = mandelbrotTex.value.clone();
 
 
 		texMat.uniforms.scale.value.x = asp;
