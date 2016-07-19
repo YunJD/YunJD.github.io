@@ -50,8 +50,9 @@
 	var w, h;
 
 	var camera = new THREE.OrthographicCamera(
-		0,0,0,0,1,1000
+		-1,1,1,-1,1,1000
 	);
+
 	var mandelbrotTex = {
 		type: 't',
 		value: null
@@ -99,7 +100,7 @@
 
 	var plane = new THREE.PlaneGeometry(1, 1);
 	var mesh = new THREE.Mesh(plane, texMat);
-	mesh.scale.y = 2;
+	mesh.scale.y = mesh.scale.x = 2;
 	//WebGL coordinate system is right-handed.
 	mesh.translateZ(-100);
 
@@ -166,15 +167,7 @@
 
 		var asp = w / h;
 
-		camera.left = -asp;
-		camera.right = asp;
-		camera.top = 1;
-		camera.bottom = -1;
-		camera.updateProjectionMatrix();
-
 		texMat.uniforms.scale.value.x = asp;
-
-		mesh.scale.x = 2 * asp;
 
 		renderer.setSize(w, h);
 	}
