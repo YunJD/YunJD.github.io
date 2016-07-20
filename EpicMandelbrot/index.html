@@ -101,7 +101,7 @@
                 float ii = -1. + (log(2. * log(BAILOUT2)) - log(.5 * log(r))) / LOG2;
                 vec3 mag = accum * ii / float(i) + (accum - orbit) * (1. - ii) / float(i - 1);
                 
-                return cos(mag * 9. + 7.7) * 0.5 + 0.5;
+                return cos(mag * 19. + 4.7) * 0.5 + 0.5;
             }
         }
 
