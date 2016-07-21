@@ -58,51 +58,47 @@
         return (vec2(x, y) + pxDisp + translate) * scale.y;
     }
 
+    //Bunch of complex ops
+    vec2 cmul(in vec2 a, in vec2 b) {
+      return vec2(
+        a.x * b.x - a.y * b.y,
+        a.x * b.y + a.y * b.x
+      );
+    }
+
+    vec2 cdiv(in vec2 a, in vec2 b) {
+      return vec2(a.x * b.x + a.y * b.y, a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y);
+    }
+
+    float cabs2(in vec2 a) {
+      return a.x * a.x + a.y * a.y;
+    }
+
+    float cabs(in vec2 a) {
+      return sqrt(cabs2(a));
+    }
+
 #define ITERATIONS 500
 #define LOG2 0.69314718056
 
-    vec2 indexMat4(int index) {
-        int row = index / 4;
-        int col = index - 4 * row;
-        return vec2(row, col); 
-    }
-
-    vec3 mandelbrot() 
+    vec3 nova() 
     {
         vec2 c = coord();
         vec2 z = vec2(1., 0.) + c;
-        float iexp = 0.;
+        vec2 root = vec2(7., 0.);
 
         for(int i = 1; i <= ITERATIONS; ++i)
         {
-            float x2 = z.x * z.x; 
-            float x3 = x2 * z.x;
-            
-            float y2 = -z.y * z.y; 
-            float y3 = y2 * z.y;
-
-            vec2 zn = vec2(
-                x3 + 3. * y2 * z.x - 1.,
-                y3 + 3. * x2 * z.y
-            );
-
-            float zr2 = x2 + y2;
-            float zi2 = 2. * z.x * z.y;
-
-            float denom = 3. * (zr2 * zr2 + zi2 * zi2);
+            vec2 z2 = cmul(z, z);
+            vec2 z3 = cmul(z2, z);
+            vec2 z4 = cmul(z3, z);
  
-            zn = z - vec2(
-                zn.x * zr2 + zn.y * zi2, 
-                zn.y * zr2 - zn.x * zi2
-            ) / denom + c;
+            vec2 zn = z - cdiv(z4 - root, z3) / 4. + c;
 
-            float cangle = atan(zn.y, zn.x);
+            float ddiff = cabs(zn - z);
 
-            vec2 diff = zn - z;
-            float cabsd = sqrt(diff.x * diff.x + diff.y * diff.y);
-
-            if(cabsd < 1e-6) {
-                float ii = float(i) / log(sqrt(cabsd));
+            if(ddiff < 1e-6) {
+                float ii = float(i) / log(sqrt(ddiff));
                 return vec3(
                   cos(ii + 1.) * 0.25 + sin(ii + 2.5) * 0.25 + 0.5,
                   cos(ii + 1.5) * 0.25 + sin(ii + 1.5) * 0.25 + 0.5,
@@ -117,7 +113,7 @@
 
     void main()
     {
-        vec4 color = texture2D(mandelbrotTex, vUv) + vec4(mandelbrot(), 1.);
+        vec4 color = texture2D(mandelbrotTex, vUv) + vec4(nova(), 1.);
         gl_FragColor = color;
     }
 </textarea>

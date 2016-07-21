@@ -10,9 +10,7 @@
 <body>
     <div class="tool-wrapper">
         <div class="fade-panel btn">
-            <a href="javascript:void(0);" id="toggle-frag">
-                I'll write my own shader!
-            </a>
+            <a href="javascript:void(0);" id="toggle-frag"> I'll write my own shader!  </a>
         </div>
         <div class="fade-panel btn" style="display:none">
             <a href="javascript:void(0);" id="recompile"><span class="glyphicon glyphicon-refresh"></span></a>
@@ -69,6 +67,14 @@
         return vec2(row, col); 
     }
 
+    //Bunch of complex ops
+    vec2 cmul(in vec2 a, in vec2 b) {
+      return vec2(
+        a.x * b.x - a.y * b.y,
+        a.x * b.y + a.y * b.x
+      );
+    }
+
     vec3 mandelbrot() 
     {
         vec2 c = coord();
@@ -77,11 +83,7 @@
 
         for(int i = 0; i < ITERATIONS; ++i)
         {
-            float temp = z.y;
-            z.y = 2.0 * z.x * z.y;
-            z.x = z.x * z.x - temp * temp;
-
-            z += c;
+            z = cmul(z, z) + c;
 
             float r = z.x * z.x + z.y * z.y; 
 

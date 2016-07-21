@@ -72,7 +72,7 @@
 			},
 			translate: {
 				type: 'v2',
-				value: new THREE.Vector2(-0.2, 0)
+				value: new THREE.Vector2(0, 0)
 			},
 			pxDisp: {
 				type: 'v2',
@@ -199,7 +199,7 @@
     update = true;
     mDown = false;
 
-    var delta = e.originalEvent.wheelDelta / 120.;
+    var delta = e.originalEvent.wheelDelta / 480.;
     if(e.originalEvent.wheelDelta < 0) {
       delta *= -1.;
       texMat.uniforms.scale.value.y *= 1. + delta;
