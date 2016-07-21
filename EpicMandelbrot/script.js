@@ -68,7 +68,7 @@
 			mandelbrotTex: mandelbrotTex,
 			scale: {
 				type: 'v2',
-				value: new THREE.Vector2(1.0, 2.0)
+				value: new THREE.Vector2(1.0, 1.1)
 			},
 			translate: {
 				type: 'v2',
@@ -194,22 +194,23 @@
 		}
 	});
 
-	$("#view").dblclick(function(e) {
-		if(e.button == 0) {
-			update = true;
-			mDown = false;
-			e.preventDefault();
+	$("#view").bind('mousewheel', function(e) {
+    e.preventDefault();
+    update = true;
+    mDown = false;
 
-			if(e.ctrlKey) {
-				texMat.uniforms.scale.value.y *= 2.0;
-				texMat.uniforms.translate.value.x *= 0.5;
-				texMat.uniforms.translate.value.y *= 0.5;
-			} else {
-				texMat.uniforms.scale.value.y *= 0.5;
-				texMat.uniforms.translate.value.x *= 2;
-				texMat.uniforms.translate.value.y *= 2;
-			}
-		}
+    var delta = e.originalEvent.wheelDelta / 120.;
+    if(e.originalEvent.wheelDelta < 0) {
+      delta *= -1.;
+      texMat.uniforms.scale.value.y *= 1. + delta;
+      texMat.uniforms.translate.value.x /= 1. + delta;
+      texMat.uniforms.translate.value.y /= 1. + delta;
+    }
+    else {
+      texMat.uniforms.scale.value.y /= 1. + delta;
+      texMat.uniforms.translate.value.x *= 1. + delta;
+      texMat.uniforms.translate.value.y *= 1. + delta;
+    }
 	});
 
 	$(window).mousemove(function(e) {
