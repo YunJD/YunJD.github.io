@@ -53,9 +53,7 @@
     //Map to the proper window extents.
     vec2 coord() 
     {
-        float x = vUv.x * 2.0 * scale.x - scale.x;
-        float y = vUv.y * 2.0 - 1.0;
-        return (vec2(x, y) + pxDisp + translate) * scale.y;
+        return ((vUv * 2. - 1.) * vec2(scale.x, 1.) + pxDisp + translate) * scale.y;
     }
 
     //Bunch of complex ops
@@ -85,15 +83,14 @@
     {
         vec2 c = coord();
         vec2 z = vec2(1., 0.) + c;
-        vec2 root = vec2(7., 0.);
+        vec2 root = vec2(1., 0.);
 
         for(int i = 1; i <= ITERATIONS; ++i)
         {
             vec2 z2 = cmul(z, z);
             vec2 z3 = cmul(z2, z);
-            vec2 z4 = cmul(z3, z);
  
-            vec2 zn = z - cdiv(z4 - root, z3) / 4. + c;
+            vec2 zn = z - cdiv(z3 - root, z2) / 3. + c;
 
             float ddiff = cabs(zn - z);
 
