@@ -97,7 +97,7 @@
             float ddiff = cabs(zn - z);
             ii += sqrt(1. / ddiff);
 
-            if(ddiff < 5e-7) {
+            if(ddiff < 1e-6) {
                 ii = 2.5 + float(i) / log(ii);
                 return vec3(
                   cos(ii * 1.2 + 1.) * 0.25 + sin(ii * 1.2 + 2.5) * 0.25 + 0.5,
