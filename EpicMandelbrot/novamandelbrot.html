@@ -84,6 +84,8 @@
         vec2 c = coord();
         vec2 z = vec2(1., 0.) + c;
         vec2 root = vec2(1., 0.);
+        float ii = 0.;
+        float ii2 = 0.;
 
         for(int i = 1; i <= ITERATIONS; ++i)
         {
@@ -93,13 +95,14 @@
             vec2 zn = z - cdiv(z3 - root, z2) / 3. + c;
 
             float ddiff = cabs(zn - z);
+            ii += sqrt(1. / ddiff);
 
-            if(ddiff < 1e-5) {
-                float ii = float(i) / log(sqrt(ddiff));
+            if(ddiff < 5e-7) {
+                ii = 2.5 + float(i) / log(ii);
                 return vec3(
-                  cos(ii + 1.) * 0.25 + sin(ii + 2.5) * 0.25 + 0.5,
-                  cos(ii + 1.5) * 0.25 + sin(ii + 1.5) * 0.25 + 0.5,
-                  cos(ii + 2.2) * 0.25 + sin(ii + 1.) * 0.25 + 0.5
+                  cos(ii * 1.2 + 1.) * 0.25 + sin(ii * 1.2 + 2.5) * 0.25 + 0.5,
+                  cos(ii * 1.2 + 1.5) * 0.25 + sin(ii * 1.2 + 1.5) * 0.25 + 0.5,
+                  cos(ii * 1.2 + 2.2) * 0.25 + sin(ii * 1.2 + 1.) * 0.25 + 0.5
                 );
             }
             z = zn;
