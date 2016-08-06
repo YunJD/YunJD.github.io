@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
     <title>
@@ -82,28 +82,30 @@
     vec3 nova() 
     {
         vec2 c = coord();
+        c = cmul(vec2(0., 1.), c) - vec2(0.55, 0.);
         vec2 z = vec2(1., 0.) + c;
         vec2 root = vec2(1., 0.);
         float ii = 0.;
-        float ii2 = 0.;
 
         for(int i = 1; i <= ITERATIONS; ++i)
-        {
+        {   
             vec2 z2 = cmul(z, z);
             vec2 z3 = cmul(z2, z);
+                
  
             vec2 zn = z - cdiv(z3 - root, z2) / 3. + c;
+ 
 
-            float ddiff = cabs(zn - z);
-            ii += sqrt(1. / ddiff);
+            float ddiff = cabs2(zn - z); 
+            ii += log(0.5 * abs(1. / sin(log(ddiff))) + abs(1. / cos(log(ddiff))));
 
             if(ddiff < 1e-6) {
-                ii = 2.5 + float(i) / log(ii);
-                return vec3(
-                  cos(ii * 1.2 + 1.) * 0.25 + sin(ii * 1.2 + 2.5) * 0.25 + 0.5,
-                  cos(ii * 1.2 + 1.5) * 0.25 + sin(ii * 1.2 + 1.5) * 0.25 + 0.5,
-                  cos(ii * 1.2 + 2.2) * 0.25 + sin(ii * 1.2 + 1.) * 0.25 + 0.5
-                );
+                ii = 5.1 + sqrt(abs(ii));
+                return 0.92 * vec3(
+                  cos(ii + 100.) * 0.25 + sin(ii + 2.5) * 0.25 + 0.5,
+                  cos(ii + 12.5) * 0.25 + sin(ii + 13.5) * 0.25 + 0.5,
+                  cos(ii + 24.2) * 0.25 + sin(ii + 13.) * 0.25 + 0.5
+                ) + 0.08;
             }
             z = zn;
         }
