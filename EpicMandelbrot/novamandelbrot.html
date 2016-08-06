@@ -82,8 +82,8 @@
     vec3 nova() 
     {
         vec2 c = coord();
-        c = cmul(vec2(0., 1.), c) - vec2(0.55, 0.);
-        vec2 z = vec2(1., 0.) + c;
+        c = cmul(vec2(0., 1.5), c) - vec2(0.3, 0.);
+        vec2 z = vec2(1., 0.) - 25. * c;
         vec2 root = vec2(1., 0.);
         float ii = 0.;
 
@@ -97,10 +97,10 @@
  
 
             float ddiff = cabs2(zn - z); 
-            ii += log(0.5 * abs(1. / sin(log(ddiff))) + abs(1. / cos(log(ddiff))));
+            ii += log(1. / (abs(1e-5 + sin(log(ddiff) + 0.1))) + 1. / (abs(1e-5 + cos(log(ddiff) + 0.1)))); //Must take care to not divide by 0.
 
             if(ddiff < 1e-6) {
-                ii = 5.1 + sqrt(abs(ii));
+                ii = 4. + sqrt(abs(ii));
                 return 0.92 * vec3(
                   cos(ii + 100.) * 0.25 + sin(ii + 2.5) * 0.25 + 0.5,
                   cos(ii + 12.5) * 0.25 + sin(ii + 13.5) * 0.25 + 0.5,
