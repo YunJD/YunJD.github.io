@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>
+    WebGL Buddhabrot - A GPU experiment
+  </title>
+  <link rel="stylesheet" href="../css/bootstrap.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="render-view">
+  </canvas>
+  <script id="preprocess-shader" type="x-shader/x-fragment">
+    //Can't use uniforms here, because glsl does loop unrolling.
+    #define MAX_ITER {MAX_ITER}
+    /* Pre-calculate a Mandelbrot set which will be used to help with random
+     * sampling. This will make it possible to discard low-iteration escapes and
+     * values that don't escape, giving higher chances of sampling interesting
+     * locations.
+     */
+
+    precision highp float;
+
+    uniform vec2 translate;
+    uniform float scale;
+    varying vec2 vUv;
+
+    vec2 coord() {
+      return (vUv * 2. - 1. + translate) * scale;
+    }
+
+    void main() {
+      vec2 c = coord();
+      vec2 z = vec2(0., 0.);
+
+      for(float i = 0.; i <= MAX_ITER; ++i) {
+        z = cmul(z, z) + c;
+
+        if(cabs2(z) >= 4.) {
+          gl_FragColor = vec4(c, i, 1.);
+          return;
+        }
+      }
+      gl_FragColor = vec4(c, MAX_ITER + 1., 0.);
+    }
+  </script>
+  <script id="mandelbrot-shader" type="x-shader/x-fragment">
+    /* Since Nvidia (and potentially other vendors) do loop unrolling, loops are
+     * limited to some N (4096 on mine) steps.  Instead, perform the loop in 
+     * Javascript.
+     */
+    precision highp float;
+
+    uniform int clear;
+    uniform float maxIter;
+    varying vec2 vUv;
+
+    uniform sampler2D samples;
+    uniform sampler2D steps;
+
+    void main() {
+      vec4 step = clear != 0 ? vec4(0.) : texture2D(steps, vUv);
+
+      if(step.a == 1. || step.b >= maxIter || cabs2(step.xy) >= 4.) {
+        //The alpha channel is used to tell the accumulator to stop.
+        gl_FragColor = vec4(step.xyz, 1.);
+        return;
+      }
+
+      vec4 sample = texture2D(samples, vUv);
+      vec2 c = sample.xy;
+      vec2 z = step.xy;
+
+      z = cmul(z, z) + c;
+
+      gl_FragColor = vec4(z, step.b + 1., 0.);
+    }
+  </script>
+
+  <script id="complex-ops" type="x-shader/x-glsl">
+    //Bunch of complex ops
+    vec2 cmul(in vec2 a, in vec2 b) {
+      return vec2(
+        a.x * b.x - a.y * b.y,
+        a.x * b.y + a.y * b.x
+      );
+    }
+
+    vec2 cdiv(in vec2 a, in vec2 b) {
+      return vec2(a.x * b.x + a.y * b.y, a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y);
+    }
+
+    float cabs2(in vec2 a) {
+      return a.x * a.x + a.y * a.y;
+    }
+
+    float cabs(in vec2 a) {
+      return sqrt(cabs2(a));
+    }
+
+  </script>
+
+  <script id="vert-shader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  </script>
+
+  <script id="data-image-shader" type="x-shader/x-fragment">
+    varying vec2 vUv;
+    uniform sampler2D dataImage;
+    uniform vec3 histMax;
+
+    void main() {
+      vec3 color = texture2D(dataImage, vUv).xyz;
+      color = clamp(pow(color, vec3(0.9)) / pow(histMax, vec3(0.75)), 0., 1.);
+      gl_FragColor = vec4(pow(color, vec3(1.4)), 1.);
+    }
+  </script>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script type="text/javascript" src="../scripts/mt.js"></script>
+  <script type="text/javascript" src="../scripts/threejs/Detector.js"></script>
+  <script type="text/javascript" src="../scripts/threejs/three.min.js"></script>
+  <script type="text/javascript" src="../scripts/threejs/stats.min.js"></script>
+  <script type="text/javascript" src="script.js"></script>
+</body>
+</html>
