@@ -36,7 +36,7 @@
       for(float i = 0.; i <= MAX_ITER; ++i) {
         z = cmul(z, z) + c;
 
-        if(cabs2(z) >= 4.) {
+        if(cabs2(z) >= 1e4) {
           gl_FragColor = vec4(c, i, 1.);
           return;
         }
@@ -112,11 +112,13 @@
     varying vec2 vUv;
     uniform sampler2D dataImage;
     uniform vec3 histMax;
+    uniform float invP;
+    uniform float nPasses;
 
     void main() {
       vec3 color = texture2D(dataImage, vUv).xyz;
-      color = clamp(pow(color, vec3(0.9)) / pow(histMax, vec3(0.75)), 0., 1.);
-      gl_FragColor = vec4(pow(color, vec3(1.4)), 1.);
+      color = clamp(color / histMax, 0., 1.);
+      gl_FragColor = vec4(4. * color, 1.);
     }
   </script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>

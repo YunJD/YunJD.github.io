@@ -50,14 +50,14 @@
     PREPROCESS_SIZE: 1500, //Side length of a square texture that determines mandelbrot precompute size.
 
     INTEREST_REGION_DELTA: 1, //Pixels away from regions that have escape iterations within the given range.
-    ESCAPE_RANGE: [32, 2048], //Anything with escape iterations outside this range is ignored. The max is my upper limit on iterations as well, as per typical mandelbrot.
+    ESCAPE_RANGE: [128, 2048], //Anything with escape iterations outside this range is ignored. The max is my upper limit on iterations as well, as per typical mandelbrot.
     SAMPLE_SIZE: 4096, //Sample-size per buddhabrot pass.
     TRANSLATE: new THREE.Vector2(-0.3, 0.),
     SCALE: 1.2,
     COLOR_RANGES: [
-      [200, 2048],
-      [0, 1200],
-      [0, 256]
+      [0, 356],
+      [500, 1600],
+      [700, 2048],
     ]
   };
   /* I've setup my fragment shader so that the texture starts with extents
@@ -222,8 +222,8 @@
 
 
   var k = 0;
-  mesh.material.uniforms.histMax.value = 1;
-  var histMax = new THREE.Vector3(1., 1., 1.);
+  var histMax = new THREE.Vector3(1e-6, 1e-6, 1e-6);
+  mesh.material.uniforms.histMax.value = histMax;
 
   function draw() {
     ++k;
@@ -259,7 +259,8 @@
               stepTex.value.image.data.subarray(j, j + 2),
               histMax,
               colorFlags,
-              j
+              j,
+              i
             );
           }
         }
@@ -269,7 +270,6 @@
         targetStepTex.value = temp;
       }
     }
-    mesh.material.uniforms.histMax.value = histMax;
 
     renderer.render(scene, camera);
     //2 ^ 23 - 1
@@ -351,7 +351,7 @@
 //Helper functions
 //==============================================================================
   //Add +1 to the floor of the sampled pixel coordinate.  return max(max intensity, max).
-  function accumulate(buffer, options, coord, max, colorFlags, n) {
+  function accumulate(buffer, options, coord, max, colorFlags, n, iterations) {
     var bufImg = buffer.image;
 
     /* Perform the inverse of the preprocess shader to map to pixel coords.
@@ -371,7 +371,7 @@
       for(var i = 0; i < 3; ++i) {
         var maxI = String.fromCharCode(120 + i);
         if(colorFlags[n + i]) {
-          bufImg.data[index + i] += 2.;
+          bufImg.data[index + i] += 1;
           max[maxI] = Math.max(bufImg.data[index + i], max[maxI]);
         }
       }
@@ -391,7 +391,7 @@
         if(between(buffer.image.data[index + 2],
             //Have to be careful, because what was sampled could have Goldilocks regions nearby that were missed because of the granularity of the preprocess sampling (which is honestly not that great)
             //12, options.ESCAPE_RANGE[1], true, true
-            Math.min(100, options.ESCAPE_RANGE[0]), Math.min(options.ESCAPE_RANGE[1], 4000.), true, false
+            Math.min(128, options.ESCAPE_RANGE[0]), Math.min(options.ESCAPE_RANGE[1], 4000.), true, false
         )) {
           return true;
         }
