@@ -117,8 +117,8 @@
 
     void main() {
       vec3 color = texture2D(dataImage, vUv).xyz;
-      color = clamp(color / histMax, 0., 1.);
-      gl_FragColor = vec4(4. * color, 1.);
+      color = clamp(4. * color / histMax, 0., 1.);
+      gl_FragColor = vec4(pow(color, vec3(1.3)), 1.);
     }
   </script>
   <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
