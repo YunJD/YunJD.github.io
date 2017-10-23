@@ -1,0 +1,44 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "description": "Web projects",
+  "main": "index.js",
+  "scripts": {
+    "watch-scss": "node-sass -w -r --include-path node_modules src/sass/css.scss static_res/css/css.css"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-minify": "^0.2.0",
+    "babel-preset-2017": "0.0.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-es2017": "^6.24.1",
+    "babel-preset-minify": "^0.2.0",
+    "babel-preset-react": "^6.24.1",
+    "d3": "^4.11.0",
+    "eslint": "^4.6.1",
+    "eslint-plugin-react": "^7.3.0",
+    "html-loader": "^0.5.1",
+    "humps": "^2.0.1",
+    "immutable": "^3.8.1",
+    "moment": "^2.18.1",
+    "node-sass": "^4.5.3",
+    "normalizr": "^3.2.3",
+    "numeral": "^2.0.6",
+    "react-redux": "^5.0.6",
+    "react-swipeable-views": "^0.12.8",
+    "redux": "^3.7.2",
+    "reselect": "^3.0.1",
+    "three": "^0.87.1",
+    "tinycolor2": "^1.4.1",
+    "webpack": "^3.5.6"
+  }
+}
