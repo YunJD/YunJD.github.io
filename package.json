@@ -30,6 +30,7 @@
     "html-loader": "^0.5.1",
     "humps": "^2.0.1",
     "immutable": "^3.8.1",
+    "material-components-web": "^0.25.0",
     "mersenne-twister": "^1.1.0",
     "moment": "^2.18.1",
     "node-sass": "^4.5.3",
