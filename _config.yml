@@ -18,15 +18,12 @@ email: yunjianding@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
     The machinations of a computer scientist with a love for mathematics, art, and music.
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "http://YunJD.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://YunJD.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username:
 github_username: YunJD
 
 # Build settings
 markdown: kramdown
-theme: minima
-plugins:
-  - jekyll-feed
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
