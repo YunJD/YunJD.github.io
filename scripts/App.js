@@ -44420,22 +44420,32 @@ exports.default = function () {
     //Get escape values in bulk first.
     var escapeTestCompute = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
+            usePrev: {
+                type: 'i',
+                value: 0
+            },
             samples: {
                 type: 't',
                 value: escapeTestSamplesTex
             }
         },
-        fragmentShader: (0, _sampleMandelbrotEscape2.default)({ MAX_ITER: MAX_ITER })
-    }, N_SAMPLE_ROOT, N_SAMPLE_ROOT, null);
+        fragmentShader: (0, _sampleMandelbrotEscape2.default)({ MAX_CHUNK: MAX_CHUNK, BAILOUT2: BAILOUT * BAILOUT })
+    }, N_SAMPLE_ROOT, N_SAMPLE_ROOT, 'prev');
     //Used to hold the results for the escape compute.
     var escapeTestResultsBuf = new Float32Array(4 * N_SAMPLES);
     function sampleAndTestEscape() {
         sampleCoordinates(rng, pdf, cdf, escapeTestSamplesTex);
+        escapeTestCompute.material.uniforms.usePrev.value = 0;
         escapeTestCompute.execute();
+        escapeTestCompute.material.uniforms.usePrev.value = 1;
+        for (var i = MAX_CHUNK; i < MAX_ITER; i += MAX_CHUNK) {
+            escapeTestCompute.execute();
+        }
         escapeTestCompute.getData(0, 0, null, null, escapeTestResultsBuf);
     }
 
-    var escapedSamplesTex = new T.DataTexture(new Float32Array(4 * N_SAMPLES), N_SAMPLE_ROOT, N_SAMPLE_ROOT, T.RGBAFormat, T.FloatType);
+    //Give up on bailout computations more quickly because at this point, the location may be out of the screen and won't be drawn!
+    var escapedSamplesTex = new T.DataTexture(new Float32Array(4 * 28 * 28), 28, 28, T.RGBAFormat, T.FloatType);
     //Run in a step-wise fashion, collecting the escaped coordinates.
     var stepCompute = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
@@ -44448,10 +44458,10 @@ exports.default = function () {
                 value: 1
             }
         },
-        fragmentShader: (0, _mandelbrotStep2.default)({ MAX_ITER: MAX_ITER })
-    }, N_SAMPLE_ROOT, N_SAMPLE_ROOT, 'prev');
+        fragmentShader: (0, _mandelbrotStep2.default)({ MAX_ITER: MAX_ITER, BAILOUT2: 4 })
+    }, 28, 28, 'prev');
     //Used to hold the results at each step of the computation. 
-    var stepBuf = new Float32Array(4 * N_SAMPLES);
+    var stepBuf = new Float32Array(4 * 28 * 28);
     var buddhabrotHistogram = new T.DataTexture(new Float32Array(4 * BUDDHABROT_W * BUDDHABROT_H), BUDDHABROT_W, BUDDHABROT_H, T.RGBAFormat, T.FloatType);
     var toIdx = coordToIndex(buddhabrotHistogram, [BUDDHABROT_TRANSLATE_X, 0], BUDDHABROT_SCALE, 4);
 
@@ -44461,12 +44471,17 @@ exports.default = function () {
         var escapeTestSamples = escapeTestSamplesTex.image.data;
         var escapedSamples = escapedSamplesTex.image.data;
         for (var i = 0; i < escapeTestResultsBuf.length; i += 4) {
-            if (escapeTestResultsBuf[i]) {
+            if (escapeTestResultsBuf[i] && escapeTestResultsBuf[i + 1] >= MIN_ITER) {
                 escapedSamples[nEscaped] = escapeTestSamples[i];
                 escapedSamples[nEscaped + 1] = escapeTestSamples[i + 1];
                 escapedSamples[nEscaped + 2] = escapeTestSamples[i + 2];
-                maxEscape = Math.max(escapeTestResultsBuf[i + 1]);
+                //The color
+                escapedSamples[nEscaped + 3] = lowerBound(PALETTE_RANGE, escapeTestResultsBuf[i + 1]) % PALETTE.length;
+                maxEscape = Math.max(maxEscape, escapeTestResultsBuf[i + 1]);
                 nEscaped += 4;
+                if (nEscaped >= escapedSamples.length) {
+                    break;
+                }
             }
         }
         //Use -1 as a signal to the GPU that this sample did not escape.
@@ -44486,12 +44501,17 @@ exports.default = function () {
             nEscaped = _gatherEscapedCoordin.nEscaped,
             maxEscape = _gatherEscapedCoordin.maxEscape;
 
+        console.log('Pass', k, 'Max Escape', maxEscape, 'N Escaped', nEscaped);
+
         if (nEscaped) {
             var histBuf = buddhabrotHistogram.image.data;
             stepCompute.material.uniforms.clear.value = 0;
             for (var i = 0; i <= MAX_ITER; ++i) {
                 stepCompute.execute();
                 stepCompute.getData(0, 0, null, null, stepBuf);
+                if (i < MIN_ITER) {
+                    continue;
+                }
                 for (var j = 0; j < nEscaped; j += 4) {
                     if (stepBuf[j + 3]) {
                         continue;
@@ -44500,17 +44520,19 @@ exports.default = function () {
                     if (histIdx < 0 || histIdx >= histBuf.length) {
                         continue;
                     }
+                    var color = PALETTE[escapedSamplesTex.image.data[j + 3]];
                     var pdfIdx = escapedSamplesTex.image.data[j + 2];
                     var invWeight = pdf[pdfIdx + 3];
-                    histBuf[histIdx] += invWeight;
-                    histBuf[histIdx + 1] += invWeight;
-                    histBuf[histIdx + 2] += invWeight;
+                    histBuf[histIdx] += invWeight * color[0];
+                    histBuf[histIdx + 1] += invWeight * color[1];
+                    histBuf[histIdx + 2] += invWeight * color[2];
                     //maxHist = Math.max(maxHist, histBuf[histIdx]);
                 }
             }
             buddhabrotHistogram.needsUpdate = true;
+            //The issue here is that I have no idea what the probability of sampling within our criteria is and I'm not applying an adaptive approach, so this is a quick hack.
+            maxHist += N_SAMPLES / 16384;
         }
-        maxHist += N_SAMPLES / 4096;
     }
 
     var buddhabrotViewer = new _stuff2.default.gl.ComputeShaderPass({
@@ -44524,11 +44546,12 @@ exports.default = function () {
                 value: buddhabrotHistogram
             }
         },
-        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D histogram;\n            uniform float maxHist;\n\n            void main() {\n                vec3 color = texture2D(histogram, vUv).xyz;\n                color = clamp(6. * color / maxHist, 0., 1.);\n                gl_FragColor = vec4(color, 1.);\n            }\n        '
+        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D histogram;\n            uniform float maxHist;\n\n            void main() {\n                vec3 color = texture2D(histogram, vUv).xyz;\n                color = clamp(50. * color / maxHist, 0., 1.);\n                gl_FragColor = vec4(color, 1.);\n            }\n        '
     }, BUDDHABROT_W, BUDDHABROT_H, undefined, document.getElementById('view'));
 
     var k = 0;
     function draw() {
+        ++k;
         sampleAndTestEscape();
         accumulate();
         buddhabrotViewer.material.uniforms.maxHist.value = maxHist;
@@ -44579,8 +44602,7 @@ exports.default = function () {
     }
     console.log('Time taken to sample 8192 indices (CPU): ' + (new Date() - timer));
      let cdfTex = {
-        type: 't',
-        //Max side-length is probably 16384, so index in a 2D manner.
+        type: 't', //Max side-length is probably 16384, so index in a 2D manner.
         value: new T.DataTexture(cdf, 1024, 1024, T.AlphaFormat, T.FloatType)
     };
     let rngTex = {
@@ -44644,19 +44666,19 @@ var _stuff = __webpack_require__(6);
 
 var _stuff2 = _interopRequireDefault(_stuff);
 
-var _mandelbrot = __webpack_require__(10);
+var _mandelbrot = __webpack_require__(11);
 
 var _mandelbrot2 = _interopRequireDefault(_mandelbrot);
 
-var _sampleMandelbrotEscape = __webpack_require__(11);
+var _sampleMandelbrotEscape = __webpack_require__(12);
 
 var _sampleMandelbrotEscape2 = _interopRequireDefault(_sampleMandelbrotEscape);
 
-var _mandelbrotStep = __webpack_require__(12);
+var _mandelbrotStep = __webpack_require__(13);
 
 var _mandelbrotStep2 = _interopRequireDefault(_mandelbrotStep);
 
-var _mersenneTwister = __webpack_require__(13);
+var _mersenneTwister = __webpack_require__(14);
 
 var _mersenneTwister2 = _interopRequireDefault(_mersenneTwister);
 
@@ -44664,17 +44686,21 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-var MAX_ITER = 1000;
+var BAILOUT = 2;
+//GPUs have a limit to their loop.
+var MAX_CHUNK = 4000;
+var MIN_ITER = 100000;
+var MAX_ITER = 200000;
 
-var HIST_MIN_ITER = 1;
-var HIST_MAX_ITER = 1000;
-var HIST_MAX_WEIGHT = 1000;
+var MIN_HIST_ITER = 800;
+var MAX_HIST_ITER = 100000;
+var HIST_MAX_WEIGHT = 1e6;
 var HIST_W = 2048;
 var HIST_H = 2048;
 var HIST_ASPECT = HIST_W / HIST_H;
-var HIST_TRANSLATE_X = -0.3;
+var HIST_TRANSLATE_X = -0.65;
 var HIST_TRANSLATE_Y = 0.;
-var HIST_SCALE = 2.5;
+var HIST_SCALE = 1.15;
 var JITTER = 2 * HIST_SCALE / HIST_W;
 
 //One side of the renderer can't be too huge, so to get around that use a 2D texture to sample.
@@ -44687,10 +44713,18 @@ var BUDDHABROT_ASPECT = BUDDHABROT_W / BUDDHABROT_H;
 var BUDDHABROT_SCALE = 1.;
 var BUDDHABROT_TRANSLATE_X = -0.3;
 var BUDDHABROT_PIXEL_SIZE = BUDDHABROT_SCALE / BUDDHABROT_H;
-
+var normalizeColor = function normalizeColor(c) {
+    return [(c >> 16) / 255, (c >> 8 & 0xFF) / 255, (c & 0xFF) / 255];
+};
+var PALETTE = [normalizeColor(0xffffff)];
+var PALETTE_RANGE = [0];
 function getMandelbrotHistogram() {
     var mandelbrotHistrCompute = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
+            usePrev: {
+                type: 'i',
+                value: 0
+            },
             scale: {
                 type: 'f',
                 value: HIST_SCALE
@@ -44704,10 +44738,14 @@ function getMandelbrotHistogram() {
                 value: new T.Vector2(HIST_TRANSLATE_X, HIST_TRANSLATE_Y)
             }
         },
-        fragmentShader: (0, _mandelbrot2.default)({ MAX_ITER: HIST_MAX_ITER })
-    }, HIST_W, HIST_H);
+        fragmentShader: (0, _mandelbrot2.default)({ MAX_ITER: MAX_CHUNK, BAILOUT2: BAILOUT * BAILOUT })
+    }, HIST_W, HIST_H, 'prev');
 
     mandelbrotHistrCompute.execute();
+    mandelbrotHistrCompute.material.uniforms.usePrev.value = 1;
+    for (var i = MAX_CHUNK; i < MAX_HIST_ITER; i += MAX_CHUNK) {
+        mandelbrotHistrCompute.execute();
+    }
     var mandelbrotHistr = mandelbrotHistrCompute.getData();
 
     mandelbrotHistrCompute.dispose();
@@ -44718,6 +44756,9 @@ function getMandelbrotHistogram() {
 function getInterestingCoordinates(histogram) {
     var distribution = {};
     var getIndex = function getIndex(x, y) {
+        if (x < 0 || y < 0 || x >= HIST_W || y >= HIST_H) {
+            return -1;
+        }
         return 4 * (x + y * HIST_W);
     };
 
@@ -44730,31 +44771,36 @@ function getInterestingCoordinates(histogram) {
             var index = getIndex(x, y);
 
             var weight = histogram[index + 2];
-            if (histogram[index + 3] == 1. && weight >= HIST_MIN_ITER) {
-                ++nPieces;
+            if (histogram[index + 3] == 0. || weight < MIN_HIST_ITER) {
+                continue;
+            }
+            ++nPieces;
 
-                weight = Math.min(weight, HIST_MAX_WEIGHT);
-                distribution[index] = [histogram[index], histogram[index + 1], weight];
-                cumulativeWeights += weight;
+            weight = Math.min(weight, HIST_MAX_WEIGHT);
+            distribution[index] = [histogram[index], histogram[index + 1], weight];
+            cumulativeWeights += weight;
+            continue;
 
-                //For the surrounding pixels
-                for (var dy = -1; dy <= 1; ++dy) {
-                    for (var dx = -1; dx <= 1; ++dx) {
-                        var dIndex = getIndex(x + dx, y + dy);
-                        if (!(dIndex in distribution) && (histogram[dIndex + 3] == 0. || histogram[dIndex + 2] < HIST_MIN_ITER)) {
-                            ++nPieces;
-
-                            /* I assign a small sample probability to the surrounding coordinates that were unable to
-                             * escape. This is because a pixel takes up a small region, and our sampling (the top left 
-                             * of the pixel) may have simply been unlucky (the Mandelbrot shape is complex, no pun 
-                             * intended).
-                             * TODO: We can update the probability to sample that pixel region using an adaptive
-                             * algorithm.
-                             */
-                            distribution[dIndex] = [histogram[dIndex], histogram[dIndex + 1], weight * 0.1];
-                            cumulativeWeights += weight * 0.1;
-                        }
+            //For the surrounding pixels
+            for (var dy = -1; dy <= 1; ++dy) {
+                for (var dx = -1; dx <= 1; ++dx) {
+                    var dIndex = getIndex(x + dx, y + dy);
+                    if (dIndex == -1 || dy == 0 && dx == 0 || dIndex in distribution || histogram[dIndex + 3] != 0. && histogram[dIndex + 2] >= MIN_HIST_ITER) {
+                        continue;
                     }
+
+                    ++nPieces;
+
+                    /* I assign a small sample probability to the surrounding coordinates that were unable to
+                     * escape. This is because a pixel takes up a small region, and our sampling (the top left 
+                     * of the pixel) may have simply been unlucky (the Mandelbrot shape is complex, no pun 
+                     * intended).
+                     * TODO: We can update the probability to sample that pixel region using an adaptive
+                     * algorithm.
+                     */
+                    //For unescaped values, we have to calculate the coordinates because the shader returned z rather than c.
+                    distribution[dIndex] = [(2 * (x + dx + 0.5) / HIST_W - 1.) * HIST_ASPECT * HIST_SCALE + HIST_TRANSLATE_X, (2 * (y + dy + 0.5) / HIST_H - 1.) * HIST_SCALE + HIST_TRANSLATE_Y, weight * 0.1];
+                    cumulativeWeights += weight * 0.1;
                 }
             }
         }
@@ -44785,6 +44831,7 @@ function getInterestingCoordinates(histogram) {
         pdfSum += _weight;
     }
 
+    console.log('Bins', nPieces);
     if (i < nPieces) {
         throw 'The number of bins, ' + nPieces + ', is less than the number of items in the distribution ' + i + '.  \n            Duplicate indices may have occured when calculating interesting points because the surrounding pixel test is not mutually exclusive from the normal escape test.';
     }
@@ -44869,8 +44916,8 @@ function sampleCoordinates(rng, pdf, cdf, texture) {
         var rand = rng.random();
         var a = lowerBound(cdf, rand);
         a *= 4;
-        samplesBuf[i] = pdf[a] + rng.random() * JITTER;
-        samplesBuf[i + 1] = pdf[a + 1] + rng.random() * JITTER;
+        samplesBuf[i] = pdf[a] + rng.random() * JITTER - 0.5 * JITTER;
+        samplesBuf[i + 1] = pdf[a + 1] + rng.random() * JITTER - 0.5 * JITTER;
         samplesBuf[i + 2] = a; //Remember the index for the pdf.
     }
 }
@@ -44884,6 +44931,9 @@ function visualizeMandelbrotPdf(pdf) {
 
     for (var index = 0; index < pdf.length; index += 4) {
         var imgIndex = pdfToPixel(pdf, index);
+        if (imgIndex == -1) {
+            continue;
+        }
         maxPdf = Math.max(maxPdf, pdf[index + 2]);
         dataImgBuffer.image.data[imgIndex] = pdf[index + 2];
         dataImgBuffer.image.data[imgIndex + 1] = pdf[index + 2];
@@ -44897,7 +44947,7 @@ function visualizeMandelbrotPdf(pdf) {
                 value: dataImgBuffer
             }
         },
-        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D dataImage;\n            void main() {\n                vec3 color = texture2D(dataImage, vUv).xyz;\n                gl_FragColor = vec4(clamp(color, 0., 1., 1.));\n            }\n        '
+        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D dataImage;\n            void main() {\n                vec3 color = texture2D(dataImage, vUv).xyz;\n                gl_FragColor = vec4(20. * color / ' + maxPdf + ', 1.);\n            }\n        '
     }, HIST_W, HIST_H);
 
     var pdfRenderer = new T.WebGLRenderer({ canvas: document.getElementById('view') });
@@ -44922,7 +44972,7 @@ var _gl = __webpack_require__(7);
 
 var gl = _interopRequireWildcard(_gl);
 
-var _mt = __webpack_require__(14);
+var _mt = __webpack_require__(10);
 
 var _mt2 = _interopRequireDefault(_mt);
 
@@ -45128,21 +45178,214 @@ module.exports=opts=>"varying vec2 vUv;\nvoid main() {\n\tvUv = uv;\n\tgl_Positi
 
 /***/ }),
 /* 10 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\n#define MAX_ITER "+
-
-
+"use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/*
+  I've wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace
+  so it's better encapsulated. Now you can have multiple random number generators
+  and they won't stomp all over eachother's state.
+  
+  If you want to use this as a substitute for Math.random(), use the random()
+  method like so:
+  
+  var m = new MersenneTwister();
+  var randomNumber = m.random();
+  
+  You can also call the other genrand_{foo}() methods on the instance.
 
+  If you want to use a specific seed in order to get a repeatable random
+  sequence, pass an integer into the constructor:
 
+  var m = new MersenneTwister(123);
 
+  and that will always produce the same random sequence.
 
+  Sean McCullough (banksean@gmail.com)
+*/
 
+/* 
+   A C-program for MT19937, with initialization improved 2002/1/26.
+   Coded by Takuji Nishimura and Makoto Matsumoto.
+ 
+   Before using, initialize the state by using init_genrand(seed)  
+   or init_by_array(init_key, key_length).
+ 
+   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
+   All rights reserved.                          
+ 
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+ 
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+ 
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+ 
+     3. The names of its contributors may not be used to endorse or promote 
+        products derived from this software without specific prior written 
+        permission.
+ 
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ 
+   Any feedback is very welcome.
+   http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
+   email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
+*/
 
+var MersenneTwister = function MersenneTwister(seed) {
+  if (seed == undefined) {
+    seed = new Date().getTime();
+  }
+  /* Period parameters */
+  this.N = 624;
+  this.M = 397;
+  this.MATRIX_A = 0x9908b0df; /* constant vector a */
+  this.UPPER_MASK = 0x80000000; /* most significant w-r bits */
+  this.LOWER_MASK = 0x7fffffff; /* least significant r bits */
 
-opts.MAX_ITER+".\nprecision highp float;\nuniform vec2 translate;\nuniform float scale;\nuniform float aspect;\nvarying vec2 vUv;\nvec2 coord() {\n\treturn ((((vUv * 2.) - 1.) * vec2(aspect, 1.)) * scale) + translate;\n}\nvoid main() {\n\tvec2 c = coord();\n\tvec2 z = vec2(0.);\n\tfor (float i = 0.; i <= MAX_ITER; ++i) {\n\t\tif (cabs2(z) >= 4.) {\n\t\t\tgl_FragColor = vec4(c, i, 1.);\n\t\t\treturn ;\n\t\t}\n\t\tz = cmul(z, z) + c;\n\t}\n\tgl_FragColor = vec4(c, MAX_ITER + 1., 0.);\n}\n";
+  this.mt = new Array(this.N); /* the array for the state vector */
+  this.mti = this.N + 1; /* mti==N+1 means mt[N] is not initialized */
+
+  this.init_genrand(seed);
+};
+
+/* initializes mt[N] with a seed */
+MersenneTwister.prototype.init_genrand = function (s) {
+  this.mt[0] = s >>> 0;
+  for (this.mti = 1; this.mti < this.N; this.mti++) {
+    var s = this.mt[this.mti - 1] ^ this.mt[this.mti - 1] >>> 30;
+    this.mt[this.mti] = (((s & 0xffff0000) >>> 16) * 1812433253 << 16) + (s & 0x0000ffff) * 1812433253 + this.mti;
+    /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
+    /* In the previous versions, MSBs of the seed affect   */
+    /* only MSBs of the array mt[].                        */
+    /* 2002/01/09 modified by Makoto Matsumoto             */
+    this.mt[this.mti] >>>= 0;
+    /* for >32 bit machines */
+  }
+};
+
+/* initialize by an array with array-length */
+/* init_key is the array for initializing keys */
+/* key_length is its length */
+/* slight change for C++, 2004/2/26 */
+MersenneTwister.prototype.init_by_array = function (init_key, key_length) {
+  var i, j, k;
+  this.init_genrand(19650218);
+  i = 1;j = 0;
+  k = this.N > key_length ? this.N : key_length;
+  for (; k; k--) {
+    var s = this.mt[i - 1] ^ this.mt[i - 1] >>> 30;
+    this.mt[i] = (this.mt[i] ^ (((s & 0xffff0000) >>> 16) * 1664525 << 16) + (s & 0x0000ffff) * 1664525) + init_key[j] + j; /* non linear */
+    this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
+    i++;j++;
+    if (i >= this.N) {
+      this.mt[0] = this.mt[this.N - 1];i = 1;
+    }
+    if (j >= key_length) j = 0;
+  }
+  for (k = this.N - 1; k; k--) {
+    var s = this.mt[i - 1] ^ this.mt[i - 1] >>> 30;
+    this.mt[i] = (this.mt[i] ^ (((s & 0xffff0000) >>> 16) * 1566083941 << 16) + (s & 0x0000ffff) * 1566083941) - i; /* non linear */
+    this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
+    i++;
+    if (i >= this.N) {
+      this.mt[0] = this.mt[this.N - 1];i = 1;
+    }
+  }
+
+  this.mt[0] = 0x80000000; /* MSB is 1; assuring non-zero initial array */
+};
+
+/* generates a random number on [0,0xffffffff]-interval */
+MersenneTwister.prototype.genrand_int32 = function () {
+  var y;
+  var mag01 = new Array(0x0, this.MATRIX_A);
+  /* mag01[x] = x * MATRIX_A  for x=0,1 */
+
+  if (this.mti >= this.N) {
+    /* generate N words at one time */
+    var kk;
+
+    if (this.mti == this.N + 1) /* if init_genrand() has not been called, */
+      this.init_genrand(5489); /* a default initial seed is used */
+
+    for (kk = 0; kk < this.N - this.M; kk++) {
+      y = this.mt[kk] & this.UPPER_MASK | this.mt[kk + 1] & this.LOWER_MASK;
+      this.mt[kk] = this.mt[kk + this.M] ^ y >>> 1 ^ mag01[y & 0x1];
+    }
+    for (; kk < this.N - 1; kk++) {
+      y = this.mt[kk] & this.UPPER_MASK | this.mt[kk + 1] & this.LOWER_MASK;
+      this.mt[kk] = this.mt[kk + (this.M - this.N)] ^ y >>> 1 ^ mag01[y & 0x1];
+    }
+    y = this.mt[this.N - 1] & this.UPPER_MASK | this.mt[0] & this.LOWER_MASK;
+    this.mt[this.N - 1] = this.mt[this.M - 1] ^ y >>> 1 ^ mag01[y & 0x1];
+
+    this.mti = 0;
+  }
+
+  y = this.mt[this.mti++];
+
+  /* Tempering */
+  y ^= y >>> 11;
+  y ^= y << 7 & 0x9d2c5680;
+  y ^= y << 15 & 0xefc60000;
+  y ^= y >>> 18;
+
+  return y >>> 0;
+};
+
+/* generates a random number on [0,0x7fffffff]-interval */
+MersenneTwister.prototype.genrand_int31 = function () {
+  return this.genrand_int32() >>> 1;
+};
+
+/* generates a random number on [0,1]-real-interval */
+MersenneTwister.prototype.genrand_real1 = function () {
+  return this.genrand_int32() * (1.0 / 4294967295.0);
+  /* divided by 2^32-1 */
+};
+
+/* generates a random number on [0,1)-real-interval */
+MersenneTwister.prototype.random = function () {
+  return this.genrand_int32() * (1.0 / 4294967296.0);
+  /* divided by 2^32 */
+};
+
+/* generates a random number on (0,1)-real-interval */
+MersenneTwister.prototype.genrand_real3 = function () {
+  return (this.genrand_int32() + 0.5) * (1.0 / 4294967296.0);
+  /* divided by 2^32 */
+};
+
+/* generates a random number on [0,1) with 53-bit resolution*/
+MersenneTwister.prototype.genrand_res53 = function () {
+  var a = this.genrand_int32() >>> 5,
+      b = this.genrand_int32() >>> 6;
+  return (a * 67108864.0 + b) * (1.0 / 9007199254740992.0);
+};
+
+/* These real versions are due to Isaku Wada, 2002/01/09 added */
+exports.default = MersenneTwister;
 
 /***/ }),
 /* 11 */
@@ -45160,10 +45403,30 @@ module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.
 
 
 
-opts.MAX_ITER+".\nprecision highp float;\nuniform sampler2D samples;\nvarying vec2 vUv;\nvoid main() {\n\tvec4 s = texture2D(samples, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = vec2(0.);\n\tfor (float i = 0.; i <= MAX_ITER; ++i) {\n\t\tz = cmul(z, z) + c;\n\t\tif (cabs2(z) >= 4.) {\n\t\t\tgl_FragColor = vec4(1., i, 0., 0.);\n\t\t\treturn ;\n\t\t}\n\t}\n\tgl_FragColor = vec4(0.);\n}\n";
+opts.MAX_ITER+".\n#define BAILOUT2 "+
+opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2D prev;\nuniform vec2 translate;\nuniform float scale;\nuniform float aspect;\nvarying vec2 vUv;\nvec2 coord() {\n\treturn ((((vUv * 2.) - 1.) * vec2(aspect, 1.)) * scale) + translate;\n}\nvoid main() {\n\tvec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n\tif (zPrev.a != 0.) {\n\t\tgl_FragColor = zPrev;\n\t\treturn ;\n\t}\n\tvec2 c = coord();\n\tvec2 z = zPrev.xy;\n\tfor (float i = 0.; i <= MAX_ITER; ++i) {\n\t\tif (cabs2(z) >= BAILOUT2) {\n\t\t\tgl_FragColor = vec4(c, zPrev.b + i, 1.);\n\t\t\treturn ;\n\t\t}\n\t\tz = cmul(z, z) + c;\n\t}\n\tgl_FragColor = vec4(z, zPrev.b + MAX_ITER, 0.);\n}\n";
 
 /***/ }),
 /* 12 */
+/***/ (function(module, exports) {
+
+module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\n#define MAX_CHUNK "+
+
+
+
+
+
+
+
+
+
+
+
+opts.MAX_CHUNK+".\n#define BAILOUT2 "+
+opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2D prev;\nuniform sampler2D samples;\nvarying vec2 vUv;\nvoid main() {\n\tvec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n\tif (zPrev.r != 0.) {\n\t\tgl_FragColor = zPrev;\n\t\treturn ;\n\t}\n\tvec4 s = texture2D(samples, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = zPrev.ba;\n\tfor (float i = 0.; i <= MAX_CHUNK; ++i) {\n\t\tz = cmul(z, z) + c;\n\t\tif (cabs2(z) >= BAILOUT2) {\n\t\t\tgl_FragColor = vec4(1., zPrev.g + i, z);\n\t\t\treturn ;\n\t\t}\n\t}\n\tgl_FragColor = vec4(0., zPrev.g + MAX_CHUNK, z);\n}\n";
+
+/***/ }),
+/* 13 */
 /***/ (function(module, exports) {
 
 module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\n#define MAX_ITER "+
@@ -45178,10 +45441,11 @@ module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.
 
 
 
-opts.MAX_ITER+".\nprecision highp float;\nuniform int clear;\nuniform sampler2D samples;\nuniform sampler2D prev;\nvarying vec2 vUv;\nvoid main() {\n\tif (clear == 1) {\n\t\tgl_FragColor = vec4(0.);\n\t\treturn ;\n\t}\n\tvec4 s = texture2D(samples, vUv);\n\tvec4 p = texture2D(prev, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = p.xy;\n\tif ((((p.a == 1.) || (p.b > MAX_ITER)) || (cabs2(z) >= 4.)) || (s.z == -1.)) {\n\t\tgl_FragColor = vec4(p.xyz, 1.);\n\t\treturn ;\n\t}\n\tgl_FragColor = vec4(cmul(z, z) + c, p.b + 1., 0.);\n}\n";
+opts.MAX_ITER+".\n#define BAILOUT2 "+
+opts.BAILOUT2+".\nprecision highp float;\nuniform int clear;\nuniform sampler2D samples;\nuniform sampler2D prev;\nvarying vec2 vUv;\nvoid main() {\n\tif (clear == 1) {\n\t\tgl_FragColor = vec4(0.);\n\t\treturn ;\n\t}\n\tvec4 s = texture2D(samples, vUv);\n\tif (s.z == -1.) {\n\t\treturn ;\n\t}\n\tvec4 p = texture2D(prev, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = p.xy;\n\tif (((p.a == 1.) || (p.b > MAX_ITER)) || (cabs2(z) >= BAILOUT2)) {\n\t\tgl_FragColor = vec4(p.xyz, 1.);\n\t\treturn ;\n\t}\n\tgl_FragColor = vec4(cmul(z, z) + c, p.b + 1., 0.);\n}\n";
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports) {
 
 /*
@@ -45395,217 +45659,6 @@ MersenneTwister.prototype.random_long = function() {
 
 module.exports = MersenneTwister;
 
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-/*
-  I've wrapped Makoto Matsumoto and Takuji Nishimura's code in a namespace
-  so it's better encapsulated. Now you can have multiple random number generators
-  and they won't stomp all over eachother's state.
-  
-  If you want to use this as a substitute for Math.random(), use the random()
-  method like so:
-  
-  var m = new MersenneTwister();
-  var randomNumber = m.random();
-  
-  You can also call the other genrand_{foo}() methods on the instance.
-
-  If you want to use a specific seed in order to get a repeatable random
-  sequence, pass an integer into the constructor:
-
-  var m = new MersenneTwister(123);
-
-  and that will always produce the same random sequence.
-
-  Sean McCullough (banksean@gmail.com)
-*/
-
-/* 
-   A C-program for MT19937, with initialization improved 2002/1/26.
-   Coded by Takuji Nishimura and Makoto Matsumoto.
- 
-   Before using, initialize the state by using init_genrand(seed)  
-   or init_by_array(init_key, key_length).
- 
-   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
-   All rights reserved.                          
- 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions
-   are met:
- 
-     1. Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
- 
-     2. Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
- 
-     3. The names of its contributors may not be used to endorse or promote 
-        products derived from this software without specific prior written 
-        permission.
- 
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
- 
-   Any feedback is very welcome.
-   http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html
-   email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
-*/
-
-var MersenneTwister = function MersenneTwister(seed) {
-  if (seed == undefined) {
-    seed = new Date().getTime();
-  }
-  /* Period parameters */
-  this.N = 624;
-  this.M = 397;
-  this.MATRIX_A = 0x9908b0df; /* constant vector a */
-  this.UPPER_MASK = 0x80000000; /* most significant w-r bits */
-  this.LOWER_MASK = 0x7fffffff; /* least significant r bits */
-
-  this.mt = new Array(this.N); /* the array for the state vector */
-  this.mti = this.N + 1; /* mti==N+1 means mt[N] is not initialized */
-
-  this.init_genrand(seed);
-};
-
-/* initializes mt[N] with a seed */
-MersenneTwister.prototype.init_genrand = function (s) {
-  this.mt[0] = s >>> 0;
-  for (this.mti = 1; this.mti < this.N; this.mti++) {
-    var s = this.mt[this.mti - 1] ^ this.mt[this.mti - 1] >>> 30;
-    this.mt[this.mti] = (((s & 0xffff0000) >>> 16) * 1812433253 << 16) + (s & 0x0000ffff) * 1812433253 + this.mti;
-    /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
-    /* In the previous versions, MSBs of the seed affect   */
-    /* only MSBs of the array mt[].                        */
-    /* 2002/01/09 modified by Makoto Matsumoto             */
-    this.mt[this.mti] >>>= 0;
-    /* for >32 bit machines */
-  }
-};
-
-/* initialize by an array with array-length */
-/* init_key is the array for initializing keys */
-/* key_length is its length */
-/* slight change for C++, 2004/2/26 */
-MersenneTwister.prototype.init_by_array = function (init_key, key_length) {
-  var i, j, k;
-  this.init_genrand(19650218);
-  i = 1;j = 0;
-  k = this.N > key_length ? this.N : key_length;
-  for (; k; k--) {
-    var s = this.mt[i - 1] ^ this.mt[i - 1] >>> 30;
-    this.mt[i] = (this.mt[i] ^ (((s & 0xffff0000) >>> 16) * 1664525 << 16) + (s & 0x0000ffff) * 1664525) + init_key[j] + j; /* non linear */
-    this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
-    i++;j++;
-    if (i >= this.N) {
-      this.mt[0] = this.mt[this.N - 1];i = 1;
-    }
-    if (j >= key_length) j = 0;
-  }
-  for (k = this.N - 1; k; k--) {
-    var s = this.mt[i - 1] ^ this.mt[i - 1] >>> 30;
-    this.mt[i] = (this.mt[i] ^ (((s & 0xffff0000) >>> 16) * 1566083941 << 16) + (s & 0x0000ffff) * 1566083941) - i; /* non linear */
-    this.mt[i] >>>= 0; /* for WORDSIZE > 32 machines */
-    i++;
-    if (i >= this.N) {
-      this.mt[0] = this.mt[this.N - 1];i = 1;
-    }
-  }
-
-  this.mt[0] = 0x80000000; /* MSB is 1; assuring non-zero initial array */
-};
-
-/* generates a random number on [0,0xffffffff]-interval */
-MersenneTwister.prototype.genrand_int32 = function () {
-  var y;
-  var mag01 = new Array(0x0, this.MATRIX_A);
-  /* mag01[x] = x * MATRIX_A  for x=0,1 */
-
-  if (this.mti >= this.N) {
-    /* generate N words at one time */
-    var kk;
-
-    if (this.mti == this.N + 1) /* if init_genrand() has not been called, */
-      this.init_genrand(5489); /* a default initial seed is used */
-
-    for (kk = 0; kk < this.N - this.M; kk++) {
-      y = this.mt[kk] & this.UPPER_MASK | this.mt[kk + 1] & this.LOWER_MASK;
-      this.mt[kk] = this.mt[kk + this.M] ^ y >>> 1 ^ mag01[y & 0x1];
-    }
-    for (; kk < this.N - 1; kk++) {
-      y = this.mt[kk] & this.UPPER_MASK | this.mt[kk + 1] & this.LOWER_MASK;
-      this.mt[kk] = this.mt[kk + (this.M - this.N)] ^ y >>> 1 ^ mag01[y & 0x1];
-    }
-    y = this.mt[this.N - 1] & this.UPPER_MASK | this.mt[0] & this.LOWER_MASK;
-    this.mt[this.N - 1] = this.mt[this.M - 1] ^ y >>> 1 ^ mag01[y & 0x1];
-
-    this.mti = 0;
-  }
-
-  y = this.mt[this.mti++];
-
-  /* Tempering */
-  y ^= y >>> 11;
-  y ^= y << 7 & 0x9d2c5680;
-  y ^= y << 15 & 0xefc60000;
-  y ^= y >>> 18;
-
-  return y >>> 0;
-};
-
-/* generates a random number on [0,0x7fffffff]-interval */
-MersenneTwister.prototype.genrand_int31 = function () {
-  return this.genrand_int32() >>> 1;
-};
-
-/* generates a random number on [0,1]-real-interval */
-MersenneTwister.prototype.genrand_real1 = function () {
-  return this.genrand_int32() * (1.0 / 4294967295.0);
-  /* divided by 2^32-1 */
-};
-
-/* generates a random number on [0,1)-real-interval */
-MersenneTwister.prototype.random = function () {
-  return this.genrand_int32() * (1.0 / 4294967296.0);
-  /* divided by 2^32 */
-};
-
-/* generates a random number on (0,1)-real-interval */
-MersenneTwister.prototype.genrand_real3 = function () {
-  return (this.genrand_int32() + 0.5) * (1.0 / 4294967296.0);
-  /* divided by 2^32 */
-};
-
-/* generates a random number on [0,1) with 53-bit resolution*/
-MersenneTwister.prototype.genrand_res53 = function () {
-  var a = this.genrand_int32() >>> 5,
-      b = this.genrand_int32() >>> 6;
-  return (a * 67108864.0 + b) * (1.0 / 9007199254740992.0);
-};
-
-/* These real versions are due to Isaku Wada, 2002/01/09 added */
-exports.default = MersenneTwister;
 
 /***/ })
 /******/ ]);

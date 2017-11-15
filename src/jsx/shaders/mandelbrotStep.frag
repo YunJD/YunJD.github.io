@@ -3,6 +3,7 @@
 
 //Can't use uniforms for this, because glsl does loop unrolling.
 #define MAX_ITER $MAX_ITER.
+#define BAILOUT2 $BAILOUT2.
 precision highp float;
 
 uniform int clear;
@@ -22,10 +23,14 @@ void main() {
     }
 
     vec4 s = texture2D(samples, vUv);
+    if(s.z == -1.) {
+        return;
+    }
+
     vec4 p = texture2D(prev, vUv);
     vec2 c = s.xy;
     vec2 z = p.xy;
-    if(p.a == 1. || p.b > MAX_ITER || cabs2(z) >= 4. || s.z == -1.) {
+    if(p.a == 1. || p.b > MAX_ITER || cabs2(z) >= BAILOUT2) {
         gl_FragColor = vec4(p.xyz, 1.);
         return;
     }

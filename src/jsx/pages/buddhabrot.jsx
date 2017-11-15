@@ -5,17 +5,21 @@ import mandelbrotEscapeShader from 'shaders/sampleMandelbrotEscape.frag';
 import mandelbrotStepShader from 'shaders/mandelbrotStep.frag';
 import MT from 'mersenne-twister';
 
-const MAX_ITER = 1000;
+const BAILOUT = 2;
+//GPUs have a limit to their loop.
+const MAX_CHUNK = 4000;
+const MIN_ITER = 40000;
+const MAX_ITER = 70000;
 
-const HIST_MIN_ITER = 1;
-const HIST_MAX_ITER = 1000;
-const HIST_MAX_WEIGHT = 1000;
+const MIN_HIST_ITER = 800;
+const MAX_HIST_ITER = 70000;
+const HIST_MAX_WEIGHT = 1e6;
 const HIST_W = 2048;
 const HIST_H = 2048;
 const HIST_ASPECT = HIST_W / HIST_H;
-const HIST_TRANSLATE_X = -0.3;
+const HIST_TRANSLATE_X = -0.65;
 const HIST_TRANSLATE_Y = 0.;
-const HIST_SCALE = 2.5;
+const HIST_SCALE = 1.15
 const JITTER = 2 * HIST_SCALE / HIST_W;
 
 //One side of the renderer can't be too huge, so to get around that use a 2D texture to sample.
@@ -28,10 +32,18 @@ const BUDDHABROT_ASPECT = BUDDHABROT_W / BUDDHABROT_H;
 const BUDDHABROT_SCALE = 1.;
 const BUDDHABROT_TRANSLATE_X = -0.3;
 const BUDDHABROT_PIXEL_SIZE = BUDDHABROT_SCALE / BUDDHABROT_H;
-
+const normalizeColor = c => [(c >> 16) / 255, (c >> 8 & 0xFF) / 255, (c & 0xFF) / 255];
+const PALETTE = [
+    normalizeColor(0xffffff),
+];
+let PALETTE_RANGE = [0];
 function getMandelbrotHistogram() {
     let mandelbrotHistrCompute = new stuff.gl.ComputeShaderPass({
         uniforms: {
+            usePrev: {
+                type: 'i',
+                value: 0
+            },
             scale: {
                 type: 'f',
                 value: HIST_SCALE,
@@ -45,10 +57,14 @@ function getMandelbrotHistogram() {
                 value: new T.Vector2(HIST_TRANSLATE_X, HIST_TRANSLATE_Y)
             }
         },
-        fragmentShader: mandelbrotShader({MAX_ITER: HIST_MAX_ITER})
-    }, HIST_W, HIST_H);
+        fragmentShader: mandelbrotShader({MAX_ITER: MAX_CHUNK, BAILOUT2: BAILOUT * BAILOUT})
+    }, HIST_W, HIST_H, 'prev');
 
     mandelbrotHistrCompute.execute();
+    mandelbrotHistrCompute.material.uniforms.usePrev.value = 1;
+    for(let i = MAX_CHUNK; i < MAX_HIST_ITER; i += MAX_CHUNK) {
+        mandelbrotHistrCompute.execute();
+    }
     let mandelbrotHistr = mandelbrotHistrCompute.getData();
 
     mandelbrotHistrCompute.dispose();
@@ -58,7 +74,12 @@ function getMandelbrotHistogram() {
 
 function getInterestingCoordinates(histogram) {
     let distribution = {};
-    let getIndex = (x, y) => 4 * (x + y * HIST_W);
+    let getIndex = (x, y) => {
+        if(x < 0 || y < 0 || x >= HIST_W || y >= HIST_H) {
+            return -1;
+        }
+        return 4 * (x + y * HIST_W);
+    };
 
     let cumulativeWeights = 0.;
     //Number of pieces in the piece-wise distribution, will be useful for initializing buffers.
@@ -69,31 +90,43 @@ function getInterestingCoordinates(histogram) {
             let index = getIndex(x, y);
 
             let weight = histogram[index + 2];
-            if(histogram[index + 3] == 1. && weight >= HIST_MIN_ITER) {
-                ++nPieces;
+            if(histogram[index + 3] == 0. || weight < MIN_HIST_ITER) {
+                continue;
+            }
+            ++nPieces;
 
-                weight = Math.min(weight, HIST_MAX_WEIGHT);
-                distribution[index] = [histogram[index], histogram[index + 1], weight];
-                cumulativeWeights += weight;
+            weight = Math.min(weight, HIST_MAX_WEIGHT);
+            distribution[index] = [histogram[index], histogram[index + 1], weight];
+            cumulativeWeights += weight;
+            continue;
 
-                //For the surrounding pixels
-                for(let dy = -1; dy <= 1; ++dy) {
-                    for(let dx = -1; dx <= 1; ++dx) {
-                        let dIndex = getIndex(x + dx, y + dy);
-                        if(!(dIndex in distribution) && (histogram[dIndex + 3] == 0. || histogram[dIndex + 2] < HIST_MIN_ITER)) {
-                            ++nPieces;
-
-                            /* I assign a small sample probability to the surrounding coordinates that were unable to
-                             * escape. This is because a pixel takes up a small region, and our sampling (the top left 
-                             * of the pixel) may have simply been unlucky (the Mandelbrot shape is complex, no pun 
-                             * intended).
-                             * TODO: We can update the probability to sample that pixel region using an adaptive
-                             * algorithm.
-                             */
-                            distribution[dIndex] = [histogram[dIndex], histogram[dIndex + 1], weight * 0.1];
-                            cumulativeWeights += weight * 0.1;
-                        }
+            //For the surrounding pixels
+            for(let dy = -1; dy <= 1; ++dy) {
+                for(let dx = -1; dx <= 1; ++dx) {
+                    let dIndex = getIndex(x + dx, y + dy);
+                    if(dIndex == -1 || (dy == 0 && dx == 0)
+                        || dIndex in distribution
+                        || (histogram[dIndex + 3] != 0. && histogram[dIndex + 2] >= MIN_HIST_ITER)
+                    ) {
+                        continue;
                     }
+
+                    ++nPieces;
+
+                    /* I assign a small sample probability to the surrounding coordinates that were unable to
+                     * escape. This is because a pixel takes up a small region, and our sampling (the top left 
+                     * of the pixel) may have simply been unlucky (the Mandelbrot shape is complex, no pun 
+                     * intended).
+                     * TODO: We can update the probability to sample that pixel region using an adaptive
+                     * algorithm.
+                     */
+                    //For unescaped values, we have to calculate the coordinates because the shader returned z rather than c.
+                    distribution[dIndex] = [
+                        (2 * (x + dx + 0.5) / HIST_W - 1.) * HIST_ASPECT * HIST_SCALE + HIST_TRANSLATE_X,
+                        (2 * (y + dy + 0.5) / HIST_H - 1.) * HIST_SCALE + HIST_TRANSLATE_Y,
+                        weight * 0.1
+                    ];
+                    cumulativeWeights += weight * 0.1;
                 }
             }
         }
@@ -120,6 +153,7 @@ function getInterestingCoordinates(histogram) {
         pdfSum += weight;
     }
 
+    console.log('Bins', nPieces);
     if(i < nPieces) {
         throw `The number of bins, ${nPieces}, is less than the number of items in the distribution ${i}.  
             Duplicate indices may have occured when calculating interesting points because the surrounding pixel test is not mutually exclusive from the normal escape test.`;
@@ -202,8 +236,8 @@ function sampleCoordinates(rng, pdf, cdf, texture) {
         let rand = rng.random();
         let a = lowerBound(cdf, rand);
         a *= 4;
-        samplesBuf[i] = pdf[a] + rng.random() * JITTER;
-        samplesBuf[i + 1] = pdf[a + 1] + rng.random() * JITTER;
+        samplesBuf[i] = pdf[a] + rng.random() * JITTER - 0.5 * JITTER;
+        samplesBuf[i + 1] = pdf[a + 1] + rng.random() * JITTER - 0.5 * JITTER;
         samplesBuf[i + 2] = a; //Remember the index for the pdf.
     }
 }
@@ -222,6 +256,9 @@ function visualizeMandelbrotPdf(pdf) {
 
     for(let index = 0; index < pdf.length; index += 4) {
         let imgIndex = pdfToPixel(pdf, index);
+        if(imgIndex == -1) {
+            continue;
+        }
         maxPdf = Math.max(maxPdf, pdf[index + 2]);
         dataImgBuffer.image.data[imgIndex] = pdf[index + 2];
         dataImgBuffer.image.data[imgIndex + 1] = pdf[index + 2];
@@ -240,7 +277,7 @@ function visualizeMandelbrotPdf(pdf) {
             uniform sampler2D dataImage;
             void main() {
                 vec3 color = texture2D(dataImage, vUv).xyz;
-                gl_FragColor = vec4(clamp(color, 0., 1., 1.));
+                gl_FragColor = vec4(20. * color / ${maxPdf}, 1.);
             }
         `
     }, HIST_W, HIST_H);
@@ -267,22 +304,32 @@ export default function() {
     //Get escape values in bulk first.
     let escapeTestCompute = new stuff.gl.ComputeShaderPass({
         uniforms: {
+            usePrev: {
+                type: 'i',
+                value: 0
+            },
             samples: {
                 type: 't',
                 value: escapeTestSamplesTex
             }
         },
-        fragmentShader: mandelbrotEscapeShader({MAX_ITER})
-    }, N_SAMPLE_ROOT, N_SAMPLE_ROOT, null);
+        fragmentShader: mandelbrotEscapeShader({MAX_CHUNK, BAILOUT2: BAILOUT * BAILOUT})
+    }, N_SAMPLE_ROOT, N_SAMPLE_ROOT, 'prev');
     //Used to hold the results for the escape compute.
     let escapeTestResultsBuf = new Float32Array(4 * N_SAMPLES);
     function sampleAndTestEscape() {
         sampleCoordinates(rng, pdf, cdf, escapeTestSamplesTex);
+        escapeTestCompute.material.uniforms.usePrev.value = 0;
         escapeTestCompute.execute();
+        escapeTestCompute.material.uniforms.usePrev.value = 1;
+        for(let i = MAX_CHUNK; i < MAX_ITER; i += MAX_CHUNK) {
+            escapeTestCompute.execute();
+        }
         escapeTestCompute.getData(0, 0, null, null, escapeTestResultsBuf);
     }
 
-    let escapedSamplesTex = new T.DataTexture(new Float32Array(4 * N_SAMPLES), N_SAMPLE_ROOT, N_SAMPLE_ROOT, T.RGBAFormat, T.FloatType);
+    //Give up on bailout computations more quickly because at this point, the location may be out of the screen and won't be drawn!
+    let escapedSamplesTex = new T.DataTexture(new Float32Array(4 * 28 * 28), 28, 28, T.RGBAFormat, T.FloatType);
     //Run in a step-wise fashion, collecting the escaped coordinates.
     let stepCompute = new stuff.gl.ComputeShaderPass({
         uniforms: {
@@ -295,10 +342,10 @@ export default function() {
                 value: 1
             }
         },
-        fragmentShader: mandelbrotStepShader({MAX_ITER})
-    }, N_SAMPLE_ROOT, N_SAMPLE_ROOT, 'prev');
+        fragmentShader: mandelbrotStepShader({MAX_ITER, BAILOUT2: 4})
+    }, 28, 28, 'prev');
     //Used to hold the results at each step of the computation. 
-    let stepBuf = new Float32Array(4 * N_SAMPLES);
+    let stepBuf = new Float32Array(4 * 28 * 28);
     let buddhabrotHistogram = new T.DataTexture(new Float32Array(4 * BUDDHABROT_W * BUDDHABROT_H), BUDDHABROT_W, BUDDHABROT_H, T.RGBAFormat, T.FloatType);
     let toIdx = coordToIndex(buddhabrotHistogram, [BUDDHABROT_TRANSLATE_X, 0], BUDDHABROT_SCALE, 4);
 
@@ -308,12 +355,17 @@ export default function() {
         let escapeTestSamples = escapeTestSamplesTex.image.data;
         let escapedSamples = escapedSamplesTex.image.data;
         for(let i = 0; i < escapeTestResultsBuf.length; i += 4) {
-            if(escapeTestResultsBuf[i]) {
+            if(escapeTestResultsBuf[i] && escapeTestResultsBuf[i + 1] >= MIN_ITER) {
                 escapedSamples[nEscaped] = escapeTestSamples[i];
                 escapedSamples[nEscaped + 1] = escapeTestSamples[i + 1];
                 escapedSamples[nEscaped + 2] = escapeTestSamples[i + 2];
-                maxEscape = Math.max(escapeTestResultsBuf[i + 1]);
+                //The color
+                escapedSamples[nEscaped + 3] = lowerBound(PALETTE_RANGE, escapeTestResultsBuf[i + 1]) % PALETTE.length;
+                maxEscape = Math.max(maxEscape, escapeTestResultsBuf[i + 1]);
                 nEscaped += 4;
+                if(nEscaped >= escapedSamples.length) {
+                    break;
+                }
             }
         }
         //Use -1 as a signal to the GPU that this sample did not escape.
@@ -330,6 +382,7 @@ export default function() {
         stepCompute.execute();
 
         let {nEscaped, maxEscape} = gatherEscapedCoordinates();
+        console.log('Pass', k, 'Max Escape', maxEscape, 'N Escaped', nEscaped);
 
         if(nEscaped) {
             let histBuf = buddhabrotHistogram.image.data;
@@ -337,6 +390,9 @@ export default function() {
             for(let i = 0; i <= MAX_ITER; ++i) {
                 stepCompute.execute();
                 stepCompute.getData(0, 0, null, null, stepBuf);
+                if(i < MIN_ITER) {
+                    continue;
+                }
                 for(let j = 0; j < nEscaped; j += 4) {
                     if(stepBuf[j + 3]) {
                         continue;
@@ -345,17 +401,19 @@ export default function() {
                     if(histIdx < 0 || histIdx >= histBuf.length) {
                         continue;
                     }
+                    let color = PALETTE[escapedSamplesTex.image.data[j + 3]];
                     let pdfIdx = escapedSamplesTex.image.data[j + 2];
                     let invWeight = pdf[pdfIdx + 3];
-                    histBuf[histIdx] += invWeight;
-                    histBuf[histIdx + 1] += invWeight;
-                    histBuf[histIdx + 2] += invWeight;
+                    histBuf[histIdx] += invWeight * color[0];
+                    histBuf[histIdx + 1] += invWeight * color[1];
+                    histBuf[histIdx + 2] += invWeight * color[2];
                     //maxHist = Math.max(maxHist, histBuf[histIdx]);
                 }
             }
             buddhabrotHistogram.needsUpdate = true;
+            //The issue here is that I have no idea what the probability of sampling within our criteria is and I'm not applying an adaptive approach, so this is a quick hack.
+            maxHist += (N_SAMPLES / 16384);
         }
-        maxHist += N_SAMPLES / 4096;
     }
 
     let buddhabrotViewer = new stuff.gl.ComputeShaderPass({
@@ -376,7 +434,7 @@ export default function() {
 
             void main() {
                 vec3 color = texture2D(histogram, vUv).xyz;
-                color = clamp(6. * color / maxHist, 0., 1.);
+                color = clamp(50. * color / maxHist, 0., 1.);
                 gl_FragColor = vec4(color, 1.);
             }
         `
@@ -384,6 +442,7 @@ export default function() {
 
     let k = 0;
     function draw() {
+        ++k;
         sampleAndTestEscape();
         accumulate();
         buddhabrotViewer.material.uniforms.maxHist.value = maxHist;
@@ -439,8 +498,7 @@ export default function() {
     console.log('Time taken to sample 8192 indices (CPU): ' + (new Date() - timer));
 
     let cdfTex = {
-        type: 't',
-        //Max side-length is probably 16384, so index in a 2D manner.
+        type: 't', //Max side-length is probably 16384, so index in a 2D manner.
         value: new T.DataTexture(cdf, 1024, 1024, T.AlphaFormat, T.FloatType)
     };
     let rngTex = {
