@@ -3,10 +3,10 @@ const webpack = require('webpack');
  
 module.exports = {
     entry: {
-        App: './src/jsx/app.jsx'
+        App: './_src/jsx/app.jsx'
     },
     output: { 
-        path: __dirname + '/scripts', filename: '[name].js', library: 'App', libraryTarget: 'var'
+        path: __dirname + '/scripts/js', filename: '[name].js', library: 'App', libraryTarget: 'var'
     },
     module: {
         rules: [
@@ -31,7 +31,7 @@ module.exports = {
     },
     resolve: {
         modules: [
-            path.resolve(__dirname + '/src/jsx'),
+            path.resolve(__dirname + '/_src/jsx'),
             path.resolve(__dirname + '/node_modules'),
         ]
     },
