@@ -50,7 +50,7 @@
     PREPROCESS_SIZE: 1500, //Side length of a square texture that determines mandelbrot precompute size.
 
     INTEREST_REGION_DELTA: 1, //Pixels away from regions that have escape iterations within the given range.
-    ESCAPE_RANGE: [100, 700], //Anything with escape iterations outside this range is ignored. The max is my upper limit on iterations as well, as per typical mandelbrot.
+    ESCAPE_RANGE: [0, 700], //Anything with escape iterations outside this range is ignored. The max is my upper limit on iterations as well, as per typical mandelbrot.
     SAMPLE_SIZE: 4096, //Sample-size per buddhabrot pass.
     TRANSLATE: new THREE.Vector2(-0.3, 0.),
     SCALE: 1.15,
@@ -393,7 +393,7 @@
         if(between(buffer.image.data[index + 2],
             //Have to be careful, because what was sampled could have Goldilocks regions nearby that were missed because of the granularity of the preprocess sampling (which is honestly not that great)
             //12, options.ESCAPE_RANGE[1], true, true
-            Math.max(64, options.ESCAPE_RANGE[0]), Math.min(options.ESCAPE_RANGE[1], 4000.), true, false
+            Math.max(1, options.ESCAPE_RANGE[0]), Math.min(options.ESCAPE_RANGE[1], 4000.), true, false
         )) {
           return true;
         }

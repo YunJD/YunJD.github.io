@@ -44445,7 +44445,7 @@ exports.default = function () {
     }
 
     //Give up on bailout computations more quickly because at this point, the location may be out of the screen and won't be drawn!
-    var escapedSamplesTex = new T.DataTexture(new Float32Array(4 * 28 * 28), 28, 28, T.RGBAFormat, T.FloatType);
+    var escapedSamplesTex = new T.DataTexture(new Float32Array(4 * SAMPLE_BUF_SIZE), SAMPLE_BUF_ROOT, SAMPLE_BUF_ROOT, T.RGBAFormat, T.FloatType);
     //Run in a step-wise fashion, collecting the escaped coordinates.
     var stepCompute = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
@@ -44459,9 +44459,9 @@ exports.default = function () {
             }
         },
         fragmentShader: (0, _mandelbrotStep2.default)({ MAX_ITER: MAX_ITER, BAILOUT2: 4 })
-    }, 28, 28, 'prev');
+    }, SAMPLE_BUF_ROOT, SAMPLE_BUF_ROOT, 'prev');
     //Used to hold the results at each step of the computation. 
-    var stepBuf = new Float32Array(4 * 28 * 28);
+    var stepBuf = new Float32Array(4 * SAMPLE_BUF_SIZE);
     var buddhabrotHistogram = new T.DataTexture(new Float32Array(4 * BUDDHABROT_W * BUDDHABROT_H), BUDDHABROT_W, BUDDHABROT_H, T.RGBAFormat, T.FloatType);
     var toIdx = coordToIndex(buddhabrotHistogram, [BUDDHABROT_TRANSLATE_X, 0], BUDDHABROT_SCALE, 4);
 
@@ -44506,7 +44506,7 @@ exports.default = function () {
         if (nEscaped) {
             var histBuf = buddhabrotHistogram.image.data;
             stepCompute.material.uniforms.clear.value = 0;
-            for (var i = 0; i <= MAX_ITER; ++i) {
+            for (var i = 1; i <= MAX_ITER; ++i) {
                 stepCompute.execute();
                 stepCompute.getData(0, 0, null, null, stepBuf);
                 if (i < MIN_ITER) {
@@ -44546,7 +44546,7 @@ exports.default = function () {
                 value: buddhabrotHistogram
             }
         },
-        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D histogram;\n            uniform float maxHist;\n\n            void main() {\n                vec3 color = texture2D(histogram, vUv).xyz;\n                color = clamp(50. * color / maxHist, 0., 1.);\n                gl_FragColor = vec4(color, 1.);\n            }\n        '
+        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D histogram;\n            uniform float maxHist;\n\n            void main() {\n                vec3 color = texture2D(histogram, vUv).xyz;\n                color = clamp(float(' + EXPOSURE + ') * color / maxHist, 0., 1.);\n                gl_FragColor = vec4(color, 1.);\n            }\n        '
     }, BUDDHABROT_W, BUDDHABROT_H, undefined, document.getElementById('view'));
 
     var k = 0;
@@ -44689,35 +44689,39 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 var BAILOUT = 2;
 //GPUs have a limit to their loop.
 var MAX_CHUNK = 4000;
-var MIN_ITER = 100000;
-var MAX_ITER = 200000;
+var MIN_ITER = 100;
+var MAX_ITER = 1000;
 
-var MIN_HIST_ITER = 800;
-var MAX_HIST_ITER = 100000;
+var MIN_HIST_ITER = 100;
+var MAX_HIST_ITER = MAX_ITER;
 var HIST_MAX_WEIGHT = 1e6;
 var HIST_W = 2048;
 var HIST_H = 2048;
 var HIST_ASPECT = HIST_W / HIST_H;
-var HIST_TRANSLATE_X = -0.65;
+var HIST_TRANSLATE_X = -0.512;
 var HIST_TRANSLATE_Y = 0.;
-var HIST_SCALE = 1.15;
+var HIST_SCALE = 1.3;
 var JITTER = 2 * HIST_SCALE / HIST_W;
+var EXPOSURE = 20;
 
 //One side of the renderer can't be too huge, so to get around that use a 2D texture to sample.
 var N_SAMPLE_ROOT = 256;
 var N_SAMPLES = N_SAMPLE_ROOT * N_SAMPLE_ROOT;
+//An optimization of sorts
+var SAMPLE_BUF_ROOT = 25;
+var SAMPLE_BUF_SIZE = SAMPLE_BUF_ROOT * SAMPLE_BUF_ROOT;
 
 var BUDDHABROT_W = 1920;
 var BUDDHABROT_H = 1080;
 var BUDDHABROT_ASPECT = BUDDHABROT_W / BUDDHABROT_H;
-var BUDDHABROT_SCALE = 1.;
+var BUDDHABROT_SCALE = 1.4;
 var BUDDHABROT_TRANSLATE_X = -0.3;
 var BUDDHABROT_PIXEL_SIZE = BUDDHABROT_SCALE / BUDDHABROT_H;
 var normalizeColor = function normalizeColor(c) {
     return [(c >> 16) / 255, (c >> 8 & 0xFF) / 255, (c & 0xFF) / 255];
 };
-var PALETTE = [normalizeColor(0xffffff)];
-var PALETTE_RANGE = [0];
+var PALETTE = [normalizeColor(0x0033FF), normalizeColor(0xFF5500)];
+var PALETTE_RANGE = [0, 200000];
 function getMandelbrotHistogram() {
     var mandelbrotHistrCompute = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {

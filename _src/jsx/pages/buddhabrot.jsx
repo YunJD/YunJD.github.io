@@ -8,35 +8,40 @@ import MT from 'mersenne-twister';
 const BAILOUT = 2;
 //GPUs have a limit to their loop.
 const MAX_CHUNK = 4000;
-const MIN_ITER = 40000;
-const MAX_ITER = 70000;
+const MIN_ITER = 100;
+const MAX_ITER = 1000;
 
-const MIN_HIST_ITER = 800;
-const MAX_HIST_ITER = 70000;
+const MIN_HIST_ITER = 100;
+const MAX_HIST_ITER = MAX_ITER;
 const HIST_MAX_WEIGHT = 1e6;
 const HIST_W = 2048;
 const HIST_H = 2048;
 const HIST_ASPECT = HIST_W / HIST_H;
-const HIST_TRANSLATE_X = -0.65;
+const HIST_TRANSLATE_X = -0.512;
 const HIST_TRANSLATE_Y = 0.;
-const HIST_SCALE = 1.15
+const HIST_SCALE = 1.3;
 const JITTER = 2 * HIST_SCALE / HIST_W;
+const EXPOSURE = 20;
 
 //One side of the renderer can't be too huge, so to get around that use a 2D texture to sample.
 const N_SAMPLE_ROOT = 256;
 const N_SAMPLES = N_SAMPLE_ROOT * N_SAMPLE_ROOT;
+//An optimization of sorts
+const SAMPLE_BUF_ROOT = 25;
+const SAMPLE_BUF_SIZE = SAMPLE_BUF_ROOT * SAMPLE_BUF_ROOT;
 
 const BUDDHABROT_W = 1920;
 const BUDDHABROT_H = 1080;
 const BUDDHABROT_ASPECT = BUDDHABROT_W / BUDDHABROT_H;
-const BUDDHABROT_SCALE = 1.;
+const BUDDHABROT_SCALE = 1.4;
 const BUDDHABROT_TRANSLATE_X = -0.3;
 const BUDDHABROT_PIXEL_SIZE = BUDDHABROT_SCALE / BUDDHABROT_H;
 const normalizeColor = c => [(c >> 16) / 255, (c >> 8 & 0xFF) / 255, (c & 0xFF) / 255];
 const PALETTE = [
-    normalizeColor(0xffffff),
+    normalizeColor(0x0033FF),
+    normalizeColor(0xFF5500),
 ];
-let PALETTE_RANGE = [0];
+let PALETTE_RANGE = [0, 200000];
 function getMandelbrotHistogram() {
     let mandelbrotHistrCompute = new stuff.gl.ComputeShaderPass({
         uniforms: {
@@ -329,7 +334,7 @@ export default function() {
     }
 
     //Give up on bailout computations more quickly because at this point, the location may be out of the screen and won't be drawn!
-    let escapedSamplesTex = new T.DataTexture(new Float32Array(4 * 28 * 28), 28, 28, T.RGBAFormat, T.FloatType);
+    let escapedSamplesTex = new T.DataTexture(new Float32Array(4 * SAMPLE_BUF_SIZE), SAMPLE_BUF_ROOT, SAMPLE_BUF_ROOT, T.RGBAFormat, T.FloatType);
     //Run in a step-wise fashion, collecting the escaped coordinates.
     let stepCompute = new stuff.gl.ComputeShaderPass({
         uniforms: {
@@ -343,9 +348,9 @@ export default function() {
             }
         },
         fragmentShader: mandelbrotStepShader({MAX_ITER, BAILOUT2: 4})
-    }, 28, 28, 'prev');
+    }, SAMPLE_BUF_ROOT, SAMPLE_BUF_ROOT, 'prev');
     //Used to hold the results at each step of the computation. 
-    let stepBuf = new Float32Array(4 * 28 * 28);
+    let stepBuf = new Float32Array(4 * SAMPLE_BUF_SIZE);
     let buddhabrotHistogram = new T.DataTexture(new Float32Array(4 * BUDDHABROT_W * BUDDHABROT_H), BUDDHABROT_W, BUDDHABROT_H, T.RGBAFormat, T.FloatType);
     let toIdx = coordToIndex(buddhabrotHistogram, [BUDDHABROT_TRANSLATE_X, 0], BUDDHABROT_SCALE, 4);
 
@@ -387,7 +392,7 @@ export default function() {
         if(nEscaped) {
             let histBuf = buddhabrotHistogram.image.data;
             stepCompute.material.uniforms.clear.value = 0;
-            for(let i = 0; i <= MAX_ITER; ++i) {
+            for(let i = 1; i <= MAX_ITER; ++i) {
                 stepCompute.execute();
                 stepCompute.getData(0, 0, null, null, stepBuf);
                 if(i < MIN_ITER) {
@@ -434,7 +439,7 @@ export default function() {
 
             void main() {
                 vec3 color = texture2D(histogram, vUv).xyz;
-                color = clamp(50. * color / maxHist, 0., 1.);
+                color = clamp(float(${EXPOSURE}) * color / maxHist, 0., 1.);
                 gl_FragColor = vec4(color, 1.);
             }
         `
