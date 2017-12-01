@@ -4,10 +4,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/scripts/css/css.css"/>
-        <title>{{title}}</title>
+        <title>{{page.title}}</title>
     </head>
     <body>
         {{ content }}
         <script type="text/javascript" src="{{ site.baseurl }}/scripts/js/App.js"></script>
+        <script type="text/javascript">{{page.startscript}}</script>
     </body>
 </html>
