@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "Web projects",
   "main": "index.js",
-  "scripts": {
-    "watch-scss": "node-sass -w -r --include-path node_modules src/sass/css.scss static_res/css/css.css"
-  },
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -33,7 +30,7 @@
     "material-components-web": "^0.25.0",
     "mersenne-twister": "^1.1.0",
     "moment": "^2.18.1",
-    "node-sass": "^4.6.1",
+    "node-sass": "^4.7.2",
     "normalizr": "^3.2.3",
     "numeral": "^2.0.6",
     "react-redux": "^5.0.6",
