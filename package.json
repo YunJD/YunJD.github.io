@@ -31,6 +31,7 @@
     "mersenne-twister": "^1.1.0",
     "moment": "^2.18.1",
     "node-sass": "^4.7.2",
+    "normalizecss": "^3.0.0",
     "normalizr": "^3.2.3",
     "numeral": "^2.0.6",
     "react-redux": "^5.0.6",
