@@ -45,7 +45,7 @@ export default class {
         }
 
         this.material = new T.ShaderMaterial({
-            uniforms: shader.uniforms, //T.UniformsUtils.clone(shader.uniforms),
+            uniforms: shader.uniforms, //T.UniformsUtils.clone(shader.uniforms), //Clone breaks references to Float32 arrays and such for data textures.
             vertexShader: computeVertShader(),
             fragmentShader: shader.fragmentShader,
             depthWrite: false
@@ -66,6 +66,7 @@ export default class {
         this.renderer.setSize(w, h);
     }
     execute() {
+        //This if-statement is probably not necessary, could simply always draw to canvs & the target.
         if(this.canvas) {
             this.renderer.render(this.scene, this.camera);
             return;
@@ -96,15 +97,17 @@ export default class {
         }
     }
     resize(w, h) {
-        this.dispose();
-
         this.w = w;
         this.h = h;
 
-        this.texTarget.value.dispose();
-        this.texTarget.target.dispose();
-        this.texTarget.value = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
-        this.texTarget.target = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
+        this.texTarget.v.dispose();
+        this.texTarget.t.dispose();
+
+        if(this.targetName) {
+            this.texTarget.v = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
+            this.texTarget.value = this.texTarget.v.texture;
+        }
+        this.texTarget.t = new T.WebGLRenderTarget(w, h, TEX_SETTINGS)
         this.renderer.setSize(w, h);
     }
 }

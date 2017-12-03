@@ -61,7 +61,7 @@ var App =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -44310,17 +44310,25 @@ function CanvasRenderer() {
 
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
-exports.pages = undefined;
 
-var _pages = __webpack_require__(2);
+var _gl = __webpack_require__(7);
 
-var pages = _interopRequireWildcard(_pages);
+var gl = _interopRequireWildcard(_gl);
+
+var _mt = __webpack_require__(10);
+
+var _mt2 = _interopRequireDefault(_mt);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-exports.pages = pages; //Roundabout way to export all page functions into the output target.
+exports.default = {
+    MT: _mt2.default,
+    gl: gl
+};
 
 /***/ }),
 /* 2 */
@@ -44332,8 +44340,28 @@ exports.pages = pages; //Roundabout way to export all page functions into the ou
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.pages = undefined;
 
-var _gallery = __webpack_require__(3);
+var _pages = __webpack_require__(3);
+
+var pages = _interopRequireWildcard(_pages);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+exports.pages = pages; //Roundabout way to export all page functions into the output target.
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _gallery = __webpack_require__(4);
 
 Object.defineProperty(exports, 'GalleryPage', {
   enumerable: true,
@@ -44342,7 +44370,7 @@ Object.defineProperty(exports, 'GalleryPage', {
   }
 });
 
-var _mandelbrot = __webpack_require__(4);
+var _mandelbrot = __webpack_require__(5);
 
 Object.defineProperty(exports, 'MandelbrotPage', {
   enumerable: true,
@@ -44351,7 +44379,7 @@ Object.defineProperty(exports, 'MandelbrotPage', {
   }
 });
 
-var _buddhabrot = __webpack_require__(5);
+var _buddhabrot = __webpack_require__(6);
 
 Object.defineProperty(exports, 'BuddhabrotPage', {
   enumerable: true,
@@ -44372,19 +44400,6 @@ Object.defineProperty(exports, 'ImplicitSurfacePage', {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function () {};
-
-/***/ }),
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -44399,6 +44414,19 @@ exports.default = function () {};
 
 /***/ }),
 /* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function () {};
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44671,7 +44699,7 @@ var _three = __webpack_require__(0);
 
 var T = _interopRequireWildcard(_three);
 
-var _stuff = __webpack_require__(6);
+var _stuff = __webpack_require__(1);
 
 var _stuff2 = _interopRequireDefault(_stuff);
 
@@ -44971,34 +44999,6 @@ function visualizeMandelbrotPdf(pdf) {
 }
 
 /***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _gl = __webpack_require__(7);
-
-var gl = _interopRequireWildcard(_gl);
-
-var _mt = __webpack_require__(10);
-
-var _mt2 = _interopRequireDefault(_mt);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-exports.default = {
-    MT: _mt2.default,
-    gl: gl
-};
-
-/***/ }),
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -45095,7 +45095,7 @@ var _class = function () {
         }
 
         this.material = new T.ShaderMaterial({
-            uniforms: shader.uniforms, //T.UniformsUtils.clone(shader.uniforms),
+            uniforms: shader.uniforms, //T.UniformsUtils.clone(shader.uniforms), //Clone breaks references to Float32 arrays and such for data textures.
             vertexShader: (0, _compute_vertex2.default)(),
             fragmentShader: shader.fragmentShader,
             depthWrite: false
@@ -45119,6 +45119,7 @@ var _class = function () {
     _createClass(_class, [{
         key: 'execute',
         value: function execute() {
+            //This if-statement is probably not necessary, could simply always draw to canvs & the target.
             if (this.canvas) {
                 this.renderer.render(this.scene, this.camera);
                 return;
@@ -45165,15 +45166,17 @@ var _class = function () {
     }, {
         key: 'resize',
         value: function resize(w, h) {
-            this.dispose();
-
             this.w = w;
             this.h = h;
 
-            this.texTarget.value.dispose();
-            this.texTarget.target.dispose();
-            this.texTarget.value = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
-            this.texTarget.target = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
+            this.texTarget.v.dispose();
+            this.texTarget.t.dispose();
+
+            if (this.targetName) {
+                this.texTarget.v = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
+                this.texTarget.value = this.texTarget.v.texture;
+            }
+            this.texTarget.t = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
             this.renderer.setSize(w, h);
         }
     }]);
@@ -45681,16 +45684,46 @@ module.exports = MersenneTwister;
 
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 
-exports.default = function () {};
+exports.default = function () {
+    var $view = $('#view');
+
+    var camera = new T.PerspectiveCamera(100, $(window).width() / $(window).height(), 0.1, 1000);
+    //Pass the camera's projection matrix into fragment shader to do ray marching calculations.
+    /*
+    let implSurfPass = new stuff.gl.ComputeShaderPass({
+    }, $(window).width(), $(window).width());
+    */
+
+    var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
+        uniforms: {},
+        fragmentShader: '\n            void main() {\n                gl_FragColor = vec4(1., 0.5, 0.6, 1.);\n            }\n        '
+    }, $(window).width(), $(document).height(), null, $("#view")[0]);
+
+    var renderers = [];
+    function resize() {
+        //implSurfPass.resize($(window).width(), $(window).height());
+        viewerPass.resize($(window).width(), $(window).height());
+        camera.aspect = $(window).width() / $(window).height();
+        camera.updateProjectionMatrix;
+    }
+
+    $(window).on('resize', resize);
+
+    function draw() {
+        viewerPass.execute();
+        requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+};
 
 var _three = __webpack_require__(0);
 
 var T = _interopRequireWildcard(_three);
 
-var _stuff = __webpack_require__(6);
+var _stuff = __webpack_require__(1);
 
 var _stuff2 = _interopRequireDefault(_stuff);
 
