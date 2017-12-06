@@ -45052,7 +45052,7 @@ var COMPUTE_ORTHO_CAMERA = new T.OrthographicCamera(-0.5, //Left
 0.5, //Right
 0.5, //Top
 -0.5, //Bottom
-0.5, //Near
+0.25, //Near
 1000 //Far
 );
 
@@ -45169,14 +45169,14 @@ var _class = function () {
             this.w = w;
             this.h = h;
 
-            this.texTarget.v.dispose();
             this.texTarget.t.dispose();
+            this.texTarget.t = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
 
             if (this.targetName) {
+                this.texTarget.v.dispose();
                 this.texTarget.v = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
                 this.texTarget.value = this.texTarget.v.texture;
             }
-            this.texTarget.t = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
             this.renderer.setSize(w, h);
         }
     }]);
@@ -45678,58 +45678,10 @@ module.exports = MersenneTwister;
 
 /***/ }),
 /* 15 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
 "use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-exports.default = function () {
-    var $view = $('#view');
-
-    var camera = new T.PerspectiveCamera(100, $(window).width() / $(window).height(), 0.1, 1000);
-    //Pass the camera's projection matrix into fragment shader to do ray marching calculations.
-    /*
-    let implSurfPass = new stuff.gl.ComputeShaderPass({
-    }, $(window).width(), $(window).width());
-    */
-
-    var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
-        uniforms: {},
-        fragmentShader: '\n            void main() {\n                gl_FragColor = vec4(1., 0.5, 0.6, 1.);\n            }\n        '
-    }, $(window).width(), $(document).height(), null, $("#view")[0]);
-
-    var renderers = [];
-    function resize() {
-        //implSurfPass.resize($(window).width(), $(window).height());
-        viewerPass.resize($(window).width(), $(window).height());
-        camera.aspect = $(window).width() / $(window).height();
-        camera.updateProjectionMatrix;
-    }
-
-    $(window).on('resize', resize);
-
-    function draw() {
-        viewerPass.execute();
-        requestAnimationFrame(draw);
-    }
-    requestAnimationFrame(draw);
-};
-
-var _three = __webpack_require__(0);
-
-var T = _interopRequireWildcard(_three);
-
-var _stuff = __webpack_require__(1);
-
-var _stuff2 = _interopRequireDefault(_stuff);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+throw new Error("Module build failed: SyntaxError: Unexpected token, expected , (24:12)\n\n\u001b[0m \u001b[90m 22 | \u001b[39m            }\n \u001b[90m 23 | \u001b[39m            \u001b[90m//Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 24 | \u001b[39m            invProjMat\u001b[33m:\u001b[39m {\n \u001b[90m    | \u001b[39m            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 25 | \u001b[39m                type\u001b[33m:\u001b[39m \u001b[32m'm4'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 26 | \u001b[39m                value\u001b[33m:\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mT\u001b[39m\u001b[33m.\u001b[39m\u001b[33mMatrix4\u001b[39m()\u001b[33m.\u001b[39mgetInverse(camera\u001b[33m.\u001b[39mprojectionMatrix)\n \u001b[90m 27 | \u001b[39m            }\u001b[33m,\u001b[39m\u001b[0m\n");
 
 /***/ })
 /******/ ]);

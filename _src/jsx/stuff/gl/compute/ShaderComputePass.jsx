@@ -7,7 +7,7 @@ const COMPUTE_ORTHO_CAMERA = new T.OrthographicCamera(
     0.5, //Right
     0.5, //Top
     -0.5, //Bottom
-    0.5, //Near
+    0.25, //Near
     1000 //Far
 );
 
@@ -100,14 +100,14 @@ export default class {
         this.w = w;
         this.h = h;
 
-        this.texTarget.v.dispose();
         this.texTarget.t.dispose();
+        this.texTarget.t = new T.WebGLRenderTarget(w, h, TEX_SETTINGS)
 
         if(this.targetName) {
+            this.texTarget.v.dispose();
             this.texTarget.v = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
             this.texTarget.value = this.texTarget.v.texture;
         }
-        this.texTarget.t = new T.WebGLRenderTarget(w, h, TEX_SETTINGS)
         this.renderer.setSize(w, h);
     }
 }
