@@ -1,13 +1,19 @@
 import * as T from 'three';
 import stuff from 'stuff';
 import raySphereMarchingShader from 'shaders/raySphereMarching.frag';
+import sdfSnippets from 'snippets/sdf_snippets.jsx';
 
 export default function() {
+    let editor = ace.edit("editor");
+    editor.setTheme("ace/theme/gruvbox");
+    editor.getSession().setMode("ace/mode/glsl");
+    editor.setValue(sdfSnippets, 1);
+
     let $view = $('#view');
     let $viewParent = $view.parent();
 
     let camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
-    let camR = 200,
+    let camR = 400,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
     let origin = new T.Vector3(0., 0., 0.);
@@ -26,7 +32,8 @@ export default function() {
         needsUpdate = true;
     }
     function zoom(amount) {
-        camR = T.Math.clamp(camR + amount, 20, 1000);
+        console.log(amount);
+        camR = T.Math.clamp(camR + amount, 0.2, 1500);
         updateCamera();
     }
     function rotateTheta(amount) {
@@ -44,7 +51,8 @@ export default function() {
         updateCamera();
     }
     $view.on('mousewheel', function(e) {
-        zoom(20 * (-e.originalEvent.wheelDelta / 120));
+        //Zoom slower as we paroach camR = 0;
+        zoom(5 * Math.log(camR / 10 + 1) * (-e.originalEvent.wheelDelta / 120));
     });
     let dragging = false;
     let mousePos;
@@ -94,31 +102,14 @@ export default function() {
                 value: camera.matrix
             }
         },
-        fragmentShader: raySphereMarchingShader({
-            distanceProgram: `
-                return max(
-                    length(p) - 100.0,
-                    -min(
-                        (length(vec3(p.x - 125., p.y, p.z)) - 100.),
-                        min(
-                            (length(vec3(p.x + 125., p.y, p.z)) - 100.),
-                            min(
-                                (length(vec3(p.x, p.y - 125., p.z)) - 100.),
-                                min(
-                                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),
-                                    min(
-                                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),
-                                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)
-                                    )
-                                )
-                            )
-                        )
-                    )
-                );
-            `
-        })
-    //}, $viewParent.width(), $viewParent.height(), null, $("#view")[0]);
+        fragmentShader: raySphereMarchingShader().replace("float distanceProgram;", editor.getValue())
     }, $viewParent.width(), $viewParent.height());
+
+    function updateProgram() {
+        marchPass.material.fragmentShader = raySphereMarchingShader().replace("float distanceProgram;", editor.getValue());
+        marchPass.material.needsUpdate = true;
+        needsUpdate = true;
+    }
 
     let viewerPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
@@ -134,7 +125,7 @@ export default function() {
             void main() {
                 vec4 color = texture2D(surfaceData, vUv);
                 if(color.a != -1.) {
-                    gl_FragColor = vec4(abs(color.xyz) / 100., 1.);
+                    gl_FragColor = vec4(length(color.xyz) / 150.);
                 }
             }
         `
@@ -184,4 +175,5 @@ export default function() {
         $('#bottom-sheet').removeClass('visible');
         setTimeout(() => $("#fab-tune").removeClass("mdc-fab--exited"), 500);
     });
+    $("#fab-update").on('click', updateProgram);
 }

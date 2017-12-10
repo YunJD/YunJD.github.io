@@ -45687,11 +45687,16 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/gruvbox");
+    editor.getSession().setMode("ace/mode/glsl");
+    editor.setValue(_sdf_snippets2.default, 1);
+
     var $view = $('#view');
     var $viewParent = $view.parent();
 
     var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
-    var camR = 200,
+    var camR = 400,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
     var origin = new T.Vector3(0., 0., 0.);
@@ -45706,7 +45711,8 @@ exports.default = function () {
         needsUpdate = true;
     }
     function zoom(amount) {
-        camR = T.Math.clamp(camR + amount, 20, 1000);
+        console.log(amount);
+        camR = T.Math.clamp(camR + amount, 0.2, 1500);
         updateCamera();
     }
     function rotateTheta(amount) {
@@ -45723,7 +45729,8 @@ exports.default = function () {
         updateCamera();
     }
     $view.on('mousewheel', function (e) {
-        zoom(20 * (-e.originalEvent.wheelDelta / 120));
+        //Zoom slower as we paroach camR = 0;
+        zoom(5 * Math.log(camR / 10 + 1) * (-e.originalEvent.wheelDelta / 120));
     });
     var dragging = false;
     var mousePos = void 0;
@@ -45773,11 +45780,14 @@ exports.default = function () {
                 value: camera.matrix
             }
         },
-        fragmentShader: (0, _raySphereMarching2.default)({
-            distanceProgram: '\n                return max(\n                    length(p) - 100.0,\n                    -min(\n                        (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n                        min(\n                            (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                            min(\n                                (length(vec3(p.x, p.y - 125., p.z)) - 100.),\n                                min(\n                                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                                    min(\n                                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                                    )\n                                )\n                            )\n                        )\n                    )\n                );\n            '
-        })
-        //}, $viewParent.width(), $viewParent.height(), null, $("#view")[0]);
+        fragmentShader: (0, _raySphereMarching2.default)().replace("float distanceProgram;", editor.getValue())
     }, $viewParent.width(), $viewParent.height());
+
+    function updateProgram() {
+        marchPass.material.fragmentShader = (0, _raySphereMarching2.default)().replace("float distanceProgram;", editor.getValue());
+        marchPass.material.needsUpdate = true;
+        needsUpdate = true;
+    }
 
     var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
@@ -45786,7 +45796,7 @@ exports.default = function () {
                 value: marchPass.texTarget.t.texture
             }
         },
-        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n\n            void main() {\n                vec4 color = texture2D(surfaceData, vUv);\n                if(color.a != -1.) {\n                    gl_FragColor = vec4(abs(color.xyz) / 100., 1.);\n                }\n            }\n        '
+        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n\n            void main() {\n                vec4 color = texture2D(surfaceData, vUv);\n                if(color.a != -1.) {\n                    gl_FragColor = vec4(length(color.xyz) / 150.);\n                }\n            }\n        '
         //}, $viewParent.width(), $viewParent.height());
     }, $viewParent.width(), $viewParent.height(), null, $("#view")[0]);
     //Needs the same renderer in order to share data. Booo.
@@ -45837,6 +45847,7 @@ exports.default = function () {
             return $("#fab-tune").removeClass("mdc-fab--exited");
         }, 500);
     });
+    $("#fab-update").on('click', updateProgram);
 };
 
 var _three = __webpack_require__(0);
@@ -45851,6 +45862,10 @@ var _raySphereMarching = __webpack_require__(16);
 
 var _raySphereMarching2 = _interopRequireDefault(_raySphereMarching);
 
+var _sdf_snippets = __webpack_require__(18);
+
+var _sdf_snippets2 = _interopRequireDefault(_sdf_snippets);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -45859,14 +45874,21 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 /* 16 */
 /***/ (function(module, exports) {
 
-module.exports=opts=>"uniform float far;\nuniform float threshold;\nuniform mat4 invProjMat;\nuniform mat4 mat;\nvarying vec2 vUv;\nprecision highp float;\nfloat distance(in vec4 p, in vec4 rp, in vec4 rd) {\n\t"+
+module.exports=opts=>"uniform float far;\nuniform float threshold;\nuniform mat4 invProjMat;\nuniform mat4 mat;\nvarying vec2 vUv;\nprecision highp float;\nfloat distanceProgram;\nvoid main() {\n\tvec4 rayPos = mat * vec4(0., 0., 0., 1.);\n\tvec4 rayDir = invProjMat * vec4(2. * (vUv - 0.5), 0., 1.);\n\trayDir.a = 0.;\n\trayDir = mat * normalize(rayDir);\n\tfloat t = 0.;\n\tvec4 p;\n\tbool isInside = false;\n\tfor (int i = 0; i < 800; ++i) {\n\t\tp = rayPos + (t * rayDir);\n\t\tfloat dist = distance(p, rayPos, rayDir);\n\t\tif (((-dist <= threshold) && (dist <= threshold)) && (t > 0.)) {\n\t\t\tgl_FragColor = vec4(p.xyz, float(i));\n\t\t\treturn ;\n\t\t}\n\t\tif (i == 0) {\n\t\t\tisInside = dist < 0.;\n\t\t}\n\t\tif (isInside) {\n\t\t\tt -= dist;\n\t\t}\n\t\telse {\n\t\t\tt += dist;\n\t\t}\n\t\tif ((t >= far) || (t < 0.)) {\n\t\t\tbreak;\n\t\t}\n\t}\n\tgl_FragColor = vec4(-1.);\n}\n";
+
+/***/ }),
+/* 17 */,
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
-
-
-
-
-opts.distanceProgram+";\n}\nvoid main() {\n\tvec4 rayPos = mat * vec4(0., 0., 0., 1.);\n\tvec4 rayDir = invProjMat * vec4(2. * (vUv - 0.5), 0., 1.);\n\trayDir.a = 0.;\n\trayDir = mat * normalize(rayDir);\n\tfloat t = 0.;\n\tvec4 p;\n\tfor (int i = 0; i < 800; ++i) {\n\t\tp = rayPos + (t * rayDir);\n\t\tfloat dist = distance(p, rayPos, rayDir);\n\t\tfloat absDist = abs(dist);\n\t\tif (abs(dist) <= threshold) {\n\t\t\tgl_FragColor = vec4(p.xyz, float(i));\n\t\t\treturn ;\n\t\t}\n\t\tif (absDist < 1e-5) {\n\t\t\tdist = (1e-5 * absDist) / dist;\n\t\t}\n\t\tt += dist;\n\t\tif ((t >= far) || (t < 0.)) {\n\t\t\tbreak;\n\t\t}\n\t}\n\tgl_FragColor = vec4(0., 0., 0., -1.);\n}\n";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+//The glsl loader will remove white-space and comments.
+exports.default = "\nfloat funShape(in vec4 p, in vec4 rp, in vec4 rd) {\n    return max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                    (length(vec3(p.x, p.y - 125., p.z)) - 100.),\n                    min(\n                        (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                        min(\n                            (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                            (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                        )\n                    )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, in vec4 rp, in vec4 rd) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return funShape(p, rp, rd);\n}\n".trim();
 
 /***/ })
 /******/ ]);

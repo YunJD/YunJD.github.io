@@ -5,9 +5,11 @@ uniform mat4 mat;
 varying vec2 vUv;
 precision highp float;
 
-float distance(in vec4 p, in vec4 rp, in vec4 rd) {
-    $distanceProgram
-}
+/* Must use string replace here because the webpack glsl template loader will throw an error with just 
+ *
+ * $distanceProgram
+ */
+float distanceProgram;
 
 void main() {
     //At this point, all that the projection matrix does is map extents to aspect * tan(fov / 2) and set z to -1.
@@ -20,21 +22,32 @@ void main() {
 
     float t = 0.;
     vec4 p;
+    bool isInside = false;
     for(int i = 0; i < 800; ++i) {
         p = rayPos + t * rayDir;
+
         float dist = distance(p, rayPos, rayDir);
-        float absDist = abs(dist);
-        if(abs(dist) <= threshold) {
+
+        if(-dist <= threshold && dist <= threshold && t > 0.) {
             gl_FragColor = vec4(p.xyz, float(i));
             return;
         }
-        if(absDist < 1e-5) {
-            dist = 1e-5 * absDist / dist;
+
+        if(i == 0) {
+            isInside = dist < 0.;
         }
-        t += dist;
+
+        //Keep moving forward.
+        if(isInside) {
+            t -= dist;
+        }
+        else {
+            t += dist;
+        }
+
         if(t >= far || t < 0.) {
             break;
         }
     }
-    gl_FragColor = vec4(0., 0., 0., -1.);
+    gl_FragColor = vec4(-1.);
 }

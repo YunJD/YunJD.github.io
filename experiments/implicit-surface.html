@@ -30,6 +30,11 @@ header: |
         .view-container.shrunk {
             height: 25vh;
         }
+        #editor {
+            width: 100%;
+            height: calc(75vh - 160px);
+            border: 1px solid #303030;
+        }
     </style>
 ---
 <div class="view-container">
@@ -38,9 +43,30 @@ header: |
 <div id="bottom-sheet" class="bottom-sheet mdc-theme--dark">
     <header class="mdc-toolbar" style="background: transparent">
         <div class="mdc-toolbar__row">
-            <a id="close-bottom-sheet" class="material-icons mdc-toolbar__menu-icon" href="#">arrow_back</a>
+            <section class="mdc-toolbar__section mdc-toolbar__section--shrink-to-fit mdc-toolbar__section--align-start">
+                <a id="close-bottom-sheet" class="material-icons mdc-toolbar__menu-icon" href="#">arrow_back</a>
+            </section>
+            <section class="mdc-toolbar__section mdc-toolbar__section--align-end">
+                <div>
+                    <nav class="mdc-tab-bar mdc-tab-bar--icon-tab-bar">
+                        <a class="mdc-tab mdc-tab--active" href="#code" aria-controls="code">
+                            <i class="material-icons mdc-tab__icon" aria-label="Recents">code</i>
+                        </a>
+                        <span class="mdc-tab-bar__indicator"></span>
+                    </nav>
+                </div>
+            </section>
         </div>
     </header>
+    <section style="padding: 0 25px 0px 25px">
+        <div class="panels mdc-theme--text-primary-on-dark">
+            <div id="code" class="panel active">
+                <div class="mdc-typography--title">Signed Distance Function</div>
+                <p>Edit the signed distance function shader. Common functions are provided, call them directly!</p>
+                <div id="editor"></div>
+            </div>
+        </div>
+    </section>
 </div>
 <button id="fab-tune" class="fab-bottom-right mdc-fab material-icons mdc-theme--primary mdc-theme--background" aria-label="Tune" data-mdc-auto-init="MDCRipple">
     <span class="mdc-fab__icon">
