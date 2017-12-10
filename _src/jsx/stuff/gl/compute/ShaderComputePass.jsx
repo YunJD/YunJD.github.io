@@ -24,8 +24,8 @@ const TEX_SETTINGS = {
 
 export default class {
     constructor(shader, w, h = 1, targetName = null, canvas = null) {
-        //This is the name used to feed the render target back into the shader as a texture. If null, will be ignored.
         this.canvas = canvas;
+        //This is the name used to feed the render target back into the shader as a texture. If null, will be ignored.
         this.targetName = targetName;
         this.w = w;
         this.h = h;
@@ -48,7 +48,8 @@ export default class {
             uniforms: shader.uniforms, //T.UniformsUtils.clone(shader.uniforms), //Clone breaks references to Float32 arrays and such for data textures.
             vertexShader: computeVertShader(),
             fragmentShader: shader.fragmentShader,
-            depthWrite: false
+            depthWrite: false,
+            depthTest: false
         });
 
         //three.js centers the COMPUTE_PLANE.  This means that the camera view extents are (-0.5, -0.5), (0.5, 0.5) and
@@ -95,18 +96,16 @@ export default class {
         if(this.targetName) {
             this.texTarget.v.dispose();
         }
+        this.renderer.dispose();
     }
     resize(w, h) {
         this.w = w;
         this.h = h;
 
-        this.texTarget.t.dispose();
-        this.texTarget.t = new T.WebGLRenderTarget(w, h, TEX_SETTINGS)
+        this.texTarget.t.setSize(w, h);
 
         if(this.targetName) {
-            this.texTarget.v.dispose();
-            this.texTarget.v = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
-            this.texTarget.value = this.texTarget.v.texture;
+            this.texTarget.v.setSize(w, h);
         }
         this.renderer.setSize(w, h);
     }

@@ -45074,8 +45074,8 @@ var _class = function () {
 
         _classCallCheck(this, _class);
 
-        //This is the name used to feed the render target back into the shader as a texture. If null, will be ignored.
         this.canvas = canvas;
+        //This is the name used to feed the render target back into the shader as a texture. If null, will be ignored.
         this.targetName = targetName;
         this.w = w;
         this.h = h;
@@ -45098,7 +45098,8 @@ var _class = function () {
             uniforms: shader.uniforms, //T.UniformsUtils.clone(shader.uniforms), //Clone breaks references to Float32 arrays and such for data textures.
             vertexShader: (0, _compute_vertex2.default)(),
             fragmentShader: shader.fragmentShader,
-            depthWrite: false
+            depthWrite: false,
+            depthTest: false
         });
 
         //three.js centers the COMPUTE_PLANE.  This means that the camera view extents are (-0.5, -0.5), (0.5, 0.5) and
@@ -45162,6 +45163,7 @@ var _class = function () {
             if (this.targetName) {
                 this.texTarget.v.dispose();
             }
+            this.renderer.dispose();
         }
     }, {
         key: 'resize',
@@ -45169,13 +45171,10 @@ var _class = function () {
             this.w = w;
             this.h = h;
 
-            this.texTarget.t.dispose();
-            this.texTarget.t = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
+            this.texTarget.t.setSize(w, h);
 
             if (this.targetName) {
-                this.texTarget.v.dispose();
-                this.texTarget.v = new T.WebGLRenderTarget(w, h, TEX_SETTINGS);
-                this.texTarget.value = this.texTarget.v.texture;
+                this.texTarget.v.setSize(w, h);
             }
             this.renderer.setSize(w, h);
         }
@@ -45678,10 +45677,196 @@ module.exports = MersenneTwister;
 
 /***/ }),
 /* 15 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-throw new Error("Module build failed: SyntaxError: Unexpected token, expected , (24:12)\n\n\u001b[0m \u001b[90m 22 | \u001b[39m            }\n \u001b[90m 23 | \u001b[39m            \u001b[90m//Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 24 | \u001b[39m            invProjMat\u001b[33m:\u001b[39m {\n \u001b[90m    | \u001b[39m            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 25 | \u001b[39m                type\u001b[33m:\u001b[39m \u001b[32m'm4'\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 26 | \u001b[39m                value\u001b[33m:\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mT\u001b[39m\u001b[33m.\u001b[39m\u001b[33mMatrix4\u001b[39m()\u001b[33m.\u001b[39mgetInverse(camera\u001b[33m.\u001b[39mprojectionMatrix)\n \u001b[90m 27 | \u001b[39m            }\u001b[33m,\u001b[39m\u001b[0m\n");
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function () {
+    var $view = $('#view');
+    var $viewParent = $view.parent();
+
+    var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
+    var camR = 200,
+        camPhi = Math.PI * 0.5,
+        camTheta = Math.PI * 0.5;
+    var origin = new T.Vector3(0., 0., 0.);
+    updateCamera();
+    function setCameraPosition() {
+        camera.position.set(camR * Math.cos(camPhi) * Math.sin(camTheta), camR * Math.cos(camTheta), camR * Math.sin(camPhi) * Math.sin(camTheta));
+    }
+    function updateCamera() {
+        setCameraPosition();
+        camera.lookAt(origin);
+        camera.updateMatrix();
+        needsUpdate = true;
+    }
+    function zoom(amount) {
+        camR = T.Math.clamp(camR + amount, 20, 1000);
+        updateCamera();
+    }
+    function rotateTheta(amount) {
+        camTheta = T.Math.clamp(camTheta + amount, 1e-2, Math.PI - 1e-2);
+        updateCamera();
+    }
+    function rotatePhi(amount) {
+        camPhi += amount;
+        if (camPhi > 2 * Math.PI) {
+            camPhi -= 2 * Math.PI;
+        } else if (camPhi < 0.) {
+            camPhi += 2 * Math.PI;
+        }
+        updateCamera();
+    }
+    $view.on('mousewheel', function (e) {
+        zoom(20 * (-e.originalEvent.wheelDelta / 120));
+    });
+    var dragging = false;
+    var mousePos = void 0;
+    $view.on('mousedown', function (e) {
+        if (e.which == 1) {
+            dragging = true;
+            mousePos = [e.pageX, e.pageY];
+        }
+    });
+    $viewParent.on('blue', function (e) {
+        dragging = false;
+    });
+    $(window).on('mouseup', function (e) {
+        if (e.which == 1) {
+            dragging = false;
+        }
+    });
+    $view.on('mousemove', function (e) {
+        if (dragging) {
+            e.preventDefault();
+            var deltaX = (e.pageX - mousePos[0]) / $viewParent.width();
+            var deltaY = (e.pageY - mousePos[1]) / $viewParent.height();
+            rotatePhi(2 * Math.PI * deltaX);
+            rotateTheta(-Math.PI * deltaY);
+            mousePos = [e.pageX, e.pageY];
+        }
+    });
+
+    var marchPass = new _stuff2.default.gl.ComputeShaderPass({
+        uniforms: {
+            //Not to be confused with camera.far, this defines when to give up in case nothing was hit.
+            far: {
+                type: 'f',
+                value: 1e3
+            },
+            threshold: {
+                type: 'f',
+                value: 1e-3
+            },
+            //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
+            invProjMat: {
+                type: 'm4',
+                value: new T.Matrix4().getInverse(camera.projectionMatrix)
+            },
+            mat: {
+                type: 'm4',
+                value: camera.matrix
+            }
+        },
+        fragmentShader: (0, _raySphereMarching2.default)({
+            distanceProgram: '\n                return max(\n                    length(p) - 100.0,\n                    -min(\n                        (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n                        min(\n                            (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                            min(\n                                (length(vec3(p.x, p.y - 125., p.z)) - 100.),\n                                min(\n                                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                                    min(\n                                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                                    )\n                                )\n                            )\n                        )\n                    )\n                );\n            '
+        })
+        //}, $viewParent.width(), $viewParent.height(), null, $("#view")[0]);
+    }, $viewParent.width(), $viewParent.height());
+
+    var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
+        uniforms: {
+            surfaceData: {
+                type: 't',
+                value: marchPass.texTarget.t.texture
+            }
+        },
+        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n\n            void main() {\n                vec4 color = texture2D(surfaceData, vUv);\n                if(color.a != -1.) {\n                    gl_FragColor = vec4(abs(color.xyz) / 100., 1.);\n                }\n            }\n        '
+        //}, $viewParent.width(), $viewParent.height());
+    }, $viewParent.width(), $viewParent.height(), null, $("#view")[0]);
+    //Needs the same renderer in order to share data. Booo.
+    marchPass.renderer.dispose();
+    marchPass.renderer = viewerPass.renderer;
+
+    var needsUpdate = true;
+
+    function resize() {
+        camera.aspect = $viewParent.width() / $viewParent.height();
+        camera.updateProjectionMatrix();
+
+        viewerPass.resize($viewParent.width(), $viewParent.height());
+
+        marchPass.resize($viewParent.width(), $viewParent.height());
+        marchPass.material.uniforms.invProjMat.value = new T.Matrix4().getInverse(camera.projectionMatrix);
+
+        needsUpdate = true;
+    }
+
+    function draw() {
+        //Easy way to take advantage of container transitions.
+        if ($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
+            resize();
+        }
+        if (needsUpdate) {
+            needsUpdate = false;
+            marchPass.execute();
+            viewerPass.execute();
+        }
+        requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+    $('#fab-tune').on('click', function () {
+        $(this).addClass('mdc-fab--exited');
+        $viewParent.addClass('shrunk');
+        $('#bottom-sheet').addClass('visible');
+        //500ms delay while we wait for the bottom sheet to show up.
+        setTimeout(function () {
+            return $("#fab-update").removeClass("mdc-fab--exited");
+        }, 500);
+    });
+    $("#close-bottom-sheet").on('click', function () {
+        $("#fab-update").addClass("mdc-fab--exited");
+        $viewParent.removeClass('shrunk');
+        $('#bottom-sheet').removeClass('visible');
+        setTimeout(function () {
+            return $("#fab-tune").removeClass("mdc-fab--exited");
+        }, 500);
+    });
+};
+
+var _three = __webpack_require__(0);
+
+var T = _interopRequireWildcard(_three);
+
+var _stuff = __webpack_require__(1);
+
+var _stuff2 = _interopRequireDefault(_stuff);
+
+var _raySphereMarching = __webpack_require__(16);
+
+var _raySphereMarching2 = _interopRequireDefault(_raySphereMarching);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports) {
+
+module.exports=opts=>"uniform float far;\nuniform float threshold;\nuniform mat4 invProjMat;\nuniform mat4 mat;\nvarying vec2 vUv;\nprecision highp float;\nfloat distance(in vec4 p, in vec4 rp, in vec4 rd) {\n\t"+
+
+
+
+
+
+
+opts.distanceProgram+";\n}\nvoid main() {\n\tvec4 rayPos = mat * vec4(0., 0., 0., 1.);\n\tvec4 rayDir = invProjMat * vec4(2. * (vUv - 0.5), 0., 1.);\n\trayDir.a = 0.;\n\trayDir = mat * normalize(rayDir);\n\tfloat t = 0.;\n\tvec4 p;\n\tfor (int i = 0; i < 800; ++i) {\n\t\tp = rayPos + (t * rayDir);\n\t\tfloat dist = distance(p, rayPos, rayDir);\n\t\tfloat absDist = abs(dist);\n\t\tif (abs(dist) <= threshold) {\n\t\t\tgl_FragColor = vec4(p.xyz, float(i));\n\t\t\treturn ;\n\t\t}\n\t\tif (absDist < 1e-5) {\n\t\t\tdist = (1e-5 * absDist) / dist;\n\t\t}\n\t\tt += dist;\n\t\tif ((t >= far) || (t < 0.)) {\n\t\t\tbreak;\n\t\t}\n\t}\n\tgl_FragColor = vec4(0., 0., 0., -1.);\n}\n";
 
 /***/ })
 /******/ ]);

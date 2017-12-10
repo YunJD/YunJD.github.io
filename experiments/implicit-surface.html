@@ -7,6 +7,48 @@ header: |
         body {
             overflow: hidden;
         }
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 0vh;
+            background-color: black;
+            transition: height 0.5s;
+            background: #212121;
+        }
+        .bottom-sheet.visible {
+            min-height: 200px;
+            height: 75vh;
+        }
+
+        .view-container {
+            width: 100%;
+            height: 100vh;
+            transition: height 0.5s;
+        }
+
+        .view-container.shrunk {
+            height: 25vh;
+        }
     </style>
 ---
-<canvas id="view"></canvas>
+<div class="view-container">
+    <canvas id="view"></canvas>
+</div>
+<div id="bottom-sheet" class="bottom-sheet mdc-theme--dark">
+    <header class="mdc-toolbar" style="background: transparent">
+        <div class="mdc-toolbar__row">
+            <a id="close-bottom-sheet" class="material-icons mdc-toolbar__menu-icon" href="#">arrow_back</a>
+        </div>
+    </header>
+</div>
+<button id="fab-tune" class="fab-bottom-right mdc-fab material-icons mdc-theme--primary mdc-theme--background" aria-label="Tune" data-mdc-auto-init="MDCRipple">
+    <span class="mdc-fab__icon">
+        tune
+    </span>
+</button>
+<button id="fab-update" class="fab-bottom-right mdc-fab mdc-fab--exited material-icons mdc-theme--primary mdc-theme--background" aria-label="Update" data-mdc-auto-init="MDCRipple">
+    <span class="mdc-fab__icon">
+        autorenew
+    </span>
+</button>
