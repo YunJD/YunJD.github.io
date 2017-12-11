@@ -45769,6 +45769,7 @@ exports.default = function () {
             dragging = false;
             //Pinching
             if (e.touches.length == 2) {
+                e.preventDefault();
                 pinchPos = e.touches;
             }
         }
@@ -45804,7 +45805,7 @@ exports.default = function () {
             var oldScale = Math.sqrt(Math.pow(pinchPos[0].pageX - pinchPos[1].pageX, 2) + Math.pow(pinchPos[0].pageY - pinchPos[1].pageY, 2));
             var scale = Math.sqrt(Math.pow(e.touches[0].pageX - e.touches[1].pageX, 2) + Math.pow(e.touches[0].pageY - e.touches[1].pageY, 2));
             var delta = scale - oldScale; //Positive means fingers moved apart, negative means fingers moved together.
-            //Define 1 change unit as the fingers moving half the minimum screen extent. Tweak after experimentation.
+            //Define 1 change 'unit' as the fingers moving half the minimum screen extent. Tweak after experimentation.
             zoom(5 * Math.log(camR / 5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
         }
     });

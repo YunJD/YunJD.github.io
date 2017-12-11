@@ -75,6 +75,7 @@ export default function() {
             dragging = false;
             //Pinching
             if(e.touches.length == 2) {
+                e.preventDefault();
                 pinchPos = e.touches;
             }
         }
@@ -117,7 +118,7 @@ export default function() {
                 + Math.pow(e.touches[0].pageY - e.touches[1].pageY, 2)
             );
             let delta = scale - oldScale; //Positive means fingers moved apart, negative means fingers moved together.
-            //Define 1 change unit as the fingers moving half the minimum screen extent. Tweak after experimentation.
+            //Define 1 change 'unit' as the fingers moving half the minimum screen extent. Tweak after experimentation.
             zoom(5 * Math.log(camR / 5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
         }
     });
