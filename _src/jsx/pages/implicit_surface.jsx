@@ -107,6 +107,7 @@ export default function() {
             mousePos = [e.touches[0].pageX, e.touches[0].pageY];
         }
         else if(e.touches.length == 2) {
+            e.preventDefault();
             let oldScale = Math.sqrt(
                 Math.pow(pinchPos[0].pageX - pinchPos[1].pageX, 2) 
                 + Math.pow(pinchPos[0].pageY - pinchPos[1].pageY, 2)
