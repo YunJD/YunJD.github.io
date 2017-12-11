@@ -15,6 +15,8 @@ header: |
             background-color: black;
             transition: height 0.5s;
             background: #212121;
+            display: flex;
+            flex-direction: column;
         }
         .bottom-sheet.visible {
             min-height: 200px;
@@ -30,9 +32,14 @@ header: |
         .view-container.shrunk {
             height: 25vh;
         }
+        .editor-container {
+            padding: 0 25px;
+            flex-grow: 1;
+            position: relative;
+        }
         #editor {
             width: 100%;
-            height: calc(75vh - 160px);
+            min-height: 200px;
             border: 1px solid #303030;
         }
     </style>
@@ -62,10 +69,12 @@ header: |
         <div class="panels mdc-theme--text-primary-on-dark">
             <div id="code" class="panel active">
                 <div class="mdc-typography--title">Signed Distance Function</div>
-                <p>Edit the signed distance function shader, a GLSL snippet that is used by a ray-sphere-marching algorithm.</p>
-                <div id="editor"></div>
+                <p>This GLSL editor defines the distance function that is used by the ray-sphere-marching algorithm.</p>
             </div>
         </div>
+    </section>
+    <section class="editor-container">
+        <div id="editor"></div>
     </section>
 </div>
 <button id="fab-tune" class="fab-bottom-right mdc-fab material-icons mdc-theme--primary mdc-theme--background" aria-label="Tune" data-mdc-auto-init="MDCRipple">

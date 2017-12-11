@@ -8,11 +8,11 @@ float fourSpheresIntersection(in vec4 p, in vec4 rp, in vec4 rd) {
             min(
                 (length(vec3(p.x + 125., p.y, p.z)) - 100.),
                 min(
-                        (length(vec3(p.x, p.y + 125., p.z)) - 100.),
-                        min(
-                            (length(vec3(p.x, p.y, p.z - 125.)) - 100.),
-                            (length(vec3(p.x, p.y, p.z + 125.)) - 100.)
-                        )
+                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),
+                    min(
+                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),
+                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)
+                    )
                 )
             )
         )

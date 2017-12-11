@@ -186,6 +186,9 @@ export default function() {
     let needsUpdate = true;
 
     function resize() {
+        $("#editor").height($("#editor").parent().height() - 10);
+        editor.resize();
+
         camera.aspect = $viewParent.width() / $viewParent.height();
         camera.updateProjectionMatrix();
 
@@ -215,7 +218,9 @@ export default function() {
         $viewParent.addClass('shrunk');
         $('#bottom-sheet').addClass('visible');
         //500ms delay while we wait for the bottom sheet to show up.
-        setTimeout(() => $("#fab-update").removeClass("mdc-fab--exited"), 500);
+        setTimeout(() => {
+            $("#fab-update").removeClass("mdc-fab--exited");
+        }, 500);
     });
     $("#close-bottom-sheet").on('click', function() {
         $("#fab-update").addClass("mdc-fab--exited");

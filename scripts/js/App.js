@@ -45861,6 +45861,9 @@ exports.default = function () {
     var needsUpdate = true;
 
     function resize() {
+        $("#editor").height($("#editor").parent().height() - 10);
+        editor.resize();
+
         camera.aspect = $viewParent.width() / $viewParent.height();
         camera.updateProjectionMatrix();
 
@@ -45891,7 +45894,7 @@ exports.default = function () {
         $('#bottom-sheet').addClass('visible');
         //500ms delay while we wait for the bottom sheet to show up.
         setTimeout(function () {
-            return $("#fab-update").removeClass("mdc-fab--exited");
+            $("#fab-update").removeClass("mdc-fab--exited");
         }, 500);
     });
     $("#close-bottom-sheet").on('click', function () {
@@ -45943,7 +45946,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 //The glsl loader will remove white-space and comments.
-exports.default = "\nfloat fourSpheresIntersection(in vec4 p, in vec4 rp, in vec4 rd) {\n    return max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                        (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                        min(\n                            (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                            (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                        )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, in vec4 rp, in vec4 rd, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return fourSpheresIntersection(p, rp, rd);\n}\n".trim();
+exports.default = "\nfloat fourSpheresIntersection(in vec4 p, in vec4 rp, in vec4 rd) {\n    return max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                    min(\n                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                    )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, in vec4 rp, in vec4 rd, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return fourSpheresIntersection(p, rp, rd);\n}\n".trim();
 
 /***/ })
 /******/ ]);
