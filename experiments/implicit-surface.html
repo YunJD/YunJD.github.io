@@ -8,16 +8,23 @@ header: |
             overflow: hidden;
         }
         .bottom-sheet {
+            background-color: #151515;
             position: fixed;
             bottom: 0;
             width: 100%;
             height: 0vh;
-            background-color: black;
             transition: height 0.5s;
-            background: #212121;
             display: flex;
             flex-direction: column;
         }
+        .bottom-sheet > section,
+        .bottom-sheet .panels,
+        .bottom-sheet .panel {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
         .bottom-sheet.visible {
             min-height: 200px;
             height: 75vh;
@@ -33,21 +40,20 @@ header: |
             height: 25vh;
         }
         .editor-container {
-            padding: 0 25px;
             flex-grow: 1;
             position: relative;
         }
         #editor {
             width: 100%;
             min-height: 20px;
-            border: 1px solid #303030;
+            border: 1px solid #414141;
         }
     </style>
 ---
 <div class="view-container" style="touch-action: none;">
     <canvas id="view"></canvas>
 </div>
-<div id="bottom-sheet" class="bottom-sheet mdc-theme--dark">
+<div id="bottom-sheet" class="bottom-sheet mdc-theme--text-primary-on-dark">
     <header class="mdc-toolbar" style="background: transparent">
         <div class="mdc-toolbar__row">
             <section class="mdc-toolbar__section mdc-toolbar__section--shrink-to-fit mdc-toolbar__section--align-start">
@@ -59,6 +65,12 @@ header: |
                         <a class="mdc-tab mdc-tab--active" href="#code" aria-controls="code">
                             <i class="material-icons mdc-tab__icon" aria-label="Recents">code</i>
                         </a>
+                        <a class="mdc-tab" href="#materials" aria-controls="materials">
+                            <i class="material-icons mdc-tab__icon" aria-label="Recents">tonality</i>
+                        </a>
+                        <a class="mdc-tab" href="#settings" aria-controls="settings">
+                            <i class="material-icons mdc-tab__icon" aria-label="Recents">settings</i>
+                        </a>
                         <span class="mdc-tab-bar__indicator"></span>
                     </nav>
                 </div>
@@ -66,23 +78,23 @@ header: |
         </div>
     </header>
     <section style="padding: 0 25px 0px 25px">
-        <div class="panels mdc-theme--text-primary-on-dark">
+        <div class="panels">
             <div id="code" class="panel active">
                 <div class="mdc-typography--title">Signed Distance Function</div>
-                <p>This GLSL editor defines the distance function that is used by the ray-sphere-marching algorithm.</p>
+                <p>Define the GLSL distance function that is used by the ray-sphere-marching algorithm.</p>
+                <section class="editor-container">
+                    <div id="editor"></div>
+                </section>
             </div>
         </div>
     </section>
-    <section class="editor-container">
-        <div id="editor"></div>
-    </section>
 </div>
-<button id="fab-tune" class="fab-bottom-right mdc-fab material-icons mdc-theme--primary mdc-theme--background" aria-label="Tune" data-mdc-auto-init="MDCRipple">
+<button id="fab-tune" class="fab-bottom-right mdc-fab material-icons" aria-label="Tune" data-mdc-auto-init="MDCRipple">
     <span class="mdc-fab__icon">
         tune
     </span>
 </button>
-<button id="fab-update" class="fab-bottom-right mdc-fab mdc-fab--exited material-icons mdc-theme--primary mdc-theme--background" aria-label="Update" data-mdc-auto-init="MDCRipple">
+<button id="fab-update" class="fab-bottom-right mdc-fab mdc-fab--exited material-icons" aria-label="Update" data-mdc-auto-init="MDCRipple">
     <span class="mdc-fab__icon">
         autorenew
     </span>

@@ -24,3 +24,7 @@
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
 }
+
+.mdc-typography--title {
+    text-transform: uppercase !important;
+}
