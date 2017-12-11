@@ -17,3 +17,11 @@ float cabs2(in vec2 a) {
 float cabs(in vec2 a) {
     return sqrt(cabs2(a));
 }
+
+//Quaternions
+vec4 qmul(in vec4 q1, in vec4 q2) {
+    vec4 r;
+    r.x = q1.x * q2.x - dot(q1.yzw, q2.yzw);
+    r.yzw = q1.x * q2.yzw + q2.x * q1.yzw + cross(q1.yzw, q2.yzw);
+    return r;
+}

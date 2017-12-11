@@ -1,3 +1,6 @@
+#include stuff/gl/complex/shaders/ops.glsl;
+#include stuff/gl/geometry/shaders/intersect.glsl;
+
 uniform float far;
 uniform float threshold;
 uniform mat4 invProjMat;
@@ -23,10 +26,10 @@ void main() {
     float t = 0.;
     vec4 p;
     bool isInside = false;
-    for(int i = 0; i < 800; ++i) {
+    for(int i = 0; i < 2000; ++i) {
         p = rayPos + t * rayDir;
 
-        float dist = distance(p, rayPos, rayDir);
+        float dist = distance(p, rayPos, rayDir, i);
 
         if(-dist <= threshold && dist <= threshold && t > 0.) {
             gl_FragColor = vec4(p.xyz, float(i));

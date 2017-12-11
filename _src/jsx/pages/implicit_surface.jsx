@@ -32,7 +32,6 @@ export default function() {
         needsUpdate = true;
     }
     function zoom(amount) {
-        console.log(amount);
         camR = T.Math.clamp(camR + amount, 0.2, 1500);
         updateCamera();
     }
@@ -50,26 +49,44 @@ export default function() {
         }
         updateCamera();
     }
-    $view.on('mousewheel', function(e) {
-        //Zoom slower as we paroach camR = 0;
-        zoom(5 * Math.log(camR / 10 + 1) * (-e.originalEvent.wheelDelta / 120));
-    });
     let dragging = false;
     let mousePos;
+    let pinchPos;
+    $(window).on('blur', function(e) {
+        dragging = false;
+    });
+
     $view.on('mousedown', function(e) {
         if(e.which == 1) {
             dragging = true;
             mousePos = [e.pageX, e.pageY];
         }
-    });
-    $viewParent.on('blue', function(e) {
-        dragging = false;
-    });
-    $(window).on('mouseup', function(e) {
-        if(e.which == 1) {
+        else {
             dragging = false;
         }
     });
+    $view.on('touchstart', function(e) {
+        if(e.touches.length == 1) {
+            dragging = true;
+            mousePos = [e.touches[0].pageX, e.touches[0].pageY];
+        }
+        else {
+            //As soon as more than 1 finger is detected, stop dragging.
+            dragging = false;
+            //Pinching
+            if(e.touches.length == 2) {
+                pinchPos = e.touches;
+            }
+        }
+    });
+
+    $(window).on('mouseup', function(e) {
+        dragging = false;
+    });
+    $(window).on('touchend', function(e) {
+        dragging = false;
+    });
+
     $view.on('mousemove', function(e) {
         if(dragging) {
             e.preventDefault();
@@ -80,13 +97,40 @@ export default function() {
             mousePos = [e.pageX, e.pageY];
         }
     });
+    $view.on('touchmove', function(e) {
+        if(dragging) {
+            e.preventDefault();
+            let deltaX = (e.touches[0].pageX - mousePos[0]) / $viewParent.width();
+            let deltaY = (e.touches[0].pageY - mousePos[1]) / $viewParent.height();
+            rotatePhi(2 * Math.PI * deltaX);
+            rotateTheta(-Math.PI * deltaY);
+            mousePos = [e.touches[0].pageX, e.touches[0].pageY];
+        }
+        else if(e.touches.length == 2) {
+            let oldScale = Math.sqrt(
+                Math.pow(pinchPos[0].pageX - pinchPos[1].pageX, 2) 
+                + Math.pow(pinchPos[0].pageY - pinchPos[1].pageY, 2)
+            );
+            let scale = Math.sqrt(
+                Math.pow(e.touches[0].pageX - e.touches[1].pageX, 2) 
+                + Math.pow(e.touches[0].pageY - e.touches[1].pageY, 2)
+            );
+            let delta = scale - oldScale; //Positive means fingers moved apart, negative means fingers moved together.
+            //Define 1 change unit as the fingers moving half the minimum screen extent. Tweak after experimentation.
+            zoom(5 * Math.log(camR / 5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
+        }
+    });
+    $view.on('mousewheel', function(e) {
+        //Zoom slower as we paroach camR = 0;
+        zoom(5 * Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
+    });
 
     let marchPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
             //Not to be confused with camera.far, this defines when to give up in case nothing was hit.
             far: {
                 type: 'f',
-                value: 1e3
+                value: 1e4
             },
             threshold: {
                 type: 'f',
@@ -121,6 +165,8 @@ export default function() {
         fragmentShader: `
             varying vec2 vUv;
             uniform sampler2D surfaceData;
+            vec3 b1 = vec3(-100.);
+            vec3 b2 = vec3(100.);
 
             void main() {
                 vec4 color = texture2D(surfaceData, vUv);

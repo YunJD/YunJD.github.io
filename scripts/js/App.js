@@ -45406,7 +45406,13 @@ exports.default = MersenneTwister;
 /* 11 */
 /***/ (function(module, exports) {
 
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\n#define MAX_ITER "+
+module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_ITER "+
+
+
+
+
+
+
 
 
 
@@ -45425,7 +45431,13 @@ opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2
 /* 12 */
 /***/ (function(module, exports) {
 
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\n#define MAX_CHUNK "+
+module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_CHUNK "+
+
+
+
+
+
+
 
 
 
@@ -45444,7 +45456,13 @@ opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2
 /* 13 */
 /***/ (function(module, exports) {
 
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\n#define MAX_ITER "+
+module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_ITER "+
+
+
+
+
+
+
 
 
 
@@ -45711,7 +45729,6 @@ exports.default = function () {
         needsUpdate = true;
     }
     function zoom(amount) {
-        console.log(amount);
         camR = T.Math.clamp(camR + amount, 0.2, 1500);
         updateCamera();
     }
@@ -45728,26 +45745,42 @@ exports.default = function () {
         }
         updateCamera();
     }
-    $view.on('mousewheel', function (e) {
-        //Zoom slower as we paroach camR = 0;
-        zoom(5 * Math.log(camR / 10 + 1) * (-e.originalEvent.wheelDelta / 120));
-    });
     var dragging = false;
     var mousePos = void 0;
+    var pinchPos = void 0;
+    $(window).on('blur', function (e) {
+        dragging = false;
+    });
+
     $view.on('mousedown', function (e) {
         if (e.which == 1) {
             dragging = true;
             mousePos = [e.pageX, e.pageY];
-        }
-    });
-    $viewParent.on('blue', function (e) {
-        dragging = false;
-    });
-    $(window).on('mouseup', function (e) {
-        if (e.which == 1) {
+        } else {
             dragging = false;
         }
     });
+    $view.on('touchstart', function (e) {
+        if (e.touches.length == 1) {
+            dragging = true;
+            mousePos = [e.touches[0].pageX, e.touches[0].pageY];
+        } else {
+            //As soon as more than 1 finger is detected, stop dragging.
+            dragging = false;
+            //Pinching
+            if (e.touches.length == 2) {
+                pinchPos = e.touches;
+            }
+        }
+    });
+
+    $(window).on('mouseup', function (e) {
+        dragging = false;
+    });
+    $(window).on('touchend', function (e) {
+        dragging = false;
+    });
+
     $view.on('mousemove', function (e) {
         if (dragging) {
             e.preventDefault();
@@ -45758,13 +45791,33 @@ exports.default = function () {
             mousePos = [e.pageX, e.pageY];
         }
     });
+    $view.on('touchmove', function (e) {
+        if (dragging) {
+            e.preventDefault();
+            var deltaX = (e.touches[0].pageX - mousePos[0]) / $viewParent.width();
+            var deltaY = (e.touches[0].pageY - mousePos[1]) / $viewParent.height();
+            rotatePhi(2 * Math.PI * deltaX);
+            rotateTheta(-Math.PI * deltaY);
+            mousePos = [e.touches[0].pageX, e.touches[0].pageY];
+        } else if (e.touches.length == 2) {
+            var oldScale = Math.sqrt(Math.pow(pinchPos[0].pageX - pinchPos[1].pageX, 2) + Math.pow(pinchPos[0].pageY - pinchPos[1].pageY, 2));
+            var scale = Math.sqrt(Math.pow(e.touches[0].pageX - e.touches[1].pageX, 2) + Math.pow(e.touches[0].pageY - e.touches[1].pageY, 2));
+            var delta = scale - oldScale; //Positive means fingers moved apart, negative means fingers moved together.
+            //Define 1 change unit as the fingers moving half the minimum screen extent. Tweak after experimentation.
+            zoom(5 * Math.log(camR / 5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
+        }
+    });
+    $view.on('mousewheel', function (e) {
+        //Zoom slower as we paroach camR = 0;
+        zoom(5 * Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
+    });
 
     var marchPass = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
             //Not to be confused with camera.far, this defines when to give up in case nothing was hit.
             far: {
                 type: 'f',
-                value: 1e3
+                value: 1e4
             },
             threshold: {
                 type: 'f',
@@ -45796,7 +45849,7 @@ exports.default = function () {
                 value: marchPass.texTarget.t.texture
             }
         },
-        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n\n            void main() {\n                vec4 color = texture2D(surfaceData, vUv);\n                if(color.a != -1.) {\n                    gl_FragColor = vec4(length(color.xyz) / 150.);\n                }\n            }\n        '
+        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            vec3 b1 = vec3(-100.);\n            vec3 b2 = vec3(100.);\n\n            void main() {\n                vec4 color = texture2D(surfaceData, vUv);\n                if(color.a != -1.) {\n                    gl_FragColor = vec4(length(color.xyz) / 150.);\n                }\n            }\n        '
         //}, $viewParent.width(), $viewParent.height());
     }, $viewParent.width(), $viewParent.height(), null, $("#view")[0]);
     //Needs the same renderer in order to share data. Booo.
@@ -45874,7 +45927,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 /* 16 */
 /***/ (function(module, exports) {
 
-module.exports=opts=>"uniform float far;\nuniform float threshold;\nuniform mat4 invProjMat;\nuniform mat4 mat;\nvarying vec2 vUv;\nprecision highp float;\nfloat distanceProgram;\nvoid main() {\n\tvec4 rayPos = mat * vec4(0., 0., 0., 1.);\n\tvec4 rayDir = invProjMat * vec4(2. * (vUv - 0.5), 0., 1.);\n\trayDir.a = 0.;\n\trayDir = mat * normalize(rayDir);\n\tfloat t = 0.;\n\tvec4 p;\n\tbool isInside = false;\n\tfor (int i = 0; i < 800; ++i) {\n\t\tp = rayPos + (t * rayDir);\n\t\tfloat dist = distance(p, rayPos, rayDir);\n\t\tif (((-dist <= threshold) && (dist <= threshold)) && (t > 0.)) {\n\t\t\tgl_FragColor = vec4(p.xyz, float(i));\n\t\t\treturn ;\n\t\t}\n\t\tif (i == 0) {\n\t\t\tisInside = dist < 0.;\n\t\t}\n\t\tif (isInside) {\n\t\t\tt -= dist;\n\t\t}\n\t\telse {\n\t\t\tt += dist;\n\t\t}\n\t\tif ((t >= far) || (t < 0.)) {\n\t\t\tbreak;\n\t\t}\n\t}\n\tgl_FragColor = vec4(-1.);\n}\n";
+module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\nbool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {\n\treturn (((((p.x >= b1.x) && (p.x <= b2.x)) && (p.y >= b1.y)) && (p.y <= b2.y)) && (p.z >= b1.z)) && (p.z <= b2.z);\n}\nbool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0, out float t1) {\n\tbvec3 isNeg = bvec3(rd.x < 0., rd.y < 0., rd.z < 0.);\n\tvec3 invDir = 1. / rd;\n\tfloat tmin, tmax, ttmin, ttmax;\n\tif (isNeg.x) {\n\t\ttmin = (b2.x - rp.x) * invDir.x;\n\t\ttmax = (b1.x - rp.x) * invDir.x;\n\t}\n\telse {\n\t\ttmin = (b1.x - rp.x) * invDir.x;\n\t\ttmax = (b2.x - rp.x) * invDir.x;\n\t}\n\tif (isNeg.y) {\n\t\tttmin = (b2.y - rp.y) * invDir.y;\n\t\tttmax = (b1.y - rp.y) * invDir.y;\n\t}\n\telse {\n\t\tttmin = (b1.y - rp.y) * invDir.y;\n\t\tttmax = (b2.y - rp.y) * invDir.y;\n\t}\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\ttmin = max(tmin, ttmin);\n\ttmax = min(tmax, ttmax);\n\tif (isNeg.z) {\n\t\tttmin = (b2.z - rp.z) * invDir.z;\n\t\tttmax = (b1.z - rp.z) * invDir.z;\n\t}\n\telse {\n\t\tttmin = (b1.z - rp.z) * invDir.z;\n\t\tttmax = (b2.z - rp.z) * invDir.z;\n\t}\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\tt0 = max(tmin, ttmin);\n\tt1 = min(tmax, ttmax);\n\treturn true;\n}\nbool quadratic(float a, float b, float c, out float tmin, out float tmax) {\n\tfloat discr = (b * b) - ((4. * a) * c);\n\tif (discr < 0.) {\n\t\treturn false;\n\t}\n\tif (discr == 0.) {\n\t\ttmin = tmax = (-0.5 * b) / a;\n\t}\n\telse {\n\t\tfloat q = -0.5 * (b > 0. ? b + sqrt(discr) : b - sqrt(discr));\n\t\tfloat x0 = q / a;\n\t\tfloat x1 = c / q;\n\t\ttmin = min(x0, x1);\n\t\ttmax = max(x0, x1);\n\t}\n\treturn true;\n}\nbool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out float tmax) {\n\tfloat a = dot(rd, rd);\n\tfloat b = 2. * dot(rd, rp);\n\tfloat c = dot(rp, rp) - (radius * radius);\n\tif (!quadratic(a, b, c, tmin, tmax)) {\n\t\treturn false;\n\t}\n\treturn true;\n}\nuniform float far;\nuniform float threshold;\nuniform mat4 invProjMat;\nuniform mat4 mat;\nvarying vec2 vUv;\nprecision highp float;\nfloat distanceProgram;\nvoid main() {\n\tvec4 rayPos = mat * vec4(0., 0., 0., 1.);\n\tvec4 rayDir = invProjMat * vec4(2. * (vUv - 0.5), 0., 1.);\n\trayDir.a = 0.;\n\trayDir = mat * normalize(rayDir);\n\tfloat t = 0.;\n\tvec4 p;\n\tbool isInside = false;\n\tfor (int i = 0; i < 2000; ++i) {\n\t\tp = rayPos + (t * rayDir);\n\t\tfloat dist = distance(p, rayPos, rayDir, i);\n\t\tif (((-dist <= threshold) && (dist <= threshold)) && (t > 0.)) {\n\t\t\tgl_FragColor = vec4(p.xyz, float(i));\n\t\t\treturn ;\n\t\t}\n\t\tif (i == 0) {\n\t\t\tisInside = dist < 0.;\n\t\t}\n\t\tif (isInside) {\n\t\t\tt -= dist;\n\t\t}\n\t\telse {\n\t\t\tt += dist;\n\t\t}\n\t\tif ((t >= far) || (t < 0.)) {\n\t\t\tbreak;\n\t\t}\n\t}\n\tgl_FragColor = vec4(-1.);\n}\n";
 
 /***/ }),
 /* 17 */,
@@ -45888,7 +45941,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 //The glsl loader will remove white-space and comments.
-exports.default = "\nfloat funShape(in vec4 p, in vec4 rp, in vec4 rd) {\n    return max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                    (length(vec3(p.x, p.y - 125., p.z)) - 100.),\n                    min(\n                        (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                        min(\n                            (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                            (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                        )\n                    )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, in vec4 rp, in vec4 rd) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return funShape(p, rp, rd);\n}\n".trim();
+exports.default = "\nfloat fourSpheresIntersection(in vec4 p, in vec4 rp, in vec4 rd) {\n    return max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                        (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                        min(\n                            (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                            (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                        )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, in vec4 rp, in vec4 rd, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return fourSpheresIntersection(p, rp, rd);\n}\n".trim();
 
 /***/ })
 /******/ ]);
