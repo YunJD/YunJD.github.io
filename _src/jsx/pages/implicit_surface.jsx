@@ -8,6 +8,15 @@ export default function() {
     editor.setTheme("ace/theme/gruvbox");
     editor.getSession().setMode("ace/mode/glsl");
     editor.setValue(sdfSnippets, 1);
+    editor.commands.addCommand({
+        name: 'updateprogram',
+        bindKey: {
+            win: 'Ctrl-Enter', mac: 'Command-Enter'
+        },
+        exec: function() {
+            updateProgram();
+        }
+    });
 
     let $view = $('#view');
     let $viewParent = $view.parent();
@@ -132,11 +141,15 @@ export default function() {
             //Not to be confused with camera.far, this defines when to give up in case nothing was hit.
             far: {
                 type: 'f',
-                value: 1e4
+                value: 1e6
+            },
+            relaxation: {
+                type: 'f',
+                value: 1.6
             },
             threshold: {
                 type: 'f',
-                value: 1e-3
+                value: 1e-2
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -173,7 +186,12 @@ export default function() {
             void main() {
                 vec4 color = texture2D(surfaceData, vUv);
                 if(color.a != -1.) {
-                    gl_FragColor = vec4(length(color.xyz) / 150.);
+                    if(color.a == -2.) {
+                        gl_FragColor = vec4(color.xyz, 1.);
+                    }
+                    else {
+                        gl_FragColor = vec4(length(color.xyz) / 150.);
+                    }
                 }
             }
         `
@@ -229,4 +247,21 @@ export default function() {
         setTimeout(() => $("#fab-tune").removeClass("mdc-fab--exited"), 500);
     });
     $("#fab-update").on('click', updateProgram);
+    $(window).on('keydown', function(e) {
+        if(e.which == 13 && e.shiftKey && $('#bottom-sheet').hasClass('visible')) {
+            e.preventDefault();
+            updateProgram();
+        }
+        else if(e.which == 27) {
+            e.preventDefault();
+            if($('#bottom-sheet').hasClass('visible')) {
+                $('#close-bottom-sheet').click();
+                editor.blur();
+            }
+            else {
+                $('#fab-tune').click();
+                editor.focus();
+            }
+        }
+    });
 }
