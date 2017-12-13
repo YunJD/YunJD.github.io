@@ -21,10 +21,8 @@ const TEX_SETTINGS = {
     type: T.FloatType
 };
 
-
 export default class {
-    constructor(shader, w, h = 1, targetName = null, canvas = null) {
-        this.canvas = canvas;
+    constructor(shader, w, h = 1, targetName = null, renderer = null) {
         //This is the name used to feed the render target back into the shader as a texture. If null, will be ignored.
         this.targetName = targetName;
         this.w = w;
@@ -61,14 +59,21 @@ export default class {
         this.scene = new T.Scene();
         this.scene.add(this.mesh);
 
-        this.renderer = new T.WebGLRenderer(canvas ? { canvas } : undefined);
-        this.renderer.setClearColor(0, 1);
-        this.renderer.autoClear = false;
-        this.renderer.setSize(w, h);
+        if(renderer == null) {
+            this.ownsRenderer = true;
+            renderer = new T.WebGLRenderer();
+            renderer.setClearColor(0, 1);
+            renderer.autoClear = false;
+            renderer.setSize(w, h);
+        }
+        else {
+            this.ownsRenderer = false;
+        }
+        this.renderer = renderer
     }
-    execute() {
+    execute(renderToCanvas) {
         //This if-statement is probably not necessary, could simply always draw to canvs & the target.
-        if(this.canvas) {
+        if(renderToCanvas) {
             this.renderer.render(this.scene, this.camera);
             return;
         }
@@ -96,7 +101,9 @@ export default class {
         if(this.targetName) {
             this.texTarget.v.dispose();
         }
-        this.renderer.dispose();
+        if(this.ownsRenderer) {
+            this.renderer.dispose();
+        }
     }
     resize(w, h) {
         this.w = w;
@@ -107,6 +114,8 @@ export default class {
         if(this.targetName) {
             this.texTarget.v.setSize(w, h);
         }
-        this.renderer.setSize(w, h);
+        if(this.ownsRenderer) {
+            this.renderer.setSize(w, h);
+        }
     }
 }

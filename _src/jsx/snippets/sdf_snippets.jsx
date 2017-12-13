@@ -1,5 +1,7 @@
 //The glsl loader will remove white-space and comments.
 export default `
+
+
 //Define the GLSL distance function that is used by the ray-sphere-marching algorithm.
 float fourSpheresIntersection(in vec4 p, in vec4 rp, in vec4 rd) {
     return max(

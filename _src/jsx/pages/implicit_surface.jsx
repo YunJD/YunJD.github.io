@@ -1,12 +1,25 @@
+import {MDCTab, MDCTabFoundation} from '@material/tabs';
+import {MDCTabBar, MDCTabBarFoundation} from '@material/tabs';
+
 import * as T from 'three';
 import stuff from 'stuff';
 import raySphereMarchingShader from 'shaders/raySphereMarching.frag';
 import sdfSnippets from 'snippets/sdf_snippets.jsx';
 
 export default function() {
-    let editor = ace.edit("editor");
-    editor.setTheme("ace/theme/gruvbox");
-    editor.getSession().setMode("ace/mode/glsl");
+    MDCTabBar.attachTo($('#code-tab-bar')[0]);
+
+    let $activePanel = $("#code");
+    $('#code-tab-bar').find('.mdc-tab').on('click', function() {
+        $activePanel.removeClass('active');
+        $activePanel = $($(this).attr('href')).addClass('active');
+        $("#editor").height($("#editor").parent().height() - 10);
+        editor.resize();
+    });
+
+    let editor = ace.edit('editor');
+    editor.setTheme('ace/theme/gruvbox');
+    editor.getSession().setMode('ace/mode/glsl');
     editor.setValue(sdfSnippets, 1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -18,8 +31,7 @@ export default function() {
         }
     });
 
-    let $view = $('#view');
-    let $viewParent = $view.parent();
+    let $viewParent = $('#view-container');
 
     let camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
     let camR = 400,
@@ -58,6 +70,142 @@ export default function() {
         }
         updateCamera();
     }
+    let marchPass = new stuff.gl.ComputeShaderPass({
+        uniforms: {
+            //Used to quit early.
+            far: {
+                type: 'f',
+                value: 1e6
+            },
+            relaxation: {
+                type: 'f',
+                value: 1.6
+            },
+            threshold: {
+                type: 'f',
+                value: 1e-2
+            },
+            //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
+            invProjMat: {
+                type: 'm4',
+                value: new T.Matrix4().getInverse(camera.projectionMatrix)
+            },
+            mat: {
+                type: 'm4',
+                value: camera.matrix
+            }
+        },
+        //Use this FIRSTLINE comment to figure out where the distanceProgram starts
+        fragmentShader: raySphereMarchingShader().replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue())
+    }, $viewParent.width(), $viewParent.height());
+
+    function updateProgram() {
+        editor.session.clearAnnotations();
+        marchPass.material.fragmentShader = raySphereMarchingShader().replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        marchPass.material.needsUpdate = true;
+        needsUpdate = true;
+    }
+
+    let viewerPass = new stuff.gl.ComputeShaderPass({
+        uniforms: {
+            surfaceData: {
+                type: 't',
+                value: marchPass.texTarget.t.texture
+            }
+        },
+        fragmentShader: `
+            varying vec2 vUv;
+            uniform sampler2D surfaceData;
+            vec3 b1 = vec3(-100.);
+            vec3 b2 = vec3(100.);
+
+            void main() {
+                vec4 color = texture2D(surfaceData, vUv);
+                if(color.a != -1.) {
+                    if(color.a == -2.) {
+                        gl_FragColor = vec4(color.xyz, 1.);
+                    }
+                    else {
+                        gl_FragColor = vec4(length(color.xyz) / 150.);
+                    }
+                }
+            }
+        `
+    }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
+
+    let $view = $(viewerPass.renderer.domElement);
+    $viewParent.append($view);
+
+    //Needs the same renderer in order to share data. Booo.
+    marchPass.renderer.dispose();
+    marchPass.renderer = viewerPass.renderer;
+
+    let needsUpdate = true;
+
+    function resize() {
+        $("#editor").height($("#editor").parent().height() - 10);
+        editor.resize();
+
+        camera.aspect = $viewParent.width() / $viewParent.height();
+        camera.updateProjectionMatrix();
+
+        viewerPass.resize($viewParent.width(), $viewParent.height());
+
+        marchPass.resize($viewParent.width(), $viewParent.height());
+        marchPass.material.uniforms.invProjMat.value = new T.Matrix4().getInverse(camera.projectionMatrix);
+
+        needsUpdate = true;
+    }
+
+    function draw() {
+        //Easy way to take advantage of container transitions.
+        if($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
+            resize();
+        }
+        if(needsUpdate) {
+            needsUpdate = false;
+            marchPass.execute();
+
+            //TODO: Move this into stuff.js
+            let diagnostics = marchPass.material.program.diagnostics;
+            if(diagnostics) {
+                let log = diagnostics.fragmentShader.log;
+                if(log.indexOf('ERROR') != -1) {
+                    let lines = (diagnostics.fragmentShader.prefix + marchPass.material.fragmentShader).split('\n');
+                    //Find the start of the distance program.
+                    let i;
+                    for(i = 0; i < lines.length; ++i) {
+                        console.log(lines[i]);
+                        if(lines[i] == '//FIRSTLINE') {
+                            break;
+                        }
+                    }
+                    let annotations = [];
+                    //Parse the error.
+                    for(let error of log.split('\n')) {
+                        if(!error || error.indexOf('ERROR') == -1) {
+                            break;
+                        }
+                        let [column, row, code, text] = error.substring(7).split(':');
+                        column = parseInt(column);
+                        row = parseInt(row);
+                        row -= i + 2;
+                        annotations.push({
+                            row, column,
+                            text: code + ':' + text,
+                            type: "error"
+                        });
+                        console.log(error, row, column);
+                    }
+                    editor.session.setAnnotations(annotations);
+                }
+            }
+            viewerPass.execute(true);
+        }
+        requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+
     let dragging = false;
     let mousePos;
     let pinchPos;
@@ -136,101 +284,6 @@ export default function() {
         zoom(5 * Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
     });
 
-    let marchPass = new stuff.gl.ComputeShaderPass({
-        uniforms: {
-            //Not to be confused with camera.far, this defines when to give up in case nothing was hit.
-            far: {
-                type: 'f',
-                value: 1e6
-            },
-            relaxation: {
-                type: 'f',
-                value: 1.6
-            },
-            threshold: {
-                type: 'f',
-                value: 1e-2
-            },
-            //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
-            invProjMat: {
-                type: 'm4',
-                value: new T.Matrix4().getInverse(camera.projectionMatrix)
-            },
-            mat: {
-                type: 'm4',
-                value: camera.matrix
-            }
-        },
-        fragmentShader: raySphereMarchingShader().replace("float distanceProgram;", editor.getValue())
-    }, $viewParent.width(), $viewParent.height());
-
-    function updateProgram() {
-        marchPass.material.fragmentShader = raySphereMarchingShader().replace("float distanceProgram;", editor.getValue());
-        marchPass.material.needsUpdate = true;
-        needsUpdate = true;
-    }
-
-    let viewerPass = new stuff.gl.ComputeShaderPass({
-        uniforms: {
-            surfaceData: {
-                type: 't',
-                value: marchPass.texTarget.t.texture
-            }
-        },
-        fragmentShader: `
-            varying vec2 vUv;
-            uniform sampler2D surfaceData;
-            vec3 b1 = vec3(-100.);
-            vec3 b2 = vec3(100.);
-
-            void main() {
-                vec4 color = texture2D(surfaceData, vUv);
-                if(color.a != -1.) {
-                    if(color.a == -2.) {
-                        gl_FragColor = vec4(color.xyz, 1.);
-                    }
-                    else {
-                        gl_FragColor = vec4(length(color.xyz) / 150.);
-                    }
-                }
-            }
-        `
-    //}, $viewParent.width(), $viewParent.height());
-    }, $viewParent.width(), $viewParent.height(), null, $("#view")[0]);
-    //Needs the same renderer in order to share data. Booo.
-    marchPass.renderer.dispose();
-    marchPass.renderer = viewerPass.renderer;
-
-    let needsUpdate = true;
-
-    function resize() {
-        $("#editor").height($("#editor").parent().height() - 10);
-        editor.resize();
-
-        camera.aspect = $viewParent.width() / $viewParent.height();
-        camera.updateProjectionMatrix();
-
-        viewerPass.resize($viewParent.width(), $viewParent.height());
-
-        marchPass.resize($viewParent.width(), $viewParent.height());
-        marchPass.material.uniforms.invProjMat.value = new T.Matrix4().getInverse(camera.projectionMatrix);
-
-        needsUpdate = true;
-    }
-
-    function draw() {
-        //Easy way to take advantage of container transitions.
-        if($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
-            resize();
-        }
-        if(needsUpdate) {
-            needsUpdate = false;
-            marchPass.execute();
-            viewerPass.execute();
-        }
-        requestAnimationFrame(draw);
-    }
-    requestAnimationFrame(draw);
     $('#fab-tune').on('click', function() {
         $(this).addClass('mdc-fab--exited');
         $viewParent.addClass('shrunk');
@@ -248,7 +301,7 @@ export default function() {
     });
     $("#fab-update").on('click', updateProgram);
     $(window).on('keydown', function(e) {
-        if(e.which == 13 && e.shiftKey && $('#bottom-sheet').hasClass('visible')) {
+        if(e.which == 13 && e.ctrlKey && $('#bottom-sheet').hasClass('visible')) {
             e.preventDefault();
             updateProgram();
         }

@@ -16,24 +16,11 @@ bool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0,
     vec3 invDir = 1. / rd;
 
     float tmin, tmax, ttmin, ttmax;
+    tmin = isNeg.x ? (b2.x - rp.x) * invDir.x : (b1.x - rp.x) * invDir.x;
+    tmax = isNeg.x ? (b1.x - rp.x) * invDir.x : (b2.x - rp.x) * invDir.x;
 
-    if(isNeg.x) {
-        tmin = (b2.x - rp.x) * invDir.x;
-        tmax = (b1.x - rp.x) * invDir.x;
-    }
-    else {
-        tmin = (b1.x - rp.x) * invDir.x;
-        tmax = (b2.x - rp.x) * invDir.x;
-    }
-
-    if(isNeg.y) {
-        ttmin = (b2.y - rp.y) * invDir.y;
-        ttmax = (b1.y - rp.y) * invDir.y;
-    }
-    else {
-        ttmin = (b1.y - rp.y) * invDir.y;
-        ttmax = (b2.y - rp.y) * invDir.y;
-    }
+    ttmin = isNeg.y ? (b2.y - rp.y) * invDir.y : (b1.y - rp.y) * invDir.y;
+    ttmax = isNeg.y ? (b1.y - rp.y) * invDir.y : (b2.y - rp.y) * invDir.y;
 
     if((ttmin > tmax) || (ttmax < tmin)) {
         return false;
@@ -42,14 +29,8 @@ bool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0,
     tmin = max(tmin, ttmin);
     tmax = min(tmax, ttmax);
 
-    if(isNeg.z) {
-        ttmin = (b2.z - rp.z) * invDir.z;
-        ttmax = (b1.z - rp.z) * invDir.z;
-    }
-    else {
-        ttmin = (b1.z - rp.z) * invDir.z;
-        ttmax = (b2.z - rp.z) * invDir.z;
-    }
+    ttmin = isNeg.z ? (b2.z - rp.z) * invDir.z : (b1.z - rp.z) * invDir.z;
+    ttmax = isNeg.z ? (b1.z - rp.z) * invDir.z : (b2.z - rp.z) * invDir.z;
 
     if((ttmin > tmax) || (ttmax < tmin)) {
         return false;

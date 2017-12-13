@@ -61,11 +61,219 @@ var App =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 11);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * @license
+ * Copyright 2016 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * @template A
+ */
+class MDCFoundation {
+  /** @return enum{cssClasses} */
+  static get cssClasses() {
+    // Classes extending MDCFoundation should implement this method to return an object which exports every
+    // CSS class the foundation class needs as a property. e.g. {ACTIVE: 'mdc-component--active'}
+    return {};
+  }
+
+  /** @return enum{strings} */
+  static get strings() {
+    // Classes extending MDCFoundation should implement this method to return an object which exports all
+    // semantic strings as constants. e.g. {ARIA_ROLE: 'tablist'}
+    return {};
+  }
+
+  /** @return enum{numbers} */
+  static get numbers() {
+    // Classes extending MDCFoundation should implement this method to return an object which exports all
+    // of its semantic numbers as constants. e.g. {ANIMATION_DELAY_MS: 350}
+    return {};
+  }
+
+  /** @return {!Object} */
+  static get defaultAdapter() {
+    // Classes extending MDCFoundation may choose to implement this getter in order to provide a convenient
+    // way of viewing the necessary methods of an adapter. In the future, this could also be used for adapter
+    // validation.
+    return {};
+  }
+
+  /**
+   * @param {A=} adapter
+   */
+  constructor(adapter = {}) {
+    /** @protected {!A} */
+    this.adapter_ = adapter;
+  }
+
+  init() {
+    // Subclasses should override this method to perform initialization routines (registering events, etc.)
+  }
+
+  destroy() {
+    // Subclasses should override this method to perform de-initialization routines (de-registering events, etc.)
+  }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (MDCFoundation);
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__foundation__ = __webpack_require__(0);
+/**
+ * @license
+ * Copyright 2016 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+/**
+ * @template F
+ */
+class MDCComponent {
+  /**
+   * @param {!Element} root
+   * @return {!MDCComponent}
+   */
+  static attachTo(root) {
+    // Subclasses which extend MDCBase should provide an attachTo() method that takes a root element and
+    // returns an instantiated component with its root set to that element. Also note that in the cases of
+    // subclasses, an explicit foundation class will not have to be passed in; it will simply be initialized
+    // from getDefaultFoundation().
+    return new MDCComponent(root, new __WEBPACK_IMPORTED_MODULE_0__foundation__["a" /* default */]());
+  }
+
+  /**
+   * @param {!Element} root
+   * @param {F=} foundation
+   * @param {...?} args
+   */
+  constructor(root, foundation = undefined, ...args) {
+    /** @protected {!Element} */
+    this.root_ = root;
+    this.initialize(...args);
+    // Note that we initialize foundation here and not within the constructor's default param so that
+    // this.root_ is defined and can be used within the foundation class.
+    /** @protected {!F} */
+    this.foundation_ = foundation === undefined ? this.getDefaultFoundation() : foundation;
+    this.foundation_.init();
+    this.initialSyncWithDOM();
+  }
+
+  initialize(/* ...args */) {
+    // Subclasses can override this to do any additional setup work that would be considered part of a
+    // "constructor". Essentially, it is a hook into the parent constructor before the foundation is
+    // initialized. Any additional arguments besides root and foundation will be passed in here.
+  }
+
+  /**
+   * @return {!F} foundation
+   */
+  getDefaultFoundation() {
+    // Subclasses must override this method to return a properly configured foundation class for the
+    // component.
+    throw new Error('Subclasses must override getDefaultFoundation to return a properly configured ' +
+      'foundation class');
+  }
+
+  initialSyncWithDOM() {
+    // Subclasses should override this method if they need to perform work to synchronize with a host DOM
+    // object. An example of this would be a form control wrapper that needs to synchronize its internal state
+    // to some property or attribute of the host DOM. Please note: this is *not* the place to perform DOM
+    // reads/writes that would cause layout / paint, as this is called synchronously from within the constructor.
+  }
+
+  destroy() {
+    // Subclasses may implement this method to release any resources / deregister any listeners they have
+    // attached. An example of this might be deregistering a resize event from the window object.
+    this.foundation_.destroy();
+  }
+
+  /**
+   * Wrapper method to add an event listener to the component's root element. This is most useful when
+   * listening for custom events.
+   * @param {string} evtType
+   * @param {!Function} handler
+   */
+  listen(evtType, handler) {
+    this.root_.addEventListener(evtType, handler);
+  }
+
+  /**
+   * Wrapper method to remove an event listener to the component's root element. This is most useful when
+   * unlistening for custom events.
+   * @param {string} evtType
+   * @param {!Function} handler
+   */
+  unlisten(evtType, handler) {
+    this.root_.removeEventListener(evtType, handler);
+  }
+
+  /**
+   * Fires a cross-browser-compatible custom event from the component root of the given type,
+   * with the given data.
+   * @param {string} evtType
+   * @param {!Object} evtData
+   * @param {boolean=} shouldBubble
+   */
+  emit(evtType, evtData, shouldBubble = false) {
+    let evt;
+    if (typeof CustomEvent === 'function') {
+      evt = new CustomEvent(evtType, {
+        detail: evtData,
+        bubbles: shouldBubble,
+      });
+    } else {
+      evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent(evtType, shouldBubble, false, evtData);
+    }
+
+    this.root_.dispatchEvent(evt);
+  }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (MDCComponent);
+
+
+/***/ }),
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -44303,7 +44511,7 @@ function CanvasRenderer() {
 
 
 /***/ }),
-/* 1 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44313,11 +44521,13 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _gl = __webpack_require__(7);
+var _snackbar = __webpack_require__(16);
+
+var _gl = __webpack_require__(19);
 
 var gl = _interopRequireWildcard(_gl);
 
-var _mt = __webpack_require__(10);
+var _mt = __webpack_require__(22);
 
 var _mt2 = _interopRequireDefault(_mt);
 
@@ -44327,11 +44537,709 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 exports.default = {
     MT: _mt2.default,
-    gl: gl
+    gl: gl,
+    mdc: {
+        init: function init() {
+            window.mdc.autoInit();
+            this.snackbar = new _snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+        }
+    }
 };
 
 /***/ }),
-/* 2 */
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* unused harmony export transformStyleProperties */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return getCorrectEventName; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return getCorrectPropertyName; });
+/**
+ * @license
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * @typedef {{
+ *   noPrefix: string,
+ *   webkitPrefix: string,
+ *   styleProperty: string
+ * }}
+ */
+let VendorPropertyMapType;
+
+/** @const {Object<string, !VendorPropertyMapType>} */
+const eventTypeMap = {
+  'animationstart': {
+    noPrefix: 'animationstart',
+    webkitPrefix: 'webkitAnimationStart',
+    styleProperty: 'animation',
+  },
+  'animationend': {
+    noPrefix: 'animationend',
+    webkitPrefix: 'webkitAnimationEnd',
+    styleProperty: 'animation',
+  },
+  'animationiteration': {
+    noPrefix: 'animationiteration',
+    webkitPrefix: 'webkitAnimationIteration',
+    styleProperty: 'animation',
+  },
+  'transitionend': {
+    noPrefix: 'transitionend',
+    webkitPrefix: 'webkitTransitionEnd',
+    styleProperty: 'transition',
+  },
+};
+
+/** @const {Object<string, !VendorPropertyMapType>} */
+const cssPropertyMap = {
+  'animation': {
+    noPrefix: 'animation',
+    webkitPrefix: '-webkit-animation',
+  },
+  'transform': {
+    noPrefix: 'transform',
+    webkitPrefix: '-webkit-transform',
+  },
+  'transition': {
+    noPrefix: 'transition',
+    webkitPrefix: '-webkit-transition',
+  },
+};
+
+/**
+ * @param {!Object} windowObj
+ * @return {boolean}
+ */
+function hasProperShape(windowObj) {
+  return (windowObj['document'] !== undefined && typeof windowObj['document']['createElement'] === 'function');
+}
+
+/**
+ * @param {string} eventType
+ * @return {boolean}
+ */
+function eventFoundInMaps(eventType) {
+  return (eventType in eventTypeMap || eventType in cssPropertyMap);
+}
+
+/**
+ * @param {string} eventType
+ * @param {!Object<string, !VendorPropertyMapType>} map
+ * @param {!Element} el
+ * @return {string}
+ */
+function getJavaScriptEventName(eventType, map, el) {
+  return map[eventType].styleProperty in el.style ? map[eventType].noPrefix : map[eventType].webkitPrefix;
+}
+
+/**
+ * Helper function to determine browser prefix for CSS3 animation events
+ * and property names.
+ * @param {!Object} windowObj
+ * @param {string} eventType
+ * @return {string}
+ */
+function getAnimationName(windowObj, eventType) {
+  if (!hasProperShape(windowObj) || !eventFoundInMaps(eventType)) {
+    return eventType;
+  }
+
+  const map = /** @type {!Object<string, !VendorPropertyMapType>} */ (
+    eventType in eventTypeMap ? eventTypeMap : cssPropertyMap
+  );
+  const el = windowObj['document']['createElement']('div');
+  let eventName = '';
+
+  if (map === eventTypeMap) {
+    eventName = getJavaScriptEventName(eventType, map, el);
+  } else {
+    eventName = map[eventType].noPrefix in el.style ? map[eventType].noPrefix : map[eventType].webkitPrefix;
+  }
+
+  return eventName;
+}
+
+// Public functions to access getAnimationName() for JavaScript events or CSS
+// property names.
+
+const transformStyleProperties = ['transform', 'WebkitTransform', 'MozTransform', 'OTransform', 'MSTransform'];
+
+/**
+ * @param {!Object} windowObj
+ * @param {string} eventType
+ * @return {string}
+ */
+function getCorrectEventName(windowObj, eventType) {
+  return getAnimationName(windowObj, eventType);
+}
+
+/**
+ * @param {!Object} windowObj
+ * @param {string} eventType
+ * @return {string}
+ */
+function getCorrectPropertyName(windowObj, eventType) {
+  return getAnimationName(windowObj, eventType);
+}
+
+
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__foundation__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__component__ = __webpack_require__(1);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_0__foundation__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return __WEBPACK_IMPORTED_MODULE_1__component__["a"]; });
+/**
+ * @license
+ * Copyright 2016 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_component__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__material_ripple__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__foundation__ = __webpack_require__(32);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_3__foundation__["a"]; });
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+
+
+
+class MDCTab extends __WEBPACK_IMPORTED_MODULE_0__material_base_component__["a" /* default */] {
+  static attachTo(root) {
+    return new MDCTab(root);
+  }
+
+  get computedWidth() {
+    return this.foundation_.getComputedWidth();
+  }
+
+  get computedLeft() {
+    return this.foundation_.getComputedLeft();
+  }
+
+  get isActive() {
+    return this.foundation_.isActive();
+  }
+
+  set isActive(isActive) {
+    this.foundation_.setActive(isActive);
+  }
+
+  get preventDefaultOnClick() {
+    return this.foundation_.preventsDefaultOnClick();
+  }
+
+  set preventDefaultOnClick(preventDefaultOnClick) {
+    this.foundation_.setPreventDefaultOnClick(preventDefaultOnClick);
+  }
+
+  constructor(...args) {
+    super(...args);
+
+    this.ripple_ = __WEBPACK_IMPORTED_MODULE_1__material_ripple__["a" /* MDCRipple */].attachTo(this.root_);
+  }
+
+  destroy() {
+    this.ripple_.destroy();
+    super.destroy();
+  }
+
+  getDefaultFoundation() {
+    return new __WEBPACK_IMPORTED_MODULE_3__foundation__["a" /* default */]({
+      addClass: (className) => this.root_.classList.add(className),
+      removeClass: (className) => this.root_.classList.remove(className),
+      registerInteractionHandler: (type, handler) => this.root_.addEventListener(type, handler),
+      deregisterInteractionHandler: (type, handler) => this.root_.removeEventListener(type, handler),
+      getOffsetWidth: () => this.root_.offsetWidth,
+      getOffsetLeft: () => this.root_.offsetLeft,
+      notifySelected: () => this.emit(__WEBPACK_IMPORTED_MODULE_3__foundation__["a" /* default */].strings.SELECTED_EVENT, {tab: this}, true),
+    });
+  }
+
+  initialSyncWithDOM() {
+    this.isActive = this.root_.classList.contains(__WEBPACK_IMPORTED_MODULE_2__constants__["a" /* cssClasses */].ACTIVE);
+  }
+
+  measureSelf() {
+    this.foundation_.measureSelf();
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = MDCTab;
+
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * @license
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* eslint no-unused-vars: [2, {"args": "none"}] */
+
+/**
+ * Adapter for MDC Ripple. Provides an interface for managing
+ * - classes
+ * - dom
+ * - CSS variables
+ * - position
+ * - dimensions
+ * - scroll position
+ * - event handlers
+ * - unbounded, active and disabled states
+ *
+ * Additionally, provides type information for the adapter to the Closure
+ * compiler.
+ *
+ * Implement this adapter for your framework of choice to delegate updates to
+ * the component in your framework of choice. See architecture documentation
+ * for more details.
+ * https://github.com/material-components/material-components-web/blob/master/docs/architecture.md
+ *
+ * @record
+ */
+class MDCRippleAdapter {
+  /** @return {boolean} */
+  browserSupportsCssVars() {}
+
+  /** @return {boolean} */
+  isUnbounded() {}
+
+  /** @return {boolean} */
+  isSurfaceActive() {}
+
+  /** @return {boolean} */
+  isSurfaceDisabled() {}
+
+  /** @param {string} className */
+  addClass(className) {}
+
+  /** @param {string} className */
+  removeClass(className) {}
+
+  /**
+   * @param {string} evtType
+   * @param {!Function} handler
+   */
+  registerInteractionHandler(evtType, handler) {}
+
+  /**
+   * @param {string} evtType
+   * @param {!Function} handler
+   */
+  deregisterInteractionHandler(evtType, handler) {}
+
+  /**
+   * @param {!Function} handler
+   */
+  registerResizeHandler(handler) {}
+
+  /**
+   * @param {!Function} handler
+   */
+  deregisterResizeHandler(handler) {}
+
+  /**
+   * @param {string} varName
+   * @param {?number|string} value
+   */
+  updateCssVariable(varName, value) {}
+
+  /** @return {!ClientRect} */
+  computeBoundingRect() {}
+
+  /** @return {{x: number, y: number}} */
+  getWindowPageOffset() {}
+}
+
+/* unused harmony default export */ var _unused_webpack_default_export = (MDCRippleAdapter);
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return supportsCssVariables; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return applyPassive; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return getMatchesProperty; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return getNormalizedEventCoords; });
+/**
+ * @license
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Stores result from supportsCssVariables to avoid redundant processing to detect CSS custom variable support.
+ * @private {boolean|undefined}
+ */
+let supportsCssVariables_;
+
+/**
+ * Stores result from applyPassive to avoid redundant processing to detect passive event listener support.
+ * @private {boolean|undefined}
+ */
+let supportsPassive_;
+
+/**
+ * @param {!Window} windowObj
+ * @return {boolean}
+ */
+function detectEdgePseudoVarBug(windowObj) {
+  // Detect versions of Edge with buggy var() support
+  // See: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11495448/
+  const document = windowObj.document;
+  const node = document.createElement('div');
+  node.className = 'mdc-ripple-surface--test-edge-var-bug';
+  document.body.appendChild(node);
+
+  // The bug exists if ::before style ends up propagating to the parent element.
+  // Additionally, getComputedStyle returns null in iframes with display: "none" in Firefox,
+  // but Firefox is known to support CSS custom properties correctly.
+  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=548397
+  const computedStyle = windowObj.getComputedStyle(node);
+  const hasPseudoVarBug = computedStyle !== null && computedStyle.borderTopStyle === 'solid';
+  node.remove();
+  return hasPseudoVarBug;
+}
+
+/**
+ * @param {!Window} windowObj
+ * @param {boolean=} forceRefresh
+ * @return {boolean|undefined}
+ */
+
+function supportsCssVariables(windowObj, forceRefresh = false) {
+  if (typeof supportsCssVariables_ === 'boolean' && !forceRefresh) {
+    return supportsCssVariables_;
+  }
+
+  const supportsFunctionPresent = windowObj.CSS && typeof windowObj.CSS.supports === 'function';
+  if (!supportsFunctionPresent) {
+    return;
+  }
+
+  const explicitlySupportsCssVars = windowObj.CSS.supports('--css-vars', 'yes');
+  // See: https://bugs.webkit.org/show_bug.cgi?id=154669
+  // See: README section on Safari
+  const weAreFeatureDetectingSafari10plus = (
+    windowObj.CSS.supports('(--css-vars: yes)') &&
+    windowObj.CSS.supports('color', '#00000000')
+  );
+
+  if (explicitlySupportsCssVars || weAreFeatureDetectingSafari10plus) {
+    supportsCssVariables_ = !detectEdgePseudoVarBug(windowObj);
+  } else {
+    supportsCssVariables_ = false;
+  }
+  return supportsCssVariables_;
+}
+
+//
+/**
+ * Determine whether the current browser supports passive event listeners, and if so, use them.
+ * @param {!Window=} globalObj
+ * @param {boolean=} forceRefresh
+ * @return {boolean|{passive: boolean}}
+ */
+function applyPassive(globalObj = window, forceRefresh = false) {
+  if (supportsPassive_ === undefined || forceRefresh) {
+    let isSupported = false;
+    try {
+      globalObj.document.addEventListener('test', null, {get passive() {
+        isSupported = true;
+      }});
+    } catch (e) { }
+
+    supportsPassive_ = isSupported;
+  }
+
+  return supportsPassive_ ? {passive: true} : false;
+}
+
+/**
+ * @param {!Object} HTMLElementPrototype
+ * @return {!Array<string>}
+ */
+function getMatchesProperty(HTMLElementPrototype) {
+  return [
+    'webkitMatchesSelector', 'msMatchesSelector', 'matches',
+  ].filter((p) => p in HTMLElementPrototype).pop();
+}
+
+/**
+ * @param {!Event} ev
+ * @param {!{x: number, y: number}} pageOffset
+ * @param {!ClientRect} clientRect
+ * @return {!{x: number, y: number}}
+ */
+function getNormalizedEventCoords(ev, pageOffset, clientRect) {
+  const {x, y} = pageOffset;
+  const documentX = x + clientRect.left;
+  const documentY = y + clientRect.top;
+
+  let normalizedX;
+  let normalizedY;
+  // Determine touch point relative to the ripple container.
+  if (ev.type === 'touchstart') {
+    normalizedX = ev.changedTouches[0].pageX - documentX;
+    normalizedY = ev.changedTouches[0].pageY - documentY;
+  } else {
+    normalizedX = ev.pageX - documentX;
+    normalizedY = ev.pageY - documentY;
+  }
+
+  return {x: normalizedX, y: normalizedY};
+}
+
+
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+const cssClasses = {
+  ACTIVE: 'mdc-tab--active',
+};
+/* harmony export (immutable) */ __webpack_exports__["a"] = cssClasses;
+
+
+const strings = {
+  SELECTED_EVENT: 'MDCTab:selected',
+};
+/* harmony export (immutable) */ __webpack_exports__["b"] = strings;
+
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_component__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__tab__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__foundation__ = __webpack_require__(33);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_2__foundation__["a"]; });
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+
+
+class MDCTabBar extends __WEBPACK_IMPORTED_MODULE_0__material_base_component__["a" /* default */] {
+  static attachTo(root) {
+    return new MDCTabBar(root);
+  }
+
+  get tabs() {
+    return this.tabs_;
+  }
+
+  get activeTab() {
+    const activeIndex = this.foundation_.getActiveTabIndex();
+    return this.tabs[activeIndex];
+  }
+
+  set activeTab(tab) {
+    this.setActiveTab_(tab, false);
+  }
+
+  get activeTabIndex() {
+    return this.foundation_.getActiveTabIndex();
+  }
+
+  set activeTabIndex(index) {
+    this.setActiveTabIndex_(index, false);
+  }
+
+  initialize(tabFactory = (el) => new __WEBPACK_IMPORTED_MODULE_1__tab__["a" /* MDCTab */](el)) {
+    this.indicator_ = this.root_.querySelector(__WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */].strings.INDICATOR_SELECTOR);
+    this.tabs_ = this.gatherTabs_(tabFactory);
+    this.tabSelectedHandler_ = ({detail}) => {
+      const {tab} = detail;
+      this.setActiveTab_(tab, true);
+    };
+  }
+
+  getDefaultFoundation() {
+    return new __WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */]({
+      addClass: (className) => this.root_.classList.add(className),
+      removeClass: (className) => this.root_.classList.remove(className),
+      bindOnMDCTabSelectedEvent: () => this.listen(
+        __WEBPACK_IMPORTED_MODULE_1__tab__["b" /* MDCTabFoundation */].strings.SELECTED_EVENT, this.tabSelectedHandler_),
+      unbindOnMDCTabSelectedEvent: () => this.unlisten(
+        __WEBPACK_IMPORTED_MODULE_1__tab__["b" /* MDCTabFoundation */].strings.SELECTED_EVENT, this.tabSelectedHandler_),
+      registerResizeHandler: (handler) => window.addEventListener('resize', handler),
+      deregisterResizeHandler: (handler) => window.removeEventListener('resize', handler),
+      getOffsetWidth: () => this.root_.offsetWidth,
+      setStyleForIndicator: (propertyName, value) => this.indicator_.style.setProperty(propertyName, value),
+      getOffsetWidthForIndicator: () => this.indicator_.offsetWidth,
+      notifyChange: (evtData) => this.emit(__WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */].strings.CHANGE_EVENT, evtData),
+      getNumberOfTabs: () => this.tabs.length,
+      isTabActiveAtIndex: (index) => this.tabs[index].isActive,
+      setTabActiveAtIndex: (index, isActive) => {
+        this.tabs[index].isActive = isActive;
+      },
+      isDefaultPreventedOnClickForTabAtIndex: (index) => this.tabs[index].preventDefaultOnClick,
+      setPreventDefaultOnClickForTabAtIndex: (index, preventDefaultOnClick) => {
+        this.tabs[index].preventDefaultOnClick = preventDefaultOnClick;
+      },
+      measureTabAtIndex: (index) => this.tabs[index].measureSelf(),
+      getComputedWidthForTabAtIndex: (index) => this.tabs[index].computedWidth,
+      getComputedLeftForTabAtIndex: (index) => this.tabs[index].computedLeft,
+    });
+  }
+
+  gatherTabs_(tabFactory) {
+    const tabElements = [].slice.call(this.root_.querySelectorAll(__WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */].strings.TAB_SELECTOR));
+    return tabElements.map((el) => tabFactory(el));
+  }
+
+  setActiveTabIndex_(activeTabIndex, notifyChange) {
+    this.foundation_.switchToTabAtIndex(activeTabIndex, notifyChange);
+  }
+
+  layout() {
+    this.foundation_.layout();
+  }
+
+  setActiveTab_(activeTab, notifyChange) {
+    const indexOfTab = this.tabs.indexOf(activeTab);
+    if (indexOfTab < 0) {
+      throw new Error('Invalid tab component given as activeTab: Tab not found within this component\'s tab list');
+    }
+    this.setActiveTabIndex_(indexOfTab, notifyChange);
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = MDCTabBar;
+
+
+
+/***/ }),
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44342,16 +45250,24 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.pages = undefined;
 
-var _pages = __webpack_require__(3);
+var _pages = __webpack_require__(12);
 
 var pages = _interopRequireWildcard(_pages);
+
+var _stuff = __webpack_require__(3);
+
+var _stuff2 = _interopRequireDefault(_stuff);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 exports.pages = pages; //Roundabout way to export all page functions into the output target.
 
+_stuff2.default.mdc.init();
+
 /***/ }),
-/* 3 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44361,7 +45277,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _gallery = __webpack_require__(4);
+var _gallery = __webpack_require__(13);
 
 Object.defineProperty(exports, 'GalleryPage', {
   enumerable: true,
@@ -44370,7 +45286,7 @@ Object.defineProperty(exports, 'GalleryPage', {
   }
 });
 
-var _mandelbrot = __webpack_require__(5);
+var _mandelbrot = __webpack_require__(14);
 
 Object.defineProperty(exports, 'MandelbrotPage', {
   enumerable: true,
@@ -44379,7 +45295,7 @@ Object.defineProperty(exports, 'MandelbrotPage', {
   }
 });
 
-var _buddhabrot = __webpack_require__(6);
+var _buddhabrot = __webpack_require__(15);
 
 Object.defineProperty(exports, 'BuddhabrotPage', {
   enumerable: true,
@@ -44388,7 +45304,7 @@ Object.defineProperty(exports, 'BuddhabrotPage', {
   }
 });
 
-var _implicit_surface = __webpack_require__(15);
+var _implicit_surface = __webpack_require__(27);
 
 Object.defineProperty(exports, 'ImplicitSurfacePage', {
   enumerable: true,
@@ -44400,7 +45316,7 @@ Object.defineProperty(exports, 'ImplicitSurfacePage', {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ }),
-/* 4 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44413,7 +45329,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function () {};
 
 /***/ }),
-/* 5 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44426,7 +45342,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function () {};
 
 /***/ }),
-/* 6 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -44584,7 +45500,8 @@ exports.default = function () {
             }
         },
         fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D histogram;\n            uniform float maxHist;\n\n            void main() {\n                vec3 color = texture2D(histogram, vUv).xyz;\n                color = clamp(float(' + EXPOSURE + ') * color / maxHist, 0., 1.);\n                gl_FragColor = vec4(color, 1.);\n            }\n        '
-    }, BUDDHABROT_W, BUDDHABROT_H, undefined, document.getElementById('view'));
+    }, BUDDHABROT_W, BUDDHABROT_H, undefined);
+    $(document.body).prepend(buddhabrotViewer.renderer.domElement);
 
     var k = 0;
     function draw() {
@@ -44592,7 +45509,7 @@ exports.default = function () {
         sampleAndTestEscape();
         accumulate();
         buddhabrotViewer.material.uniforms.maxHist.value = maxHist;
-        buddhabrotViewer.execute();
+        buddhabrotViewer.execute(true);
         //We want to continue computing the image in the back.
         setTimeout(draw, 0);
         //requestAnimationFrame(draw);
@@ -44695,27 +45612,27 @@ exports.default = function () {
     */
 };
 
-var _three = __webpack_require__(0);
+var _three = __webpack_require__(2);
 
 var T = _interopRequireWildcard(_three);
 
-var _stuff = __webpack_require__(1);
+var _stuff = __webpack_require__(3);
 
 var _stuff2 = _interopRequireDefault(_stuff);
 
-var _mandelbrot = __webpack_require__(11);
+var _mandelbrot = __webpack_require__(23);
 
 var _mandelbrot2 = _interopRequireDefault(_mandelbrot);
 
-var _sampleMandelbrotEscape = __webpack_require__(12);
+var _sampleMandelbrotEscape = __webpack_require__(24);
 
 var _sampleMandelbrotEscape2 = _interopRequireDefault(_sampleMandelbrotEscape);
 
-var _mandelbrotStep = __webpack_require__(13);
+var _mandelbrotStep = __webpack_require__(25);
 
 var _mandelbrotStep2 = _interopRequireDefault(_mandelbrotStep);
 
-var _mersenneTwister = __webpack_require__(14);
+var _mersenneTwister = __webpack_require__(26);
 
 var _mersenneTwister2 = _interopRequireDefault(_mersenneTwister);
 
@@ -44991,7 +45908,8 @@ function visualizeMandelbrotPdf(pdf) {
         fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D dataImage;\n            void main() {\n                vec3 color = texture2D(dataImage, vUv).xyz;\n                gl_FragColor = vec4(20. * color / ' + maxPdf + ', 1.);\n            }\n        '
     }, HIST_W, HIST_H);
 
-    var pdfRenderer = new T.WebGLRenderer({ canvas: document.getElementById('view') });
+    var pdfRenderer = new T.WebGLRenderer();
+    $(document.body).prepend(pdfRenderer.domElement);
     pdfRenderer.setClearColor(0, 1);
     pdfRenderer.autoClear = false;
     pdfRenderer.setSize(HIST_W, HIST_H);
@@ -44999,7 +45917,397 @@ function visualizeMandelbrotPdf(pdf) {
 }
 
 /***/ }),
-/* 7 */
+/* 16 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__foundation__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__material_animation__ = __webpack_require__(4);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCSnackbarFoundation", function() { return __WEBPACK_IMPORTED_MODULE_1__foundation__["a"]; });
+/**
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+
+class MDCSnackbar extends __WEBPACK_IMPORTED_MODULE_0__material_base__["a" /* MDCComponent */] {
+  static attachTo(root) {
+    return new MDCSnackbar(root);
+  }
+
+  show(data) {
+    this.foundation_.show(data);
+  }
+
+  getDefaultFoundation() {
+    const {
+      TEXT_SELECTOR,
+      ACTION_BUTTON_SELECTOR,
+    } = __WEBPACK_IMPORTED_MODULE_1__foundation__["a" /* default */].strings;
+    const getText = () => this.root_.querySelector(TEXT_SELECTOR);
+    const getActionButton = () => this.root_.querySelector(ACTION_BUTTON_SELECTOR);
+
+    /* eslint brace-style: "off" */
+    return new __WEBPACK_IMPORTED_MODULE_1__foundation__["a" /* default */]({
+      addClass: (className) => this.root_.classList.add(className),
+      removeClass: (className) => this.root_.classList.remove(className),
+      setAriaHidden: () => this.root_.setAttribute('aria-hidden', 'true'),
+      unsetAriaHidden: () => this.root_.removeAttribute('aria-hidden'),
+      setActionAriaHidden: () => getActionButton().setAttribute('aria-hidden', 'true'),
+      unsetActionAriaHidden: () => getActionButton().removeAttribute('aria-hidden'),
+      setActionText: (text) => { getActionButton().textContent = text; },
+      setMessageText: (text) => { getText().textContent = text; },
+      setFocus: () => getActionButton().focus(),
+      visibilityIsHidden: () => document.hidden,
+      registerCapturedBlurHandler: (handler) => getActionButton().addEventListener('blur', handler, true),
+      deregisterCapturedBlurHandler: (handler) => getActionButton().removeEventListener('blur', handler, true),
+      registerVisibilityChangeHandler: (handler) => document.addEventListener('visibilitychange', handler),
+      deregisterVisibilityChangeHandler: (handler) => document.removeEventListener('visibilitychange', handler),
+      registerCapturedInteractionHandler: (evt, handler) =>
+        document.body.addEventListener(evt, handler, true),
+      deregisterCapturedInteractionHandler: (evt, handler) =>
+        document.body.removeEventListener(evt, handler, true),
+      registerActionClickHandler: (handler) => getActionButton().addEventListener('click', handler),
+      deregisterActionClickHandler: (handler) => getActionButton().removeEventListener('click', handler),
+      registerTransitionEndHandler:
+        (handler) => this.root_.addEventListener(Object(__WEBPACK_IMPORTED_MODULE_2__material_animation__["a" /* getCorrectEventName */])(window, 'transitionend'), handler),
+      deregisterTransitionEndHandler:
+        (handler) => this.root_.removeEventListener(Object(__WEBPACK_IMPORTED_MODULE_2__material_animation__["a" /* getCorrectEventName */])(window, 'transitionend'), handler),
+    });
+  }
+
+  get dismissesOnAction() {
+    return this.foundation_.dismissesOnAction();
+  }
+
+  set dismissesOnAction(dismissesOnAction) {
+    this.foundation_.setDismissOnAction(dismissesOnAction);
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["MDCSnackbar"] = MDCSnackbar;
+
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(18);
+/**
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+class MDCSnackbarFoundation extends __WEBPACK_IMPORTED_MODULE_0__material_base__["b" /* MDCFoundation */] {
+  static get cssClasses() {
+    return __WEBPACK_IMPORTED_MODULE_1__constants__["a" /* cssClasses */];
+  }
+
+  static get strings() {
+    return __WEBPACK_IMPORTED_MODULE_1__constants__["c" /* strings */];
+  }
+
+  static get defaultAdapter() {
+    return {
+      addClass: (/* className: string */) => {},
+      removeClass: (/* className: string */) => {},
+      setAriaHidden: () => {},
+      unsetAriaHidden: () => {},
+      setActionAriaHidden: () => {},
+      unsetActionAriaHidden: () => {},
+      setActionText: (/* actionText: string */) => {},
+      setMessageText: (/* message: string */) => {},
+      setFocus: () => {},
+      visibilityIsHidden: () => /* boolean */ false,
+      registerCapturedBlurHandler: (/* handler: EventListener */) => {},
+      deregisterCapturedBlurHandler: (/* handler: EventListener */) => {},
+      registerVisibilityChangeHandler: (/* handler: EventListener */) => {},
+      deregisterVisibilityChangeHandler: (/* handler: EventListener */) => {},
+      registerCapturedInteractionHandler: (/* evtType: string, handler: EventListener */) => {},
+      deregisterCapturedInteractionHandler: (/* evtType: string, handler: EventListener */) => {},
+      registerActionClickHandler: (/* handler: EventListener */) => {},
+      deregisterActionClickHandler: (/* handler: EventListener */) => {},
+      registerTransitionEndHandler: (/* handler: EventListener */) => {},
+      deregisterTransitionEndHandler: (/* handler: EventListener */) => {},
+    };
+  }
+
+  get active() {
+    return this.active_;
+  }
+
+  constructor(adapter) {
+    super(Object.assign(MDCSnackbarFoundation.defaultAdapter, adapter));
+
+    this.active_ = false;
+    this.actionWasClicked_ = false;
+    this.dismissOnAction_ = true;
+    this.firstFocus_ = true;
+    this.pointerDownRecognized_ = false;
+    this.snackbarHasFocus_ = false;
+    this.snackbarData_ = null;
+    this.queue_ = [];
+    this.actionClickHandler_ = () => {
+      this.actionWasClicked_ = true;
+      this.invokeAction_();
+    };
+    this.visibilitychangeHandler_ = () => {
+      clearTimeout(this.timeoutId_);
+      this.snackbarHasFocus_ = true;
+
+      if (!this.adapter_.visibilityIsHidden()) {
+        setTimeout(this.cleanup_.bind(this), this.snackbarData_.timeout || __WEBPACK_IMPORTED_MODULE_1__constants__["b" /* numbers */].MESSAGE_TIMEOUT);
+      }
+    };
+    this.interactionHandler_ = (evt) => {
+      if (evt.type == 'touchstart' || evt.type == 'mousedown') {
+        this.pointerDownRecognized_ = true;
+      }
+      this.handlePossibleTabKeyboardFocus_(evt);
+
+      if (evt.type == 'focus') {
+        this.pointerDownRecognized_ = false;
+      }
+    };
+    this.blurHandler_ = () => {
+      clearTimeout(this.timeoutId_);
+      this.snackbarHasFocus_ = false;
+      this.timeoutId_ = setTimeout(this.cleanup_.bind(this), this.snackbarData_.timeout || __WEBPACK_IMPORTED_MODULE_1__constants__["b" /* numbers */].MESSAGE_TIMEOUT);
+    };
+  }
+
+  init() {
+    this.adapter_.registerActionClickHandler(this.actionClickHandler_);
+    this.adapter_.setAriaHidden();
+    this.adapter_.setActionAriaHidden();
+  }
+
+  destroy() {
+    this.adapter_.deregisterActionClickHandler(this.actionClickHandler_);
+    this.adapter_.deregisterCapturedBlurHandler(this.blurHandler_);
+    this.adapter_.deregisterVisibilityChangeHandler(this.visibilitychangeHandler_);
+    ['touchstart', 'mousedown', 'focus'].forEach((evtType) => {
+      this.adapter_.deregisterCapturedInteractionHandler(evtType, this.interactionHandler_);
+    });
+  }
+
+  dismissesOnAction() {
+    return this.dismissOnAction_;
+  }
+
+  setDismissOnAction(dismissOnAction) {
+    this.dismissOnAction_ = !!dismissOnAction;
+  }
+
+  show(data) {
+    if (!data) {
+      throw new Error(
+        'Please provide a data object with at least a message to display.');
+    }
+    if (!data.message) {
+      throw new Error('Please provide a message to be displayed.');
+    }
+    if (data.actionHandler && !data.actionText) {
+      throw new Error('Please provide action text with the handler.');
+    }
+    if (this.active) {
+      this.queue_.push(data);
+      return;
+    }
+    clearTimeout(this.timeoutId_);
+    this.snackbarData_ = data;
+    this.firstFocus_ = true;
+    this.adapter_.registerVisibilityChangeHandler(this.visibilitychangeHandler_);
+    this.adapter_.registerCapturedBlurHandler(this.blurHandler_);
+    ['touchstart', 'mousedown', 'focus'].forEach((evtType) => {
+      this.adapter_.registerCapturedInteractionHandler(evtType, this.interactionHandler_);
+    });
+
+    const {ACTIVE, MULTILINE, ACTION_ON_BOTTOM} = __WEBPACK_IMPORTED_MODULE_1__constants__["a" /* cssClasses */];
+
+    this.adapter_.setMessageText(this.snackbarData_.message);
+
+    if (this.snackbarData_.multiline) {
+      this.adapter_.addClass(MULTILINE);
+      if (this.snackbarData_.actionOnBottom) {
+        this.adapter_.addClass(ACTION_ON_BOTTOM);
+      }
+    }
+
+    if (this.snackbarData_.actionHandler) {
+      this.adapter_.setActionText(this.snackbarData_.actionText);
+      this.actionHandler_ = this.snackbarData_.actionHandler;
+      this.setActionHidden_(false);
+    } else {
+      this.setActionHidden_(true);
+      this.actionHandler_ = null;
+      this.adapter_.setActionText(null);
+    }
+
+    this.active_ = true;
+    this.adapter_.addClass(ACTIVE);
+    this.adapter_.unsetAriaHidden();
+
+    this.timeoutId_ = setTimeout(this.cleanup_.bind(this), this.snackbarData_.timeout || __WEBPACK_IMPORTED_MODULE_1__constants__["b" /* numbers */].MESSAGE_TIMEOUT);
+  }
+
+  handlePossibleTabKeyboardFocus_() {
+    const hijackFocus =
+      this.firstFocus_ && !this.pointerDownRecognized_;
+
+    if (hijackFocus) {
+      this.setFocusOnAction_();
+    }
+
+    this.firstFocus_ = false;
+  }
+
+  setFocusOnAction_() {
+    this.adapter_.setFocus();
+    this.snackbarHasFocus_ = true;
+    this.firstFocus_ = false;
+  }
+
+  invokeAction_() {
+    try {
+      if (!this.actionHandler_) {
+        return;
+      }
+
+      this.actionHandler_();
+    } finally {
+      if (this.dismissOnAction_) {
+        this.cleanup_();
+      }
+    }
+  }
+
+  cleanup_() {
+    const allowDismissal = !this.snackbarHasFocus_ || this.actionWasClicked_;
+
+    if (allowDismissal) {
+      const {ACTIVE, MULTILINE, ACTION_ON_BOTTOM} = __WEBPACK_IMPORTED_MODULE_1__constants__["a" /* cssClasses */];
+
+      this.adapter_.removeClass(ACTIVE);
+
+      const handler = () => {
+        clearTimeout(this.timeoutId_);
+        this.adapter_.deregisterTransitionEndHandler(handler);
+        this.adapter_.removeClass(MULTILINE);
+        this.adapter_.removeClass(ACTION_ON_BOTTOM);
+        this.setActionHidden_(true);
+        this.adapter_.setAriaHidden();
+        this.active_ = false;
+        this.snackbarHasFocus_ = false;
+        this.showNext_();
+      };
+
+      this.adapter_.registerTransitionEndHandler(handler);
+    }
+  }
+
+  showNext_() {
+    if (!this.queue_.length) {
+      return;
+    }
+    this.show(this.queue_.shift());
+  }
+
+  setActionHidden_(isHidden) {
+    if (isHidden) {
+      this.adapter_.setActionAriaHidden();
+    } else {
+      this.adapter_.unsetActionAriaHidden();
+    }
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = MDCSnackbarFoundation;
+
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const cssClasses = {
+  ROOT: 'mdc-snackbar',
+  TEXT: 'mdc-snackbar__text',
+  ACTION_WRAPPER: 'mdc-snackbar__action-wrapper',
+  ACTION_BUTTON: 'mdc-snackbar__action-button',
+  ACTIVE: 'mdc-snackbar--active',
+  MULTILINE: 'mdc-snackbar--multiline',
+  ACTION_ON_BOTTOM: 'mdc-snackbar--action-on-bottom',
+};
+/* harmony export (immutable) */ __webpack_exports__["a"] = cssClasses;
+
+
+const strings = {
+  TEXT_SELECTOR: '.mdc-snackbar__text',
+  ACTION_WRAPPER_SELECTOR: '.mdc-snackbar__action-wrapper',
+  ACTION_BUTTON_SELECTOR: '.mdc-snackbar__action-button',
+};
+/* harmony export (immutable) */ __webpack_exports__["c"] = strings;
+
+
+const numbers = {
+  MESSAGE_TIMEOUT: 2750,
+};
+/* harmony export (immutable) */ __webpack_exports__["b"] = numbers;
+
+
+
+/***/ }),
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45009,7 +46317,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _ShaderComputePass = __webpack_require__(8);
+var _ShaderComputePass = __webpack_require__(20);
 
 Object.defineProperty(exports, 'ComputeShaderPass', {
   enumerable: true,
@@ -45021,7 +46329,7 @@ Object.defineProperty(exports, 'ComputeShaderPass', {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ }),
-/* 8 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45033,11 +46341,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _three = __webpack_require__(0);
+var _three = __webpack_require__(2);
 
 var T = _interopRequireWildcard(_three);
 
-var _compute_vertex = __webpack_require__(9);
+var _compute_vertex = __webpack_require__(21);
 
 var _compute_vertex2 = _interopRequireDefault(_compute_vertex);
 
@@ -45070,11 +46378,10 @@ var _class = function () {
     function _class(shader, w) {
         var h = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
         var targetName = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-        var canvas = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+        var renderer = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
 
         _classCallCheck(this, _class);
 
-        this.canvas = canvas;
         //This is the name used to feed the render target back into the shader as a texture. If null, will be ignored.
         this.targetName = targetName;
         this.w = w;
@@ -45111,17 +46418,23 @@ var _class = function () {
         this.scene = new T.Scene();
         this.scene.add(this.mesh);
 
-        this.renderer = new T.WebGLRenderer(canvas ? { canvas: canvas } : undefined);
-        this.renderer.setClearColor(0, 1);
-        this.renderer.autoClear = false;
-        this.renderer.setSize(w, h);
+        if (renderer == null) {
+            this.ownsRenderer = true;
+            renderer = new T.WebGLRenderer();
+            renderer.setClearColor(0, 1);
+            renderer.autoClear = false;
+            renderer.setSize(w, h);
+        } else {
+            this.ownsRenderer = false;
+        }
+        this.renderer = renderer;
     }
 
     _createClass(_class, [{
         key: 'execute',
-        value: function execute() {
+        value: function execute(renderToCanvas) {
             //This if-statement is probably not necessary, could simply always draw to canvs & the target.
-            if (this.canvas) {
+            if (renderToCanvas) {
                 this.renderer.render(this.scene, this.camera);
                 return;
             }
@@ -45163,7 +46476,9 @@ var _class = function () {
             if (this.targetName) {
                 this.texTarget.v.dispose();
             }
-            this.renderer.dispose();
+            if (this.ownsRenderer) {
+                this.renderer.dispose();
+            }
         }
     }, {
         key: 'resize',
@@ -45176,7 +46491,9 @@ var _class = function () {
             if (this.targetName) {
                 this.texTarget.v.setSize(w, h);
             }
-            this.renderer.setSize(w, h);
+            if (this.ownsRenderer) {
+                this.renderer.setSize(w, h);
+            }
         }
     }]);
 
@@ -45186,13 +46503,13 @@ var _class = function () {
 exports.default = _class;
 
 /***/ }),
-/* 9 */
+/* 21 */
 /***/ (function(module, exports) {
 
 module.exports=opts=>"varying vec2 vUv;\nvoid main() {\n\tvUv = uv;\n\tgl_Position = (projectionMatrix * modelViewMatrix) * vec4(position, 1.0);\n}\n";
 
 /***/ }),
-/* 10 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45403,7 +46720,7 @@ MersenneTwister.prototype.genrand_res53 = function () {
 exports.default = MersenneTwister;
 
 /***/ }),
-/* 11 */
+/* 23 */
 /***/ (function(module, exports) {
 
 module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_ITER "+
@@ -45428,7 +46745,7 @@ opts.MAX_ITER+".\n#define BAILOUT2 "+
 opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2D prev;\nuniform vec2 translate;\nuniform float scale;\nuniform float aspect;\nvarying vec2 vUv;\nvec2 coord() {\n\treturn ((((vUv * 2.) - 1.) * vec2(aspect, 1.)) * scale) + translate;\n}\nvoid main() {\n\tvec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n\tif (zPrev.a != 0.) {\n\t\tgl_FragColor = zPrev;\n\t\treturn ;\n\t}\n\tvec2 c = coord();\n\tvec2 z = zPrev.xy;\n\tfor (float i = 0.; i <= MAX_ITER; ++i) {\n\t\tif (cabs2(z) >= BAILOUT2) {\n\t\t\tgl_FragColor = vec4(c, zPrev.b + i, 1.);\n\t\t\treturn ;\n\t\t}\n\t\tz = cmul(z, z) + c;\n\t}\n\tgl_FragColor = vec4(z, zPrev.b + MAX_ITER, 0.);\n}\n";
 
 /***/ }),
-/* 12 */
+/* 24 */
 /***/ (function(module, exports) {
 
 module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_CHUNK "+
@@ -45453,7 +46770,7 @@ opts.MAX_CHUNK+".\n#define BAILOUT2 "+
 opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2D prev;\nuniform sampler2D samples;\nvarying vec2 vUv;\nvoid main() {\n\tvec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n\tif (zPrev.r != 0.) {\n\t\tgl_FragColor = zPrev;\n\t\treturn ;\n\t}\n\tvec4 s = texture2D(samples, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = zPrev.ba;\n\tfor (float i = 0.; i <= MAX_CHUNK; ++i) {\n\t\tz = cmul(z, z) + c;\n\t\tif (cabs2(z) >= BAILOUT2) {\n\t\t\tgl_FragColor = vec4(1., zPrev.g + i, z);\n\t\t\treturn ;\n\t\t}\n\t}\n\tgl_FragColor = vec4(0., zPrev.g + MAX_CHUNK, z);\n}\n";
 
 /***/ }),
-/* 13 */
+/* 25 */
 /***/ (function(module, exports) {
 
 module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_ITER "+
@@ -45478,7 +46795,7 @@ opts.MAX_ITER+".\n#define BAILOUT2 "+
 opts.BAILOUT2+".\nprecision highp float;\nuniform int clear;\nuniform sampler2D samples;\nuniform sampler2D prev;\nvarying vec2 vUv;\nvoid main() {\n\tif (clear == 1) {\n\t\tgl_FragColor = vec4(0.);\n\t\treturn ;\n\t}\n\tvec4 s = texture2D(samples, vUv);\n\tif (s.z == -1.) {\n\t\treturn ;\n\t}\n\tvec4 p = texture2D(prev, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = p.xy;\n\tif (((p.a == 1.) || (p.b > MAX_ITER)) || (cabs2(z) >= BAILOUT2)) {\n\t\tgl_FragColor = vec4(p.xyz, 1.);\n\t\treturn ;\n\t}\n\tgl_FragColor = vec4(cmul(z, z) + c, p.b + 1., 0.);\n}\n";
 
 /***/ }),
-/* 14 */
+/* 26 */
 /***/ (function(module, exports) {
 
 /*
@@ -45694,7 +47011,7 @@ module.exports = MersenneTwister;
 
 
 /***/ }),
-/* 15 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45704,10 +47021,22 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 exports.default = function () {
-    var editor = ace.edit("editor");
-    editor.setTheme("ace/theme/gruvbox");
-    editor.getSession().setMode("ace/mode/glsl");
+    _tabs.MDCTabBar.attachTo($('#code-tab-bar')[0]);
+
+    var $activePanel = $("#code");
+    $('#code-tab-bar').find('.mdc-tab').on('click', function () {
+        $activePanel.removeClass('active');
+        $activePanel = $($(this).attr('href')).addClass('active');
+        $("#editor").height($("#editor").parent().height() - 10);
+        editor.resize();
+    });
+
+    var editor = ace.edit('editor');
+    editor.setTheme('ace/theme/gruvbox');
+    editor.getSession().setMode('ace/mode/glsl');
     editor.setValue(_sdf_snippets2.default, 1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -45719,8 +47048,7 @@ exports.default = function () {
         }
     });
 
-    var $view = $('#view');
-    var $viewParent = $view.parent();
+    var $viewParent = $('#view-container');
 
     var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
     var camR = 400,
@@ -45754,6 +47082,154 @@ exports.default = function () {
         }
         updateCamera();
     }
+    var marchPass = new _stuff2.default.gl.ComputeShaderPass({
+        uniforms: {
+            //Used to quit early.
+            far: {
+                type: 'f',
+                value: 1e6
+            },
+            relaxation: {
+                type: 'f',
+                value: 1.6
+            },
+            threshold: {
+                type: 'f',
+                value: 1e-2
+            },
+            //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
+            invProjMat: {
+                type: 'm4',
+                value: new T.Matrix4().getInverse(camera.projectionMatrix)
+            },
+            mat: {
+                type: 'm4',
+                value: camera.matrix
+            }
+        },
+        //Use this FIRSTLINE comment to figure out where the distanceProgram starts
+        fragmentShader: (0, _raySphereMarching2.default)().replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue())
+    }, $viewParent.width(), $viewParent.height());
+
+    function updateProgram() {
+        editor.session.clearAnnotations();
+        marchPass.material.fragmentShader = (0, _raySphereMarching2.default)().replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        marchPass.material.needsUpdate = true;
+        needsUpdate = true;
+    }
+
+    var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
+        uniforms: {
+            surfaceData: {
+                type: 't',
+                value: marchPass.texTarget.t.texture
+            }
+        },
+        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            vec3 b1 = vec3(-100.);\n            vec3 b2 = vec3(100.);\n\n            void main() {\n                vec4 color = texture2D(surfaceData, vUv);\n                if(color.a != -1.) {\n                    if(color.a == -2.) {\n                        gl_FragColor = vec4(color.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = vec4(length(color.xyz) / 150.);\n                    }\n                }\n            }\n        '
+    }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
+
+    var $view = $(viewerPass.renderer.domElement);
+    $viewParent.append($view);
+
+    //Needs the same renderer in order to share data. Booo.
+    marchPass.renderer.dispose();
+    marchPass.renderer = viewerPass.renderer;
+
+    var needsUpdate = true;
+
+    function resize() {
+        $("#editor").height($("#editor").parent().height() - 10);
+        editor.resize();
+
+        camera.aspect = $viewParent.width() / $viewParent.height();
+        camera.updateProjectionMatrix();
+
+        viewerPass.resize($viewParent.width(), $viewParent.height());
+
+        marchPass.resize($viewParent.width(), $viewParent.height());
+        marchPass.material.uniforms.invProjMat.value = new T.Matrix4().getInverse(camera.projectionMatrix);
+
+        needsUpdate = true;
+    }
+
+    function draw() {
+        //Easy way to take advantage of container transitions.
+        if ($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
+            resize();
+        }
+        if (needsUpdate) {
+            needsUpdate = false;
+            marchPass.execute();
+
+            //TODO: Move this into stuff.js
+            var diagnostics = marchPass.material.program.diagnostics;
+            if (diagnostics) {
+                var log = diagnostics.fragmentShader.log;
+                if (log.indexOf('ERROR') != -1) {
+                    var lines = (diagnostics.fragmentShader.prefix + marchPass.material.fragmentShader).split('\n');
+                    //Find the start of the distance program.
+                    var i = void 0;
+                    for (i = 0; i < lines.length; ++i) {
+                        console.log(lines[i]);
+                        if (lines[i] == '//FIRSTLINE') {
+                            break;
+                        }
+                    }
+                    var annotations = [];
+                    //Parse the error.
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = log.split('\n')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var error = _step.value;
+
+                            if (!error || error.indexOf('ERROR') == -1) {
+                                break;
+                            }
+
+                            var _error$substring$spli = error.substring(7).split(':'),
+                                _error$substring$spli2 = _slicedToArray(_error$substring$spli, 4),
+                                column = _error$substring$spli2[0],
+                                row = _error$substring$spli2[1],
+                                code = _error$substring$spli2[2],
+                                text = _error$substring$spli2[3];
+
+                            column = parseInt(column);
+                            row = parseInt(row);
+                            row -= i + 2;
+                            annotations.push({
+                                row: row, column: column,
+                                text: code + ':' + text,
+                                type: "error"
+                            });
+                            console.log(error, row, column);
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+
+                    editor.session.setAnnotations(annotations);
+                }
+            }
+            viewerPass.execute(true);
+        }
+        requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+
     var dragging = false;
     var mousePos = void 0;
     var pinchPos = void 0;
@@ -45823,84 +47299,6 @@ exports.default = function () {
         zoom(5 * Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
     });
 
-    var marchPass = new _stuff2.default.gl.ComputeShaderPass({
-        uniforms: {
-            //Not to be confused with camera.far, this defines when to give up in case nothing was hit.
-            far: {
-                type: 'f',
-                value: 1e6
-            },
-            relaxation: {
-                type: 'f',
-                value: 1.6
-            },
-            threshold: {
-                type: 'f',
-                value: 1e-2
-            },
-            //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
-            invProjMat: {
-                type: 'm4',
-                value: new T.Matrix4().getInverse(camera.projectionMatrix)
-            },
-            mat: {
-                type: 'm4',
-                value: camera.matrix
-            }
-        },
-        fragmentShader: (0, _raySphereMarching2.default)().replace("float distanceProgram;", editor.getValue())
-    }, $viewParent.width(), $viewParent.height());
-
-    function updateProgram() {
-        marchPass.material.fragmentShader = (0, _raySphereMarching2.default)().replace("float distanceProgram;", editor.getValue());
-        marchPass.material.needsUpdate = true;
-        needsUpdate = true;
-    }
-
-    var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
-        uniforms: {
-            surfaceData: {
-                type: 't',
-                value: marchPass.texTarget.t.texture
-            }
-        },
-        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            vec3 b1 = vec3(-100.);\n            vec3 b2 = vec3(100.);\n\n            void main() {\n                vec4 color = texture2D(surfaceData, vUv);\n                if(color.a != -1.) {\n                    if(color.a == -2.) {\n                        gl_FragColor = vec4(color.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = vec4(length(color.xyz) / 150.);\n                    }\n                }\n            }\n        '
-        //}, $viewParent.width(), $viewParent.height());
-    }, $viewParent.width(), $viewParent.height(), null, $("#view")[0]);
-    //Needs the same renderer in order to share data. Booo.
-    marchPass.renderer.dispose();
-    marchPass.renderer = viewerPass.renderer;
-
-    var needsUpdate = true;
-
-    function resize() {
-        $("#editor").height($("#editor").parent().height() - 10);
-        editor.resize();
-
-        camera.aspect = $viewParent.width() / $viewParent.height();
-        camera.updateProjectionMatrix();
-
-        viewerPass.resize($viewParent.width(), $viewParent.height());
-
-        marchPass.resize($viewParent.width(), $viewParent.height());
-        marchPass.material.uniforms.invProjMat.value = new T.Matrix4().getInverse(camera.projectionMatrix);
-
-        needsUpdate = true;
-    }
-
-    function draw() {
-        //Easy way to take advantage of container transitions.
-        if ($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
-            resize();
-        }
-        if (needsUpdate) {
-            needsUpdate = false;
-            marchPass.execute();
-            viewerPass.execute();
-        }
-        requestAnimationFrame(draw);
-    }
-    requestAnimationFrame(draw);
     $('#fab-tune').on('click', function () {
         $(this).addClass('mdc-fab--exited');
         $viewParent.addClass('shrunk');
@@ -45920,7 +47318,7 @@ exports.default = function () {
     });
     $("#fab-update").on('click', updateProgram);
     $(window).on('keydown', function (e) {
-        if (e.which == 13 && e.shiftKey && $('#bottom-sheet').hasClass('visible')) {
+        if (e.which == 13 && e.ctrlKey && $('#bottom-sheet').hasClass('visible')) {
             e.preventDefault();
             updateProgram();
         } else if (e.which == 27) {
@@ -45936,19 +47334,21 @@ exports.default = function () {
     });
 };
 
-var _three = __webpack_require__(0);
+var _tabs = __webpack_require__(28);
+
+var _three = __webpack_require__(2);
 
 var T = _interopRequireWildcard(_three);
 
-var _stuff = __webpack_require__(1);
+var _stuff = __webpack_require__(3);
 
 var _stuff2 = _interopRequireDefault(_stuff);
 
-var _raySphereMarching = __webpack_require__(16);
+var _raySphereMarching = __webpack_require__(38);
 
 var _raySphereMarching2 = _interopRequireDefault(_raySphereMarching);
 
-var _sdf_snippets = __webpack_require__(17);
+var _sdf_snippets = __webpack_require__(39);
 
 var _sdf_snippets2 = _interopRequireDefault(_sdf_snippets);
 
@@ -45957,13 +47357,1532 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 /***/ }),
-/* 16 */
-/***/ (function(module, exports) {
+/* 28 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\nbool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {\n\treturn (((((p.x >= b1.x) && (p.x <= b2.x)) && (p.y >= b1.y)) && (p.y <= b2.y)) && (p.z >= b1.z)) && (p.z <= b2.z);\n}\nbool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0, out float t1) {\n\tbvec3 isNeg = bvec3(rd.x < 0., rd.y < 0., rd.z < 0.);\n\tvec3 invDir = 1. / rd;\n\tfloat tmin, tmax, ttmin, ttmax;\n\tif (isNeg.x) {\n\t\ttmin = (b2.x - rp.x) * invDir.x;\n\t\ttmax = (b1.x - rp.x) * invDir.x;\n\t}\n\telse {\n\t\ttmin = (b1.x - rp.x) * invDir.x;\n\t\ttmax = (b2.x - rp.x) * invDir.x;\n\t}\n\tif (isNeg.y) {\n\t\tttmin = (b2.y - rp.y) * invDir.y;\n\t\tttmax = (b1.y - rp.y) * invDir.y;\n\t}\n\telse {\n\t\tttmin = (b1.y - rp.y) * invDir.y;\n\t\tttmax = (b2.y - rp.y) * invDir.y;\n\t}\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\ttmin = max(tmin, ttmin);\n\ttmax = min(tmax, ttmax);\n\tif (isNeg.z) {\n\t\tttmin = (b2.z - rp.z) * invDir.z;\n\t\tttmax = (b1.z - rp.z) * invDir.z;\n\t}\n\telse {\n\t\tttmin = (b1.z - rp.z) * invDir.z;\n\t\tttmax = (b2.z - rp.z) * invDir.z;\n\t}\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\tt0 = max(tmin, ttmin);\n\tt1 = min(tmax, ttmax);\n\treturn true;\n}\nbool quadratic(float a, float b, float c, out float tmin, out float tmax) {\n\tfloat discr = (b * b) - ((4. * a) * c);\n\tif (discr < 0.) {\n\t\treturn false;\n\t}\n\tif (discr == 0.) {\n\t\ttmin = tmax = (-0.5 * b) / a;\n\t}\n\telse {\n\t\tfloat q = -0.5 * (b > 0. ? b + sqrt(discr) : b - sqrt(discr));\n\t\tfloat x0 = q / a;\n\t\tfloat x1 = c / q;\n\t\ttmin = min(x0, x1);\n\t\ttmax = max(x0, x1);\n\t}\n\treturn true;\n}\nbool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out float tmax) {\n\tfloat a = dot(rd, rd);\n\tfloat b = 2. * dot(rd, rp);\n\tfloat c = dot(rp, rp) - (radius * radius);\n\tif (!quadratic(a, b, c, tmin, tmax)) {\n\t\treturn false;\n\t}\n\treturn true;\n}\nuniform float far;\nuniform float threshold;\nuniform mat4 invProjMat;\nuniform mat4 mat;\nvarying vec2 vUv;\nprecision highp float;\nvec3 b1 = vec3(-200.);\nvec3 b2 = vec3(200.);\nfloat distanceProgram;\nvoid main() {\n\tgl_FragColor = vec4(-1.);\n\tvec4 rayPos = mat * vec4(0., 0., 0., 1.);\n\tvec4 rayDir = invProjMat * vec4(2. * (vUv - 0.5), 0., 1.);\n\trayDir.a = 0.;\n\trayDir = mat * normalize(rayDir);\n\tfloat t = 0.;\n\tfloat dist = distance(rayPos + (t * rayDir), rayPos, rayDir, 0);\n\tfloat fSign = dist < 0. ? -1. : 1.;\n\tfor (int i = 1; i <= 500; ++i) {\n\t\tif (abs(dist) <= threshold) {\n\t\t\tif (t > -threshold) {\n\t\t\t\tgl_FragColor = vec4((rayPos + (t * rayDir)).xyz, float(i));\n\t\t\t}\n\t\t\tbreak;\n\t\t}\n\t\tt += (fSign * dist);\n\t\tif (t > far) {\n\t\t\tbreak;\n\t\t}\n\t\tdist = distance(rayPos + (t * rayDir), rayPos, rayDir, i);\n\t}\n}\n";
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__tab__ = __webpack_require__(6);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTabFoundation", function() { return __WEBPACK_IMPORTED_MODULE_0__tab__["b"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTab", function() { return __WEBPACK_IMPORTED_MODULE_0__tab__["a"]; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__tab_bar__ = __webpack_require__(10);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTabBarFoundation", function() { return __WEBPACK_IMPORTED_MODULE_1__tab_bar__["b"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTabBar", function() { return __WEBPACK_IMPORTED_MODULE_1__tab_bar__["a"]; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__tab_bar_scroller__ = __webpack_require__(35);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTabBarScrollerFoundation", function() { return __WEBPACK_IMPORTED_MODULE_2__tab_bar_scroller__["b"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTabBarScroller", function() { return __WEBPACK_IMPORTED_MODULE_2__tab_bar_scroller__["a"]; });
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
 
 /***/ }),
-/* 17 */
+/* 29 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return MDCRipple; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_component__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adapter__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__foundation__ = __webpack_require__(30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__util__ = __webpack_require__(8);
+/* unused harmony reexport MDCRippleFoundation */
+/* unused harmony reexport util */
+/**
+ * @license
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+/**
+ * @extends MDCComponent<!MDCRippleFoundation>
+ */
+class MDCRipple extends __WEBPACK_IMPORTED_MODULE_0__material_base_component__["a" /* default */] {
+  /** @param {...?} args */
+  constructor(...args) {
+    super(...args);
+
+    /** @type {boolean} */
+    this.disabled = false;
+
+    /** @private {boolean} */
+    this.unbounded_;
+  }
+
+  /**
+   * @param {!Element} root
+   * @param {{isUnbounded: (boolean|undefined)}=} options
+   * @return {!MDCRipple}
+   */
+  static attachTo(root, {isUnbounded = undefined} = {}) {
+    const ripple = new MDCRipple(root);
+    // Only override unbounded behavior if option is explicitly specified
+    if (isUnbounded !== undefined) {
+      ripple.unbounded = /** @type {boolean} */ (isUnbounded);
+    }
+    return ripple;
+  }
+
+  /**
+   * @param {!RippleCapableSurface} instance
+   * @return {!MDCRippleAdapter}
+   */
+  static createAdapter(instance) {
+    const MATCHES = __WEBPACK_IMPORTED_MODULE_3__util__["b" /* getMatchesProperty */](HTMLElement.prototype);
+
+    return {
+      browserSupportsCssVars: () => __WEBPACK_IMPORTED_MODULE_3__util__["d" /* supportsCssVariables */](window),
+      isUnbounded: () => instance.unbounded,
+      isSurfaceActive: () => instance.root_[MATCHES](':active'),
+      isSurfaceDisabled: () => instance.disabled,
+      addClass: (className) => instance.root_.classList.add(className),
+      removeClass: (className) => instance.root_.classList.remove(className),
+      registerInteractionHandler: (evtType, handler) =>
+        instance.root_.addEventListener(evtType, handler, __WEBPACK_IMPORTED_MODULE_3__util__["a" /* applyPassive */]()),
+      deregisterInteractionHandler: (evtType, handler) =>
+        instance.root_.removeEventListener(evtType, handler, __WEBPACK_IMPORTED_MODULE_3__util__["a" /* applyPassive */]()),
+      registerResizeHandler: (handler) => window.addEventListener('resize', handler),
+      deregisterResizeHandler: (handler) => window.removeEventListener('resize', handler),
+      updateCssVariable: (varName, value) => instance.root_.style.setProperty(varName, value),
+      computeBoundingRect: () => instance.root_.getBoundingClientRect(),
+      getWindowPageOffset: () => ({x: window.pageXOffset, y: window.pageYOffset}),
+    };
+  }
+
+  /** @return {boolean} */
+  get unbounded() {
+    return this.unbounded_;
+  }
+
+  /** @param {boolean} unbounded */
+  set unbounded(unbounded) {
+    const {UNBOUNDED} = __WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */].cssClasses;
+    this.unbounded_ = Boolean(unbounded);
+    if (this.unbounded_) {
+      this.root_.classList.add(UNBOUNDED);
+    } else {
+      this.root_.classList.remove(UNBOUNDED);
+    }
+  }
+
+  activate() {
+    this.foundation_.activate();
+  }
+
+  deactivate() {
+    this.foundation_.deactivate();
+  }
+
+  layout() {
+    this.foundation_.layout();
+  }
+
+  /** @return {!MDCRippleFoundation} */
+  getDefaultFoundation() {
+    return new __WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */](MDCRipple.createAdapter(this));
+  }
+
+  initialSyncWithDOM() {
+    this.unbounded = 'mdcRippleIsUnbounded' in this.root_.dataset;
+  }
+}
+
+/**
+ * See Material Design spec for more details on when to use ripples.
+ * https://material.io/guidelines/motion/choreography.html#choreography-creation
+ * @record
+ */
+class RippleCapableSurface {}
+
+/** @protected {!Element} */
+RippleCapableSurface.prototype.root_;
+
+/**
+ * Whether or not the ripple bleeds out of the bounds of the element.
+ * @type {boolean|undefined}
+ */
+RippleCapableSurface.prototype.unbounded;
+
+/**
+ * Whether or not the ripple is attached to a disabled component.
+ * @type {boolean|undefined}
+ */
+RippleCapableSurface.prototype.disabled;
+
+
+
+
+/***/ }),
+/* 30 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adapter__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(31);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__util__ = __webpack_require__(8);
+/**
+ * @license
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+/**
+ * @typedef {!{
+ *   isActivated: (boolean|undefined),
+ *   hasDeactivationUXRun: (boolean|undefined),
+ *   wasActivatedByPointer: (boolean|undefined),
+ *   wasElementMadeActive: (boolean|undefined),
+ *   activationStartTime: (number|undefined),
+ *   activationEvent: Event,
+ *   isProgrammatic: (boolean|undefined)
+ * }}
+ */
+let ActivationStateType;
+
+/**
+ * @typedef {!{
+ *   activate: (string|undefined),
+ *   deactivate: (string|undefined),
+ *   focus: (string|undefined),
+ *   blur: (string|undefined)
+ * }}
+ */
+let ListenerInfoType;
+
+/**
+ * @typedef {!{
+ *   activate: function(!Event),
+ *   deactivate: function(!Event),
+ *   focus: function(),
+ *   blur: function()
+ * }}
+ */
+let ListenersType;
+
+/**
+ * @typedef {!{
+ *   x: number,
+ *   y: number
+ * }}
+ */
+let PointType;
+
+/**
+ * @enum {string}
+ */
+const DEACTIVATION_ACTIVATION_PAIRS = {
+  mouseup: 'mousedown',
+  pointerup: 'pointerdown',
+  touchend: 'touchstart',
+  keyup: 'keydown',
+  blur: 'focus',
+};
+
+/**
+ * @extends {MDCFoundation<!MDCRippleAdapter>}
+ */
+class MDCRippleFoundation extends __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__["a" /* default */] {
+  static get cssClasses() {
+    return __WEBPACK_IMPORTED_MODULE_2__constants__["a" /* cssClasses */];
+  }
+
+  static get strings() {
+    return __WEBPACK_IMPORTED_MODULE_2__constants__["c" /* strings */];
+  }
+
+  static get numbers() {
+    return __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* numbers */];
+  }
+
+  static get defaultAdapter() {
+    return {
+      browserSupportsCssVars: () => /* boolean - cached */ {},
+      isUnbounded: () => /* boolean */ {},
+      isSurfaceActive: () => /* boolean */ {},
+      isSurfaceDisabled: () => /* boolean */ {},
+      addClass: (/* className: string */) => {},
+      removeClass: (/* className: string */) => {},
+      registerInteractionHandler: (/* evtType: string, handler: EventListener */) => {},
+      deregisterInteractionHandler: (/* evtType: string, handler: EventListener */) => {},
+      registerResizeHandler: (/* handler: EventListener */) => {},
+      deregisterResizeHandler: (/* handler: EventListener */) => {},
+      updateCssVariable: (/* varName: string, value: string */) => {},
+      computeBoundingRect: () => /* ClientRect */ {},
+      getWindowPageOffset: () => /* {x: number, y: number} */ {},
+    };
+  }
+
+  constructor(adapter) {
+    super(Object.assign(MDCRippleFoundation.defaultAdapter, adapter));
+
+    /** @private {number} */
+    this.layoutFrame_ = 0;
+
+    /** @private {!ClientRect} */
+    this.frame_ = /** @type {!ClientRect} */ ({width: 0, height: 0});
+
+    /** @private {!ActivationStateType} */
+    this.activationState_ = this.defaultActivationState_();
+
+    /** @private {number} */
+    this.xfDuration_ = 0;
+
+    /** @private {number} */
+    this.initialSize_ = 0;
+
+    /** @private {number} */
+    this.maxRadius_ = 0;
+
+    /** @private {!Array<{ListenerInfoType}>} */
+    this.listenerInfos_ = [
+      {activate: 'touchstart', deactivate: 'touchend'},
+      {activate: 'pointerdown', deactivate: 'pointerup'},
+      {activate: 'mousedown', deactivate: 'mouseup'},
+      {activate: 'keydown', deactivate: 'keyup'},
+      {focus: 'focus', blur: 'blur'},
+    ];
+
+    /** @private {!ListenersType} */
+    this.listeners_ = {
+      activate: (e) => this.activate_(e),
+      deactivate: (e) => this.deactivate_(e),
+      focus: () => requestAnimationFrame(
+        () => this.adapter_.addClass(MDCRippleFoundation.cssClasses.BG_FOCUSED)
+      ),
+      blur: () => requestAnimationFrame(
+        () => this.adapter_.removeClass(MDCRippleFoundation.cssClasses.BG_FOCUSED)
+      ),
+    };
+
+    /** @private {!Function} */
+    this.resizeHandler_ = () => this.layout();
+
+    /** @private {!{left: number, top:number}} */
+    this.unboundedCoords_ = {
+      left: 0,
+      top: 0,
+    };
+
+    /** @private {number} */
+    this.fgScale_ = 0;
+
+    /** @private {number} */
+    this.activationTimer_ = 0;
+
+    /** @private {number} */
+    this.fgDeactivationRemovalTimer_ = 0;
+
+    /** @private {boolean} */
+    this.activationAnimationHasEnded_ = false;
+
+    /** @private {!Function} */
+    this.activationTimerCallback_ = () => {
+      this.activationAnimationHasEnded_ = true;
+      this.runDeactivationUXLogicIfReady_();
+    };
+  }
+
+  /**
+   * We compute this property so that we are not querying information about the client
+   * until the point in time where the foundation requests it. This prevents scenarios where
+   * client-side feature-detection may happen too early, such as when components are rendered on the server
+   * and then initialized at mount time on the client.
+   * @return {boolean}
+   * @private
+   */
+  isSupported_() {
+    return this.adapter_.browserSupportsCssVars();
+  }
+
+  /**
+   * @return {!ActivationStateType}
+   */
+  defaultActivationState_() {
+    return {
+      isActivated: false,
+      hasDeactivationUXRun: false,
+      wasActivatedByPointer: false,
+      wasElementMadeActive: false,
+      activationStartTime: 0,
+      activationEvent: null,
+      isProgrammatic: false,
+    };
+  }
+
+  init() {
+    if (!this.isSupported_()) {
+      return;
+    }
+    this.addEventListeners_();
+
+    const {ROOT, UNBOUNDED} = MDCRippleFoundation.cssClasses;
+    requestAnimationFrame(() => {
+      this.adapter_.addClass(ROOT);
+      if (this.adapter_.isUnbounded()) {
+        this.adapter_.addClass(UNBOUNDED);
+      }
+      this.layoutInternal_();
+    });
+  }
+
+  /** @private */
+  addEventListeners_() {
+    this.listenerInfos_.forEach((info) => {
+      Object.keys(info).forEach((k) => {
+        this.adapter_.registerInteractionHandler(info[k], this.listeners_[k]);
+      });
+    });
+    this.adapter_.registerResizeHandler(this.resizeHandler_);
+  }
+
+  /**
+   * @param {Event} e
+   * @private
+   */
+  activate_(e) {
+    if (this.adapter_.isSurfaceDisabled()) {
+      return;
+    }
+
+    const {activationState_: activationState} = this;
+    if (activationState.isActivated) {
+      return;
+    }
+
+    activationState.isActivated = true;
+    activationState.isProgrammatic = e === null;
+    activationState.activationEvent = e;
+    activationState.wasActivatedByPointer = activationState.isProgrammatic ? false : (
+      e.type === 'mousedown' || e.type === 'touchstart' || e.type === 'pointerdown'
+    );
+    activationState.activationStartTime = Date.now();
+
+    requestAnimationFrame(() => {
+      // This needs to be wrapped in an rAF call b/c web browsers
+      // report active states inconsistently when they're called within
+      // event handling code:
+      // - https://bugs.chromium.org/p/chromium/issues/detail?id=635971
+      // - https://bugzilla.mozilla.org/show_bug.cgi?id=1293741
+      activationState.wasElementMadeActive = (e && e.type === 'keydown') ? this.adapter_.isSurfaceActive() : true;
+      if (activationState.wasElementMadeActive) {
+        this.animateActivation_();
+      } else {
+        // Reset activation state immediately if element was not made active.
+        this.activationState_ = this.defaultActivationState_();
+      }
+    });
+  }
+
+  /**
+   * @param {?Event=} event Optional event containing position information.
+   */
+  activate(event = null) {
+    this.activate_(event);
+  }
+
+  /** @private */
+  animateActivation_() {
+    const {VAR_FG_TRANSLATE_START, VAR_FG_TRANSLATE_END} = MDCRippleFoundation.strings;
+    const {
+      BG_ACTIVE_FILL,
+      FG_DEACTIVATION,
+      FG_ACTIVATION,
+    } = MDCRippleFoundation.cssClasses;
+    const {DEACTIVATION_TIMEOUT_MS} = MDCRippleFoundation.numbers;
+
+    let translateStart = '';
+    let translateEnd = '';
+
+    if (!this.adapter_.isUnbounded()) {
+      const {startPoint, endPoint} = this.getFgTranslationCoordinates_();
+      translateStart = `${startPoint.x}px, ${startPoint.y}px`;
+      translateEnd = `${endPoint.x}px, ${endPoint.y}px`;
+    }
+
+    this.adapter_.updateCssVariable(VAR_FG_TRANSLATE_START, translateStart);
+    this.adapter_.updateCssVariable(VAR_FG_TRANSLATE_END, translateEnd);
+    // Cancel any ongoing activation/deactivation animations
+    clearTimeout(this.activationTimer_);
+    clearTimeout(this.fgDeactivationRemovalTimer_);
+    this.rmBoundedActivationClasses_();
+    this.adapter_.removeClass(FG_DEACTIVATION);
+
+    // Force layout in order to re-trigger the animation.
+    this.adapter_.computeBoundingRect();
+    this.adapter_.addClass(BG_ACTIVE_FILL);
+    this.adapter_.addClass(FG_ACTIVATION);
+    this.activationTimer_ = setTimeout(() => this.activationTimerCallback_(), DEACTIVATION_TIMEOUT_MS);
+  }
+
+  /**
+   * @private
+   * @return {{startPoint: PointType, endPoint: PointType}}
+   */
+  getFgTranslationCoordinates_() {
+    const {activationState_: activationState} = this;
+    const {activationEvent, wasActivatedByPointer} = activationState;
+
+    let startPoint;
+    if (wasActivatedByPointer) {
+      startPoint = Object(__WEBPACK_IMPORTED_MODULE_3__util__["c" /* getNormalizedEventCoords */])(
+        /** @type {!Event} */ (activationEvent),
+        this.adapter_.getWindowPageOffset(), this.adapter_.computeBoundingRect()
+      );
+    } else {
+      startPoint = {
+        x: this.frame_.width / 2,
+        y: this.frame_.height / 2,
+      };
+    }
+    // Center the element around the start point.
+    startPoint = {
+      x: startPoint.x - (this.initialSize_ / 2),
+      y: startPoint.y - (this.initialSize_ / 2),
+    };
+
+    const endPoint = {
+      x: (this.frame_.width / 2) - (this.initialSize_ / 2),
+      y: (this.frame_.height / 2) - (this.initialSize_ / 2),
+    };
+
+    return {startPoint, endPoint};
+  }
+
+  /** @private */
+  runDeactivationUXLogicIfReady_() {
+    const {FG_DEACTIVATION} = MDCRippleFoundation.cssClasses;
+    const {hasDeactivationUXRun, isActivated} = this.activationState_;
+    const activationHasEnded = hasDeactivationUXRun || !isActivated;
+    if (activationHasEnded && this.activationAnimationHasEnded_) {
+      this.rmBoundedActivationClasses_();
+      this.adapter_.addClass(FG_DEACTIVATION);
+      this.fgDeactivationRemovalTimer_ = setTimeout(() => {
+        this.adapter_.removeClass(FG_DEACTIVATION);
+      }, __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* numbers */].FG_DEACTIVATION_MS);
+    }
+  }
+
+  /** @private */
+  rmBoundedActivationClasses_() {
+    const {BG_ACTIVE_FILL, FG_ACTIVATION} = MDCRippleFoundation.cssClasses;
+    this.adapter_.removeClass(BG_ACTIVE_FILL);
+    this.adapter_.removeClass(FG_ACTIVATION);
+    this.activationAnimationHasEnded_ = false;
+    this.adapter_.computeBoundingRect();
+  }
+
+  /**
+   * @param {Event} e
+   * @private
+   */
+  deactivate_(e) {
+    const {activationState_: activationState} = this;
+    // This can happen in scenarios such as when you have a keyup event that blurs the element.
+    if (!activationState.isActivated) {
+      return;
+    }
+    // Programmatic deactivation.
+    if (activationState.isProgrammatic) {
+      const evtObject = null;
+      const state = /** @type {!ActivationStateType} */ (Object.assign({}, activationState));
+      requestAnimationFrame(() => this.animateDeactivation_(evtObject, state));
+      this.activationState_ = this.defaultActivationState_();
+      return;
+    }
+
+    const actualActivationType = DEACTIVATION_ACTIVATION_PAIRS[e.type];
+    const expectedActivationType = activationState.activationEvent.type;
+    // NOTE: Pointer events are tricky - https://patrickhlauke.github.io/touch/tests/results/
+    // Essentially, what we need to do here is decouple the deactivation UX from the actual
+    // deactivation state itself. This way, touch/pointer events in sequence do not trample one
+    // another.
+    const needsDeactivationUX = actualActivationType === expectedActivationType;
+    let needsActualDeactivation = needsDeactivationUX;
+    if (activationState.wasActivatedByPointer) {
+      needsActualDeactivation = e.type === 'mouseup';
+    }
+
+    const state = /** @type {!ActivationStateType} */ (Object.assign({}, activationState));
+    requestAnimationFrame(() => {
+      if (needsDeactivationUX) {
+        this.activationState_.hasDeactivationUXRun = true;
+        this.animateDeactivation_(e, state);
+      }
+
+      if (needsActualDeactivation) {
+        this.activationState_ = this.defaultActivationState_();
+      }
+    });
+  }
+
+  /**
+   * @param {?Event=} event Optional event containing position information.
+   */
+  deactivate(event = null) {
+    this.deactivate_(event);
+  }
+
+  /**
+   * @param {Event} e
+   * @param {!ActivationStateType} options
+   * @private
+   */
+  animateDeactivation_(e, {wasActivatedByPointer, wasElementMadeActive}) {
+    const {BG_FOCUSED} = MDCRippleFoundation.cssClasses;
+    if (wasActivatedByPointer || wasElementMadeActive) {
+      // Remove class left over by element being focused
+      this.adapter_.removeClass(BG_FOCUSED);
+      this.runDeactivationUXLogicIfReady_();
+    }
+  }
+
+  destroy() {
+    if (!this.isSupported_()) {
+      return;
+    }
+    this.removeEventListeners_();
+
+    const {ROOT, UNBOUNDED} = MDCRippleFoundation.cssClasses;
+    requestAnimationFrame(() => {
+      this.adapter_.removeClass(ROOT);
+      this.adapter_.removeClass(UNBOUNDED);
+      this.removeCssVars_();
+    });
+  }
+
+  /** @private */
+  removeEventListeners_() {
+    this.listenerInfos_.forEach((info) => {
+      Object.keys(info).forEach((k) => {
+        this.adapter_.deregisterInteractionHandler(info[k], this.listeners_[k]);
+      });
+    });
+    this.adapter_.deregisterResizeHandler(this.resizeHandler_);
+  }
+
+  /** @private */
+  removeCssVars_() {
+    const {strings} = MDCRippleFoundation;
+    Object.keys(strings).forEach((k) => {
+      if (k.indexOf('VAR_') === 0) {
+        this.adapter_.updateCssVariable(strings[k], null);
+      }
+    });
+  }
+
+  layout() {
+    if (this.layoutFrame_) {
+      cancelAnimationFrame(this.layoutFrame_);
+    }
+    this.layoutFrame_ = requestAnimationFrame(() => {
+      this.layoutInternal_();
+      this.layoutFrame_ = 0;
+    });
+  }
+
+  /** @private */
+  layoutInternal_() {
+    this.frame_ = this.adapter_.computeBoundingRect();
+
+    const maxDim = Math.max(this.frame_.height, this.frame_.width);
+    const surfaceDiameter = Math.sqrt(Math.pow(this.frame_.width, 2) + Math.pow(this.frame_.height, 2));
+
+    // 60% of the largest dimension of the surface
+    this.initialSize_ = maxDim * MDCRippleFoundation.numbers.INITIAL_ORIGIN_SCALE;
+
+    // Diameter of the surface + 10px
+    this.maxRadius_ = surfaceDiameter + MDCRippleFoundation.numbers.PADDING;
+    this.fgScale_ = this.maxRadius_ / this.initialSize_;
+    this.xfDuration_ = 1000 * Math.sqrt(this.maxRadius_ / 1024);
+    this.updateLayoutCssVars_();
+  }
+
+  /** @private */
+  updateLayoutCssVars_() {
+    const {
+      VAR_FG_SIZE, VAR_LEFT, VAR_TOP, VAR_FG_SCALE,
+    } = MDCRippleFoundation.strings;
+
+    this.adapter_.updateCssVariable(VAR_FG_SIZE, `${this.initialSize_}px`);
+    this.adapter_.updateCssVariable(VAR_FG_SCALE, this.fgScale_);
+
+    if (this.adapter_.isUnbounded()) {
+      this.unboundedCoords_ = {
+        left: Math.round((this.frame_.width / 2) - (this.initialSize_ / 2)),
+        top: Math.round((this.frame_.height / 2) - (this.initialSize_ / 2)),
+      };
+
+      this.adapter_.updateCssVariable(VAR_LEFT, `${this.unboundedCoords_.left}px`);
+      this.adapter_.updateCssVariable(VAR_TOP, `${this.unboundedCoords_.top}px`);
+    }
+  }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (MDCRippleFoundation);
+
+
+/***/ }),
+/* 31 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return cssClasses; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return strings; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return numbers; });
+/**
+ * @license
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+const cssClasses = {
+  // Ripple is a special case where the "root" component is really a "mixin" of sorts,
+  // given that it's an 'upgrade' to an existing component. That being said it is the root
+  // CSS class that all other CSS classes derive from.
+  ROOT: 'mdc-ripple-upgraded',
+  UNBOUNDED: 'mdc-ripple-upgraded--unbounded',
+  BG_FOCUSED: 'mdc-ripple-upgraded--background-focused',
+  BG_ACTIVE_FILL: 'mdc-ripple-upgraded--background-active-fill',
+  FG_ACTIVATION: 'mdc-ripple-upgraded--foreground-activation',
+  FG_DEACTIVATION: 'mdc-ripple-upgraded--foreground-deactivation',
+};
+
+const strings = {
+  VAR_FG_SIZE: '--mdc-ripple-fg-size',
+  VAR_LEFT: '--mdc-ripple-left',
+  VAR_TOP: '--mdc-ripple-top',
+  VAR_FG_SCALE: '--mdc-ripple-fg-scale',
+  VAR_FG_TRANSLATE_START: '--mdc-ripple-fg-translate-start',
+  VAR_FG_TRANSLATE_END: '--mdc-ripple-fg-translate-end',
+};
+
+const numbers = {
+  PADDING: 10,
+  INITIAL_ORIGIN_SCALE: 0.6,
+  DEACTIVATION_TIMEOUT_MS: 300,
+  FG_DEACTIVATION_MS: 83,
+};
+
+
+
+
+/***/ }),
+/* 32 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(9);
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+class MDCTabFoundation extends __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__["a" /* default */] {
+  static get cssClasses() {
+    return __WEBPACK_IMPORTED_MODULE_1__constants__["a" /* cssClasses */];
+  }
+
+  static get strings() {
+    return __WEBPACK_IMPORTED_MODULE_1__constants__["b" /* strings */];
+  }
+
+  static get defaultAdapter() {
+    return {
+      addClass: (/* className: string */) => {},
+      removeClass: (/* className: string */) => {},
+      registerInteractionHandler: (/* type: string, handler: EventListener */) => {},
+      deregisterInteractionHandler: (/* type: string, handler: EventListener */) => {},
+      getOffsetWidth: () => /* number */ 0,
+      getOffsetLeft: () => /* number */ 0,
+      notifySelected: () => {},
+    };
+  }
+
+  constructor(adapter = {}) {
+    super(Object.assign(MDCTabFoundation.defaultAdapter, adapter));
+
+    this.computedWidth_ = 0;
+    this.computedLeft_ = 0;
+    this.isActive_ = false;
+    this.preventDefaultOnClick_ = false;
+
+    this.clickHandler_ = (evt) => {
+      if (this.preventDefaultOnClick_) {
+        evt.preventDefault();
+      }
+      this.adapter_.notifySelected();
+    };
+
+    this.keydownHandler_ = (evt) => {
+      if (evt.key && evt.key === 'Enter' || evt.keyCode === 13) {
+        this.adapter_.notifySelected();
+      }
+    };
+  }
+
+  init() {
+    this.adapter_.registerInteractionHandler('click', this.clickHandler_);
+    this.adapter_.registerInteractionHandler('keydown', this.keydownHandler_);
+  }
+
+  destroy() {
+    this.adapter_.deregisterInteractionHandler('click', this.clickHandler_);
+    this.adapter_.deregisterInteractionHandler('keydown', this.keydownHandler_);
+  }
+
+  getComputedWidth() {
+    return this.computedWidth_;
+  }
+
+  getComputedLeft() {
+    return this.computedLeft_;
+  }
+
+  isActive() {
+    return this.isActive_;
+  }
+
+  setActive(isActive) {
+    this.isActive_ = isActive;
+    if (this.isActive_) {
+      this.adapter_.addClass(__WEBPACK_IMPORTED_MODULE_1__constants__["a" /* cssClasses */].ACTIVE);
+    } else {
+      this.adapter_.removeClass(__WEBPACK_IMPORTED_MODULE_1__constants__["a" /* cssClasses */].ACTIVE);
+    }
+  }
+
+  preventsDefaultOnClick() {
+    return this.preventDefaultOnClick_;
+  }
+
+  setPreventDefaultOnClick(preventDefaultOnClick) {
+    this.preventDefaultOnClick_ = preventDefaultOnClick;
+  }
+
+  measureSelf() {
+    this.computedWidth_ = this.adapter_.getOffsetWidth();
+    this.computedLeft_ = this.adapter_.getOffsetLeft();
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = MDCTabFoundation;
+
+
+
+/***/ }),
+/* 33 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__material_animation__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(34);
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+class MDCTabBarFoundation extends __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__["a" /* default */] {
+  static get cssClasses() {
+    return __WEBPACK_IMPORTED_MODULE_2__constants__["a" /* cssClasses */];
+  }
+
+  static get strings() {
+    return __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* strings */];
+  }
+
+  static get defaultAdapter() {
+    return {
+      addClass: (/* className: string */) => {},
+      removeClass: (/* className: string */) => {},
+      bindOnMDCTabSelectedEvent: () => {},
+      unbindOnMDCTabSelectedEvent: () => {},
+      registerResizeHandler: (/* handler: EventListener */) => {},
+      deregisterResizeHandler: (/* handler: EventListener */) => {},
+      getOffsetWidth: () => /* number */ 0,
+      setStyleForIndicator: (/* propertyName: string, value: string */) => {},
+      getOffsetWidthForIndicator: () => /* number */ 0,
+      notifyChange: (/* evtData: {activeTabIndex: number} */) => {},
+      getNumberOfTabs: () => /* number */ 0,
+      isTabActiveAtIndex: (/* index: number */) => /* boolean */ false,
+      setTabActiveAtIndex: (/* index: number, isActive: true */) => {},
+      isDefaultPreventedOnClickForTabAtIndex: (/* index: number */) => /* boolean */ false,
+      setPreventDefaultOnClickForTabAtIndex: (/* index: number, preventDefaultOnClick: boolean */) => {},
+      measureTabAtIndex: (/* index: number */) => {},
+      getComputedWidthForTabAtIndex: (/* index: number */) => /* number */ 0,
+      getComputedLeftForTabAtIndex: (/* index: number */) => /* number */ 0,
+    };
+  }
+
+  constructor(adapter) {
+    super(Object.assign(MDCTabBarFoundation.defaultAdapter, adapter));
+
+    this.isIndicatorShown_ = false;
+    this.computedWidth_ = 0;
+    this.computedLeft_ = 0;
+    this.activeTabIndex_ = 0;
+    this.layoutFrame_ = 0;
+    this.resizeHandler_ = () => this.layout();
+  }
+
+  init() {
+    this.adapter_.addClass(__WEBPACK_IMPORTED_MODULE_2__constants__["a" /* cssClasses */].UPGRADED);
+    this.adapter_.bindOnMDCTabSelectedEvent();
+    this.adapter_.registerResizeHandler(this.resizeHandler_);
+    const activeTabIndex = this.findActiveTabIndex_();
+    if (activeTabIndex >= 0) {
+      this.activeTabIndex_ = activeTabIndex;
+    }
+    this.layout();
+  }
+
+  destroy() {
+    this.adapter_.removeClass(__WEBPACK_IMPORTED_MODULE_2__constants__["a" /* cssClasses */].UPGRADED);
+    this.adapter_.unbindOnMDCTabSelectedEvent();
+    this.adapter_.deregisterResizeHandler(this.resizeHandler_);
+  }
+
+  layoutInternal_() {
+    this.forEachTabIndex_((index) => this.adapter_.measureTabAtIndex(index));
+    this.computedWidth_ = this.adapter_.getOffsetWidth();
+    this.layoutIndicator_();
+  }
+
+  layoutIndicator_() {
+    const isIndicatorFirstRender = !this.isIndicatorShown_;
+
+    // Ensure that indicator appears in the right position immediately for correct first render.
+    if (isIndicatorFirstRender) {
+      this.adapter_.setStyleForIndicator('transition', 'none');
+    }
+
+    const translateAmtForActiveTabLeft = this.adapter_.getComputedLeftForTabAtIndex(this.activeTabIndex_);
+    const scaleAmtForActiveTabWidth =
+      this.adapter_.getComputedWidthForTabAtIndex(this.activeTabIndex_) / this.adapter_.getOffsetWidth();
+
+    const transformValue = `translateX(${translateAmtForActiveTabLeft}px) scale(${scaleAmtForActiveTabWidth}, 1)`;
+    this.adapter_.setStyleForIndicator(Object(__WEBPACK_IMPORTED_MODULE_1__material_animation__["b" /* getCorrectPropertyName */])(window, 'transform'), transformValue);
+
+    if (isIndicatorFirstRender) {
+      // Force layout so that transform styles to take effect.
+      this.adapter_.getOffsetWidthForIndicator();
+      this.adapter_.setStyleForIndicator('transition', '');
+      this.adapter_.setStyleForIndicator('visibility', 'visible');
+      this.isIndicatorShown_ = true;
+    }
+  }
+
+  findActiveTabIndex_() {
+    let activeTabIndex = -1;
+    this.forEachTabIndex_((index) => {
+      if (this.adapter_.isTabActiveAtIndex(index)) {
+        activeTabIndex = index;
+        return true;
+      }
+    });
+    return activeTabIndex;
+  }
+
+  forEachTabIndex_(iterator) {
+    const numTabs = this.adapter_.getNumberOfTabs();
+    for (let index = 0; index < numTabs; index++) {
+      const shouldBreak = iterator(index);
+      if (shouldBreak) {
+        break;
+      }
+    }
+  }
+
+  layout() {
+    if (this.layoutFrame_) {
+      cancelAnimationFrame(this.layoutFrame_);
+    }
+
+    this.layoutFrame_ = requestAnimationFrame(() => {
+      this.layoutInternal_();
+      this.layoutFrame_ = 0;
+    });
+  }
+
+  switchToTabAtIndex(index, shouldNotify) {
+    if (index === this.activeTabIndex_) {
+      return;
+    }
+
+    if (index < 0 || index >= this.adapter_.getNumberOfTabs()) {
+      throw new Error(`Out of bounds index specified for tab: ${index}`);
+    }
+
+    const prevActiveTabIndex = this.activeTabIndex_;
+    this.activeTabIndex_ = index;
+    requestAnimationFrame(() => {
+      if (prevActiveTabIndex >= 0) {
+        this.adapter_.setTabActiveAtIndex(prevActiveTabIndex, false);
+      }
+      this.adapter_.setTabActiveAtIndex(this.activeTabIndex_, true);
+      this.layoutIndicator_();
+      if (shouldNotify) {
+        this.adapter_.notifyChange({activeTabIndex: this.activeTabIndex_});
+      }
+    });
+  }
+
+  getActiveTabIndex() {
+    return this.findActiveTabIndex_();
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = MDCTabBarFoundation;
+
+
+
+/***/ }),
+/* 34 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+const cssClasses = {
+  UPGRADED: 'mdc-tab-bar-upgraded',
+};
+/* harmony export (immutable) */ __webpack_exports__["a"] = cssClasses;
+
+
+const strings = {
+  TAB_SELECTOR: '.mdc-tab',
+  INDICATOR_SELECTOR: '.mdc-tab-bar__indicator',
+  CHANGE_EVENT: 'MDCTabBar:change',
+};
+/* harmony export (immutable) */ __webpack_exports__["b"] = strings;
+
+
+
+/***/ }),
+/* 35 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_animation__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__material_base_component__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__tab_bar__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__foundation__ = __webpack_require__(36);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_3__foundation__["a"]; });
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+
+
+
+class MDCTabBarScroller extends __WEBPACK_IMPORTED_MODULE_1__material_base_component__["a" /* default */] {
+  static attachTo(root) {
+    return new MDCTabBarScroller(root);
+  }
+
+  get tabBar() {
+    return this.tabBar_;
+  }
+
+  initialize(tabBarFactory = (root) => new __WEBPACK_IMPORTED_MODULE_2__tab_bar__["a" /* MDCTabBar */](root)) {
+    this.scrollFrame_ = this.root_.querySelector(__WEBPACK_IMPORTED_MODULE_3__foundation__["a" /* default */].strings.FRAME_SELECTOR);
+    this.tabBarEl_ = this.root_.querySelector(__WEBPACK_IMPORTED_MODULE_3__foundation__["a" /* default */].strings.TABS_SELECTOR);
+    this.forwardIndicator_ = this.root_.querySelector(__WEBPACK_IMPORTED_MODULE_3__foundation__["a" /* default */].strings.INDICATOR_FORWARD_SELECTOR);
+    this.backIndicator_ = this.root_.querySelector(__WEBPACK_IMPORTED_MODULE_3__foundation__["a" /* default */].strings.INDICATOR_BACK_SELECTOR);
+    this.tabBar_ = tabBarFactory(this.tabBarEl_);
+  }
+
+  getDefaultFoundation() {
+    return new __WEBPACK_IMPORTED_MODULE_3__foundation__["a" /* default */]({
+      addClass: (className) => this.root_.classList.add(className),
+      removeClass: (className) => this.root_.classList.remove(className),
+      eventTargetHasClass: (target, className) => target.classList.contains(className),
+      addClassToForwardIndicator: (className) => this.forwardIndicator_.classList.add(className),
+      removeClassFromForwardIndicator: (className) => this.forwardIndicator_.classList.remove(className),
+      addClassToBackIndicator: (className) => this.backIndicator_.classList.add(className),
+      removeClassFromBackIndicator: (className) => this.backIndicator_.classList.remove(className),
+      isRTL: () =>
+        getComputedStyle(this.root_).getPropertyValue('direction') === 'rtl',
+      registerBackIndicatorClickHandler: (handler) =>
+        this.backIndicator_.addEventListener('click', handler),
+      deregisterBackIndicatorClickHandler: (handler) =>
+        this.backIndicator_.removeEventListener('click', handler),
+      registerForwardIndicatorClickHandler: (handler) =>
+        this.forwardIndicator_.addEventListener('click', handler),
+      deregisterForwardIndicatorClickHandler: (handler) =>
+        this.forwardIndicator_.removeEventListener('click', handler),
+      registerCapturedInteractionHandler: (evt, handler) =>
+        this.root_.addEventListener(evt, handler, true),
+      deregisterCapturedInteractionHandler: (evt, handler) =>
+        this.root_.removeEventListener(evt, handler, true),
+      registerWindowResizeHandler: (handler) =>
+        window.addEventListener('resize', handler),
+      deregisterWindowResizeHandler: (handler) =>
+        window.removeEventListener('resize', handler),
+      getNumberOfTabs: () => this.tabBar.tabs.length,
+      getComputedWidthForTabAtIndex: (index) => this.tabBar.tabs[index].computedWidth,
+      getComputedLeftForTabAtIndex: (index) => this.tabBar.tabs[index].computedLeft,
+      getOffsetWidthForScrollFrame: () => this.scrollFrame_.offsetWidth,
+      getScrollLeftForScrollFrame: () => this.scrollFrame_.scrollLeft,
+      setScrollLeftForScrollFrame: (scrollLeftAmount) => this.scrollFrame_.scrollLeft = scrollLeftAmount,
+      getOffsetWidthForTabBar: () => this.tabBarEl_.offsetWidth,
+      setTransformStyleForTabBar: (value) => {
+        this.tabBarEl_.style.setProperty(Object(__WEBPACK_IMPORTED_MODULE_0__material_animation__["b" /* getCorrectPropertyName */])(window, 'transform'), value);
+      },
+      getOffsetLeftForEventTarget: (target) => target.offsetLeft,
+      getOffsetWidthForEventTarget: (target) => target.offsetWidth,
+    });
+  }
+
+  layout() {
+    this.foundation_.layout();
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = MDCTabBarScroller;
+
+
+
+/***/ }),
+/* 36 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(37);
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+class MDCTabBarScrollerFoundation extends __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__["a" /* default */] {
+  static get cssClasses() {
+    return __WEBPACK_IMPORTED_MODULE_1__constants__["a" /* cssClasses */];
+  }
+
+  static get strings() {
+    return __WEBPACK_IMPORTED_MODULE_1__constants__["b" /* strings */];
+  }
+
+  static get defaultAdapter() {
+    return {
+      addClass: (/* className: string */) => {},
+      removeClass: (/* className: string */) => {},
+      eventTargetHasClass: (/* target: EventTarget, className: string */) => /* boolean */ false,
+      addClassToForwardIndicator: (/* className: string */) => {},
+      removeClassFromForwardIndicator: (/* className: string */) => {},
+      addClassToBackIndicator: (/* className: string */) => {},
+      removeClassFromBackIndicator: (/* className: string */) => {},
+      isRTL: () => /* boolean */ false,
+      registerBackIndicatorClickHandler: (/* handler: EventListener */) => {},
+      deregisterBackIndicatorClickHandler: (/* handler: EventListener */) => {},
+      registerForwardIndicatorClickHandler: (/* handler: EventListener */) => {},
+      deregisterForwardIndicatorClickHandler: (/* handler: EventListener */) => {},
+      registerCapturedInteractionHandler: (/* evt: string, handler: EventListener */) => {},
+      deregisterCapturedInteractionHandler: (/* evt: string, handler: EventListener */) => {},
+      registerWindowResizeHandler: (/* handler: EventListener */) => {},
+      deregisterWindowResizeHandler: (/* handler: EventListener */) => {},
+      getNumberOfTabs: () => /* number */ 0,
+      getComputedWidthForTabAtIndex: () => /* number */ 0,
+      getComputedLeftForTabAtIndex: () => /* number */ 0,
+      getOffsetWidthForScrollFrame: () => /* number */ 0,
+      getScrollLeftForScrollFrame: () => /* number */ 0,
+      setScrollLeftForScrollFrame: (/* scrollLeftAmount: number */) => {},
+      getOffsetWidthForTabBar: () => /* number */ 0,
+      setTransformStyleForTabBar: (/* value: string */) => {},
+      getOffsetLeftForEventTarget: (/* target: EventTarget */) => /* number */ 0,
+      getOffsetWidthForEventTarget: (/* target: EventTarget */) => /* number */ 0,
+    };
+  }
+
+  constructor(adapter) {
+    super(Object.assign(MDCTabBarScrollerFoundation.defaultAdapter, adapter));
+
+    this.pointerDownRecognized_ = false;
+    this.currentTranslateOffset_ = 0;
+    this.focusedTarget_ = null;
+    this.layoutFrame_ = 0;
+    this.scrollFrameScrollLeft_ = 0;
+    this.forwardIndicatorClickHandler_ = (evt) => this.scrollForward(evt);
+    this.backIndicatorClickHandler_ = (evt) => this.scrollBack(evt);
+    this.resizeHandler_ = () => this.layout();
+    this.interactionHandler_ = (evt) => {
+      if (evt.type == 'touchstart' || evt.type == 'mousedown') {
+        this.pointerDownRecognized_ = true;
+      }
+      this.handlePossibleTabKeyboardFocus_(evt);
+
+      if (evt.type == 'focus') {
+        this.pointerDownRecognized_ = false;
+      }
+    };
+  }
+
+  init() {
+    this.adapter_.registerBackIndicatorClickHandler(this.backIndicatorClickHandler_);
+    this.adapter_.registerForwardIndicatorClickHandler(this.forwardIndicatorClickHandler_);
+    this.adapter_.registerWindowResizeHandler(this.resizeHandler_);
+    ['touchstart', 'mousedown', 'focus'].forEach((evtType) => {
+      this.adapter_.registerCapturedInteractionHandler(evtType, this.interactionHandler_);
+    });
+    this.layout();
+  }
+
+  destroy() {
+    this.adapter_.deregisterBackIndicatorClickHandler(this.backIndicatorClickHandler_);
+    this.adapter_.deregisterForwardIndicatorClickHandler(this.forwardIndicatorClickHandler_);
+    this.adapter_.deregisterWindowResizeHandler(this.resizeHandler_);
+    ['touchstart', 'mousedown', 'focus'].forEach((evtType) => {
+      this.adapter_.deregisterCapturedInteractionHandler(evtType, this.interactionHandler_);
+    });
+  }
+
+  scrollBack(evt = null) {
+    if (evt) {
+      evt.preventDefault();
+    }
+
+    let tabWidthAccumulator = 0;
+    let scrollTargetIndex = 0;
+
+    for (let i = this.adapter_.getNumberOfTabs() - 1; i > 0; i--) {
+      const tabOffsetLeft = this.adapter_.getComputedLeftForTabAtIndex(i);
+      const tabBarWidthLessTabOffsetLeft = this.adapter_.getOffsetWidthForTabBar() - tabOffsetLeft;
+
+      let tabIsNotOccluded = tabOffsetLeft > this.currentTranslateOffset_;
+      if (this.isRTL_()) {
+        tabIsNotOccluded = tabBarWidthLessTabOffsetLeft > this.currentTranslateOffset_;
+      }
+
+      if (tabIsNotOccluded) {
+        continue;
+      }
+
+      tabWidthAccumulator += this.adapter_.getComputedWidthForTabAtIndex(i);
+
+      const scrollTargetDetermined = tabWidthAccumulator > this.adapter_.getOffsetWidthForScrollFrame();
+      if (scrollTargetDetermined) {
+        scrollTargetIndex = this.isRTL_() ? i + 1 : i;
+        break;
+      }
+    }
+
+    this.scrollToTabAtIndex(scrollTargetIndex);
+  }
+
+  scrollForward(evt = null) {
+    if (evt) {
+      evt.preventDefault();
+    }
+
+    const scrollFrameOffsetWidth = this.adapter_.getOffsetWidthForScrollFrame() + this.currentTranslateOffset_;
+    let scrollTargetIndex = 0;
+
+    for (let i = 0; i < this.adapter_.getNumberOfTabs(); i++) {
+      const tabOffsetLeftAndWidth =
+        this.adapter_.getComputedLeftForTabAtIndex(i) + this.adapter_.getComputedWidthForTabAtIndex(i);
+      let scrollTargetDetermined = tabOffsetLeftAndWidth > scrollFrameOffsetWidth;
+
+      if (this.isRTL_()) {
+        const frameOffsetAndTabWidth =
+          scrollFrameOffsetWidth - this.adapter_.getComputedWidthForTabAtIndex(i);
+        const tabOffsetLeftAndWidth =
+          this.adapter_.getComputedLeftForTabAtIndex(i) + this.adapter_.getComputedWidthForTabAtIndex(i);
+        const tabRightOffset =
+          this.adapter_.getOffsetWidthForTabBar() - tabOffsetLeftAndWidth;
+
+        scrollTargetDetermined = tabRightOffset > frameOffsetAndTabWidth;
+      }
+
+      if (scrollTargetDetermined) {
+        scrollTargetIndex = i;
+        break;
+      }
+    }
+
+    this.scrollToTabAtIndex(scrollTargetIndex);
+  }
+
+  layout() {
+    cancelAnimationFrame(this.layoutFrame_);
+    this.scrollFrameScrollLeft_ = this.adapter_.getScrollLeftForScrollFrame();
+    this.layoutFrame_ = requestAnimationFrame(() => this.layout_());
+  }
+
+  isRTL_() {
+    return this.adapter_.isRTL();
+  }
+
+  handlePossibleTabKeyboardFocus_(evt) {
+    if (!this.adapter_.eventTargetHasClass(evt.target, __WEBPACK_IMPORTED_MODULE_1__constants__["a" /* cssClasses */].TAB) || this.pointerDownRecognized_) {
+      return;
+    }
+
+    const resetAmt = this.isRTL_() ? this.scrollFrameScrollLeft_ : 0;
+    this.adapter_.setScrollLeftForScrollFrame(resetAmt);
+
+    this.focusedTarget_ = evt.target;
+    const scrollFrameWidth = this.adapter_.getOffsetWidthForScrollFrame();
+    const tabBarWidth = this.adapter_.getOffsetWidthForTabBar();
+    const leftEdge = this.adapter_.getOffsetLeftForEventTarget(this.focusedTarget_);
+    const rightEdge = leftEdge + this.adapter_.getOffsetWidthForEventTarget(this.focusedTarget_);
+
+    let shouldScrollBack = rightEdge <= this.currentTranslateOffset_;
+    let shouldScrollForward = rightEdge > this.currentTranslateOffset_ + scrollFrameWidth;
+
+    if (this.isRTL_()) {
+      const normalizedLeftOffset = tabBarWidth - leftEdge;
+      shouldScrollBack = leftEdge >= tabBarWidth - this.currentTranslateOffset_;
+      shouldScrollForward = normalizedLeftOffset > scrollFrameWidth + this.currentTranslateOffset_;
+    }
+
+    if (shouldScrollForward) {
+      this.scrollForward();
+    } else if (shouldScrollBack) {
+      this.scrollBack();
+    }
+
+    this.pointerDownRecognized_ = false;
+  }
+
+  layout_() {
+    const frameWidth = this.adapter_.getOffsetWidthForScrollFrame();
+    const isOverflowing = this.adapter_.getOffsetWidthForTabBar() > frameWidth;
+
+    if (!isOverflowing) {
+      this.currentTranslateOffset_ = 0;
+    }
+
+    this.shiftFrame_();
+    this.updateIndicatorEnabledStates_();
+  }
+
+  scrollToTabAtIndex(index) {
+    const scrollTargetOffsetLeft = this.adapter_.getComputedLeftForTabAtIndex(index);
+    const scrollTargetOffsetWidth = this.adapter_.getComputedWidthForTabAtIndex(index);
+
+    this.currentTranslateOffset_ =
+      this.normalizeForRTL_(scrollTargetOffsetLeft, scrollTargetOffsetWidth);
+
+    requestAnimationFrame(() => this.shiftFrame_());
+  }
+
+  normalizeForRTL_(left, width) {
+    return this.isRTL_() ? this.adapter_.getOffsetWidthForTabBar() - (left + width) : left;
+  }
+
+  shiftFrame_() {
+    const shiftAmount = this.isRTL_() ?
+      this.currentTranslateOffset_ : -this.currentTranslateOffset_;
+
+    this.adapter_.setTransformStyleForTabBar(`translateX(${shiftAmount}px)`);
+    this.updateIndicatorEnabledStates_();
+  }
+
+  updateIndicatorEnabledStates_() {
+    const {INDICATOR_ENABLED} = __WEBPACK_IMPORTED_MODULE_1__constants__["a" /* cssClasses */];
+    if (this.currentTranslateOffset_ === 0) {
+      this.adapter_.removeClassFromBackIndicator(INDICATOR_ENABLED);
+    } else {
+      this.adapter_.addClassToBackIndicator(INDICATOR_ENABLED);
+    }
+
+    const remainingTabBarWidth = this.adapter_.getOffsetWidthForTabBar() - this.currentTranslateOffset_;
+    if (remainingTabBarWidth > this.adapter_.getOffsetWidthForScrollFrame()) {
+      this.adapter_.addClassToForwardIndicator(INDICATOR_ENABLED);
+    } else {
+      this.adapter_.removeClassFromForwardIndicator(INDICATOR_ENABLED);
+    }
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = MDCTabBarScrollerFoundation;
+
+
+
+/***/ }),
+/* 37 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+const cssClasses = {
+  INDICATOR_FORWARD: 'mdc-tab-bar-scroller__indicator--forward',
+  INDICATOR_BACK: 'mdc-tab-bar-scroller__indicator--back',
+  INDICATOR_ENABLED: 'mdc-tab-bar-scroller__indicator--enabled',
+  TAB: 'mdc-tab',
+};
+/* harmony export (immutable) */ __webpack_exports__["a"] = cssClasses;
+
+
+const strings = {
+  FRAME_SELECTOR: '.mdc-tab-bar-scroller__scroll-frame',
+  TABS_SELECTOR: '.mdc-tab-bar-scroller__scroll-frame__tabs',
+  TAB_SELECTOR: '.mdc-tab',
+  INDICATOR_FORWARD_SELECTOR: '.mdc-tab-bar-scroller__indicator--forward',
+  INDICATOR_BACK_SELECTOR: '.mdc-tab-bar-scroller__indicator--back',
+};
+/* harmony export (immutable) */ __webpack_exports__["b"] = strings;
+
+
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports) {
+
+module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\nbool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {\n\treturn (((((p.x >= b1.x) && (p.x <= b2.x)) && (p.y >= b1.y)) && (p.y <= b2.y)) && (p.z >= b1.z)) && (p.z <= b2.z);\n}\nbool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0, out float t1) {\n\tbvec3 isNeg = bvec3(rd.x < 0., rd.y < 0., rd.z < 0.);\n\tvec3 invDir = 1. / rd;\n\tfloat tmin, tmax, ttmin, ttmax;\n\ttmin = isNeg.x ? (b2.x - rp.x) * invDir.x : (b1.x - rp.x) * invDir.x;\n\ttmax = isNeg.x ? (b1.x - rp.x) * invDir.x : (b2.x - rp.x) * invDir.x;\n\tttmin = isNeg.y ? (b2.y - rp.y) * invDir.y : (b1.y - rp.y) * invDir.y;\n\tttmax = isNeg.y ? (b1.y - rp.y) * invDir.y : (b2.y - rp.y) * invDir.y;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\ttmin = max(tmin, ttmin);\n\ttmax = min(tmax, ttmax);\n\tttmin = isNeg.z ? (b2.z - rp.z) * invDir.z : (b1.z - rp.z) * invDir.z;\n\tttmax = isNeg.z ? (b1.z - rp.z) * invDir.z : (b2.z - rp.z) * invDir.z;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\tt0 = max(tmin, ttmin);\n\tt1 = min(tmax, ttmax);\n\treturn true;\n}\nbool quadratic(float a, float b, float c, out float tmin, out float tmax) {\n\tfloat discr = (b * b) - ((4. * a) * c);\n\tif (discr < 0.) {\n\t\treturn false;\n\t}\n\tif (discr == 0.) {\n\t\ttmin = tmax = (-0.5 * b) / a;\n\t}\n\telse {\n\t\tfloat q = -0.5 * (b > 0. ? b + sqrt(discr) : b - sqrt(discr));\n\t\tfloat x0 = q / a;\n\t\tfloat x1 = c / q;\n\t\ttmin = min(x0, x1);\n\t\ttmax = max(x0, x1);\n\t}\n\treturn true;\n}\nbool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out float tmax) {\n\tfloat a = dot(rd, rd);\n\tfloat b = 2. * dot(rd, rp);\n\tfloat c = dot(rp, rp) - (radius * radius);\n\tif (!quadratic(a, b, c, tmin, tmax)) {\n\t\treturn false;\n\t}\n\treturn true;\n}\nfloat numericalGradient(float deltaPositive, float deltaNeg, float delta) {\n\treturn (deltaPositive - deltaNeg) / (2. * delta);\n}\nvec2 numericalGradient(in vec2 deltaPositive, in vec2 deltaNegative, in vec2 delta) {\n\treturn (deltaPositive - deltaNegative) / delta;\n}\nvec3 numericalGradient(in vec3 deltaPositive, in vec3 deltaNegative, in vec3 delta) {\n\treturn (deltaPositive - deltaNegative) / delta;\n}\nvec4 numericalGradient(in vec4 deltaPositive, in vec4 deltaNegative, in vec4 delta) {\n\treturn (deltaPositive - deltaNegative) / delta;\n}\nuniform float far;\nuniform float threshold;\nuniform mat4 invProjMat;\nuniform mat4 mat;\nvarying vec2 vUv;\nprecision highp float;\nvec3 b1 = vec3(-400.);\nvec3 b2 = vec3(400.);\nfloat distanceProgram;\nvoid main() {\n\tgl_FragColor = vec4(-1.);\n\tvec4 rayPos = mat * vec4(0., 0., 0., 1.);\n\tvec4 rayDir = invProjMat * vec4(2. * (vUv - 0.5), 0., 1.);\n\tfloat bbmin, bbmax;\n\trayDir.a = 0.;\n\trayDir = mat * normalize(rayDir);\n\tif (!intersectAABB(b1, b2, rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n\t\treturn ;\n\t}\n\tbbmin = max(0., bbmin);\n\tbbmax = min(bbmax, far);\n\tfloat t = bbmin;\n\tfloat dist = distance(rayPos + (t * rayDir), rayPos, rayDir, 0);\n\tfloat fSign = dist < 0. ? -1. : 1.;\n\tfor (int i = 1; i <= 500; ++i) {\n\t\tif (abs(dist) <= threshold) {\n\t\t\tif ((t >= (bbmin - threshold)) && (t <= (bbmax + threshold))) {\n\t\t\t\tgl_FragColor = vec4((rayPos + (t * rayDir)).xyz, float(i));\n\t\t\t}\n\t\t\treturn ;\n\t\t}\n\t\tt += (fSign * dist);\n\t\tif (t > (bbmax * 2.)) {\n\t\t\treturn ;\n\t\t}\n\t\tdist = distance(rayPos + (t * rayDir), rayPos, rayDir, i);\n\t}\n}\n";
+
+/***/ }),
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -45973,7 +48892,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 //The glsl loader will remove white-space and comments.
-exports.default = "\n//Define the GLSL distance function that is used by the ray-sphere-marching algorithm.\nfloat fourSpheresIntersection(in vec4 p, in vec4 rp, in vec4 rd) {\n    return max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                    min(\n                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                    )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, in vec4 rp, in vec4 rd, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return fourSpheresIntersection(p, rp, rd);\n}\n".trim();
+exports.default = "\n\n\n//Define the GLSL distance function that is used by the ray-sphere-marching algorithm.\nfloat fourSpheresIntersection(in vec4 p, in vec4 rp, in vec4 rd) {\n    return max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                    min(\n                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                    )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, in vec4 rp, in vec4 rd, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return fourSpheresIntersection(p, rp, rd);\n}\n".trim();
 
 /***/ })
 /******/ ]);

@@ -1,0 +1,9 @@
+.panels {
+    .panel {
+        display: none;
+        &.active {
+            display: flex;
+        }
+    }
+    display: flex;
+}

@@ -287,7 +287,8 @@ function visualizeMandelbrotPdf(pdf) {
         `
     }, HIST_W, HIST_H);
 
-    let pdfRenderer = new T.WebGLRenderer({ canvas: document.getElementById('view') });
+    let pdfRenderer = new T.WebGLRenderer();
+    $(document.body).prepend(pdfRenderer.domElement);
     pdfRenderer.setClearColor(0, 1);
     pdfRenderer.autoClear = false;
     pdfRenderer.setSize(HIST_W, HIST_H);
@@ -443,7 +444,8 @@ export default function() {
                 gl_FragColor = vec4(color, 1.);
             }
         `
-    }, BUDDHABROT_W, BUDDHABROT_H, undefined, document.getElementById('view'));
+    }, BUDDHABROT_W, BUDDHABROT_H, undefined);
+    $(document.body).prepend(buddhabrotViewer.renderer.domElement);
 
     let k = 0;
     function draw() {
@@ -451,7 +453,7 @@ export default function() {
         sampleAndTestEscape();
         accumulate();
         buddhabrotViewer.material.uniforms.maxHist.value = maxHist;
-        buddhabrotViewer.execute();
+        buddhabrotViewer.execute(true);
         //We want to continue computing the image in the back.
         setTimeout(draw, 0);
         //requestAnimationFrame(draw);

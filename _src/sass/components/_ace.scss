@@ -1,0 +1,14 @@
+@import '@material/elevation/mixins';
+.ace_error {
+    background: $material-color-red-900;
+    background-image: none !important;
+}
+.ace_tooltip {
+    @include mdc-elevation(4);
+    font-family: inherit !important;
+    max-width: 500px !important;
+    white-space: normal !important;
+    background: $material-color-red-900 !important;
+    border: none !important;
+    color: $material-color-red-100 !important;
+}

@@ -7,6 +7,18 @@ header: |
         body {
             overflow: hidden;
         }
+        #settings {
+            flex-direction: column;
+        }
+        #settings .settings-container {
+            overflow-y: auto;
+        }
+        #bounding-box-settings .mdc-text-field:nth-child(3) {
+            margin-right: 20px;
+        }
+        #bounding-box-settings input {
+            text-align: right;
+        }
         .bottom-sheet {
             background-color: #151515;
             position: fixed;
@@ -17,10 +29,13 @@ header: |
             display: flex;
             flex-direction: column;
         }
+        .bottom-sheet > section {
+            display: flex;
+        }
         .bottom-sheet > section,
         .bottom-sheet .panels,
-        .bottom-sheet .panel {
-            display: flex;
+        .bottom-sheet .panel,
+        .bottom-sheet .settings-container {
             flex-direction: column;
             flex-grow: 1;
         }
@@ -49,11 +64,15 @@ header: |
             border: 1px solid #414141;
             overflow-y: scroll;
         }
+        .help-icon {
+            position :fixed;
+            left: 10px;
+            top: 10px;
+            color: white;
+        }
     </style>
 ---
-<div class="view-container" style="touch-action: none;">
-    <canvas id="view"></canvas>
-</div>
+<div id="view-container" class="view-container" style="touch-action: none;"></div>
 <div id="bottom-sheet" class="bottom-sheet mdc-theme--text-primary-on-dark">
     <header class="mdc-toolbar" style="background: transparent">
         <div class="mdc-toolbar__row">
@@ -62,13 +81,15 @@ header: |
             </section>
             <section class="mdc-toolbar__section mdc-toolbar__section--align-end">
                 <div>
-                    <nav class="mdc-tab-bar mdc-tab-bar--icon-tab-bar">
+                    <nav id="code-tab-bar" class="mdc-tab-bar mdc-tab-bar--icon-tab-bar">
                         <a class="mdc-tab mdc-tab--active" href="#code" aria-controls="code">
                             <i class="material-icons mdc-tab__icon" aria-label="Recents">code</i>
                         </a>
+                        <!--
                         <a class="mdc-tab" href="#materials" aria-controls="materials">
                             <i class="material-icons mdc-tab__icon" aria-label="Recents">tonality</i>
                         </a>
+                        -->
                         <a class="mdc-tab" href="#settings" aria-controls="settings">
                             <i class="material-icons mdc-tab__icon" aria-label="Recents">settings</i>
                         </a>
@@ -79,11 +100,52 @@ header: |
         </div>
     </header>
     <section style="padding: 0 25px 0px 25px">
-        <div class="panels">
-            <div id="code" class="panel active">
+        <div class="panels mdc-theme--dark">
+            <div id="code" class="panel active" role="tabpanel" aria-hidden="false">
                 <div class="mdc-typography--title mdc-typography--adjust-margin">Signed Distance Function</div>
                 <section class="editor-container">
                     <div id="editor"></div>
+                </section>
+            </div>
+            <div id="settings" class="panel" role="tabpanel" aria-hidden="false">
+                <div class="mdc-typography--title mdc-typography--adjust-margin">Settings</div>
+                <section class="settings-container">
+                    <p>Scene</p>
+                    <div class="mdc-typography--caption">Bounding Box</div>
+                    <div id="bounding-box-settings">
+                        <div class="mdc-text-field" data-mdc-auto-init="MDCTextField">
+                            <input type="number" id="xmin" class="mdc-text-field__input" value="-200">
+                            <label class="mdc-text-field__label" for="xmin">x min</label>
+                            <div class="mdc-text-field__bottom-line"></div>
+                        </div>
+                        <div class="mdc-text-field" data-mdc-auto-init="MDCTextField">
+                            <input type="number" id="ymin" class="mdc-text-field__input" value="-200">
+                            <label class="mdc-text-field__label" for="ymin">y min</label>
+                            <div class="mdc-text-field__bottom-line"></div>
+                        </div>
+                        <div class="mdc-text-field" data-mdc-auto-init="MDCTextField">
+                            <input type="number" id="zmin" class="mdc-text-field__input" value="-200">
+                            <label class="mdc-text-field__label" for="zmin">z min</label>
+                            <div class="mdc-text-field__bottom-line"></div>
+                        </div>
+                        <div class="mdc-text-field" data-mdc-auto-init="MDCTextField">
+                            <input type="number" id="xmax" class="mdc-text-field__input" value="200">
+                            <label class="mdc-text-field__label" for="xmax">x max</label>
+                            <div class="mdc-text-field__bottom-line"></div>
+                        </div>
+                        <div class="mdc-text-field" data-mdc-auto-init="MDCTextField">
+                            <input type="number" id="ymax" class="mdc-text-field__input" value="200">
+                            <label class="mdc-text-field__label" for="ymax">y max</label>
+                            <div class="mdc-text-field__bottom-line"></div>
+                        </div>
+                        <div class="mdc-text-field" data-mdc-auto-init="MDCTextField">
+                            <input type="number" id="zmax" class="mdc-text-field__input" value="200">
+                            <label class="mdc-text-field__label" for="zmax">z max</label>
+                            <div class="mdc-text-field__bottom-line"></div>
+                        </div>
+                    </div>
+                    <p>Camera</p>
+                    <div class="mdc-typography--caption">FOV</div>
                 </section>
             </div>
         </div>
