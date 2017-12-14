@@ -17,7 +17,7 @@ export default function() {
     $('#code-tab-bar').find('.mdc-tab').on('click', function() {
         $activePanel.removeClass('active');
         $activePanel = $($(this).attr('href')).addClass('active');
-        $("#editor").height($("#editor").parent().height() - 10);
+        $("#editor").height($("#editor").parent().height());
         editor.resize();
 
         //Have to initialize here, otherwise some property of being hidden.
@@ -32,7 +32,7 @@ export default function() {
     });
 
     let editor = ace.edit('editor');
-    editor.setTheme('ace/theme/gruvbox');
+    editor.setTheme('ace/theme/solarized_dark');
     editor.getSession().setMode('ace/mode/glsl');
     editor.setValue(sdfSnippets, 1);
     editor.commands.addCommand({
@@ -71,7 +71,7 @@ export default function() {
     function updateBounds(which, dim, value) {
         let bounds = marchPass.material.uniforms.bounds.value;
         if(which == 0) {
-            bounds[0][dim] = Math.min(value, bounds[1][dim] - 10);
+            bounds[0][dim] = Math.min(value, bounds[1][dim]);
         }
         else {
             bounds[1][dim] = Math.max(value, bounds[0][dim] + 10);
@@ -176,7 +176,7 @@ export default function() {
     let needsUpdate = true;
 
     function resize() {
-        $("#editor").height($("#editor").parent().height() - 10);
+        $("#editor").height($("#editor").parent().height());
         editor.resize();
 
         camera.aspect = $viewParent.width() / $viewParent.height();

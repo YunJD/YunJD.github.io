@@ -4,5 +4,5 @@
     bottom: $fab-corner-spacing;
 }
 .adjust-bottom-padding-for-fab {
-    padding-bottom: $fab-corner-spacing + 56px;
+    padding-bottom: 2 * $fab-corner-spacing + 56px;
 }

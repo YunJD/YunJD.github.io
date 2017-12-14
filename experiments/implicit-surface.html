@@ -21,7 +21,6 @@ header: |
             text-align: right;
         }
         .bottom-sheet {
-            background-color: #151515;
             position: fixed;
             bottom: 0;
             width: 100%;
@@ -73,9 +72,9 @@ header: |
         }
     </style>
 ---
-<a class="help-button mdc-button mdc-button--raised" href="implicit-surface-help.html" target="_blank">Help / Reference</a>
+<a class="help-button mdc-button" style="color: white" href="implicit-surface-help.html" target="_blank">Help / Reference</a>
 <div id="view-container" class="view-container" style="touch-action: none;"></div>
-<div id="bottom-sheet" class="bottom-sheet mdc-theme--text-primary-on-dark">
+<div id="bottom-sheet" class="bottom-sheet mdc-theme--primary-dark-bg mdc-theme--text-primary-on-dark">
     <header class="mdc-toolbar" style="background: transparent">
         <div class="mdc-toolbar__row">
             <section class="mdc-toolbar__section mdc-toolbar__section--shrink-to-fit mdc-toolbar__section--align-start">
@@ -101,19 +100,17 @@ header: |
             </section>
         </div>
     </header>
-    <section class="adjust-bottom-padding-for-fab">
-        <div class="panels mdc-theme--dark">
-            <div id="code" style="padding: 0 25px" class="panel active" role="tabpanel" aria-hidden="false">
-                <div class="mdc-typography--title mdc-typography--adjust-margin">Signed Distance Function</div>
-                <section class="editor-container">
-                    <div id="editor"></div>
-                </section>
-            </div>
-            <div id="settings" class="panel" role="tabpanel" aria-hidden="false">
-                <div style="padding: 0 25px" class="mdc-typography--title mdc-typography--adjust-margin">Settings</div>
-                <div style="font-size: 0.75rem; padding: 0 25px"><em>Waiting on official support for ranged sliders, for now there's two :/</em></div>
-                <section style="padding: 0 25px" id="settings-container" class="settings-container"></section>
-            </div>
+    <section class="panels mdc-theme--dark adjust-bottom-padding-for-fab">
+        <div id="code" class="panel active" role="tabpanel" aria-hidden="false">
+            <div style="padding: 0 25px" class="mdc-typography--title mdc-typography--adjust-margin">Signed Distance Function</div>
+            <section class="editor-container">
+                <div id="editor"></div>
+            </section>
+        </div>
+        <div id="settings" class="panel" role="tabpanel" aria-hidden="false">
+            <div style="padding: 0 25px" class="mdc-typography--title mdc-typography--adjust-margin">Settings</div>
+            <div style="padding: 0 25px" class="mdc-typography--caption"><em>Waiting on official support for ranged sliders, so two sliders for now :/</em></div>
+            <section style="padding: 0 25px" id="settings-container" class="settings-container"></section>
         </div>
     </section>
 </div>

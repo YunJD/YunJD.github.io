@@ -1,0 +1,53 @@
+@import '@material/typography/mixins';
+.markdown {
+    * {
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .no-center {
+        max-width: 100%;
+    }
+    img {
+        display: block;
+        max-width: 100%;
+    }
+    h1 {
+        @include mdc-typography('display1');
+        text-transform: uppercase;
+    }
+    h2 {
+        @include mdc-typography('headline');
+        text-transform: uppercase;
+    }
+    h3 {
+        @include mdc-typography('title');
+    }
+
+    h4 {
+        @include mdc-typography('subheading2');
+    }
+
+    h5 {
+        @include mdc-typography('subheading1');
+    }
+
+    h6 {
+        @include mdc-typography('caption');
+    }
+    p {
+        @include mdc-typography('body2');
+    }
+    table {
+        width: 100%;
+    }
+    .shortcuts-table {
+        td {
+            padding-bottom: 8px;
+            &:first-child {
+                width: 150px;
+                text-transform: uppercase;
+            }
+        }
+    }
+}

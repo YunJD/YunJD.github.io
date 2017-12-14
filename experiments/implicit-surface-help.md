@@ -1,5 +1,5 @@
 ---
-layout: base
+layout: markdown
 title: Implicit Surface Rendering Experiment - Quick Help / Reference
 ---
 # Implicit Surface Rendering Experiment - Quick Help / Reference
@@ -8,42 +8,53 @@ title: Implicit Surface Rendering Experiment - Quick Help / Reference
 
 If you get a surface like the following:
 
-![glitch]({{site.baseurl}}/images/sdf-glitch.png)
+<div class="no-center">
+    <img src="{{site.baseurl}}/images/sdf-glitch.png" />
+</div>
 
-That means that the calculations are taking too many steps.  Other reasons could be that there are numerical errors, caused by the fact that squares have rapid increase.  The screenshot shows bounds of -400 to 400, and 400 ^ 2 is 160000 (GPUs suck at tiny/large numbers it seems)!
+That means that the calculations are taking too many steps.  Other reasons could be that there are numerical errors, caused by the fact that squares have rapid increase.  The screenshot shows bounds of -400 to 400, and 400<sup>2</sup> is 160,000 (GPUs suck at tiny/large numbers it seems)!
 
 ### Option 1: Reduce Bounds
 
-![reduce bounds]({{site.baseurl}}/images/sdf-reduce-bounds.png)
+<div class="no-center">
+    <img src="{{site.baseurl}}/images/sdf-reduce-bounds.png"/>
+</div>
 
 Reducing bounds realistically does something similar to axis scaling, i.e. we're hiding the parts the ray marcher is bad at.  It also causes the ray to start at the bounding box, which is closer to that part of the surface.
 
 ### Option 2: Increase the denominator of the squares (better scales)
 
-![scale dims]({{site.baseurl}}/images/sdf-scale-dims.png)
+<div class="no-center">
+    <img src="{{site.baseurl}}/images/sdf-scale-dims.png" />
+</div>
 
 Increasing the denominator gives a more reasonable result.  Admittedly it means certain scales can't be visualized due to computational difficulties. Note that this is also similar to decreasing the bounds further.
 
 ### Results
 
-![nice 1]({{site.baseurl}}/images/sdf-nice1.png)
+<p class="no-center">
+    <img src="{{site.baseurl}}/images/sdf-nice1.png" />
+</p>
 
-![nice 2]({{site.baseurl}}/images/sdf-nice2.png)
+<p class="no-center">
+    <img src="{{site.baseurl}}/images/sdf-nice2.png" />
+</p>
 
 Those steps will prevent sections where the ray marching diverges / can't find the threshold.  If better techniques are known, feel free to open issues and tell me how it's done!
 
 ## Keyboard shortcuts
 
-| **&lt;escape&gt;** | Open bottom sheet |
-| **ctrl-&lt;enter&gt;** | Compile SDF shader when bottom sheet is open |
+{:.shortcuts-table}
+| **Escape** | Open bottom sheet |
+| **Ctrl+Enter** | Compile SDF shader when bottom sheet is open |
 
 ## CSG
 
-I'm simply going to provide a link to an article I found very helpful: [modeling with distance functions](http://www.iquilezles.org/www/articles/distfunctions/distfunctions.html)
+I'm simply going to provide a link to an article I found very helpful: [modeling with distance functions](http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm)
 
 ## Other functions
 
-```glsl
+{% highlight glsl linenos %}
 //Simple plane:
 return p.x - p.y - 1.;
 
@@ -52,13 +63,13 @@ return p.y - pow(p.x, 2.) / 350. - pow(p.x, 2.) / 350.;
 
 //Bubbly
 return sin(p.x) * cos(p.z) - p.y;
-```
+{% endhighlight %}
 
 ## Extra implemented functions
 
 These are functions that can be called in the code block.
 
-```glsl
+{% highlight glsl linenos %}
 //b1 - Lower bounds
 //b2 - Upper bounds
 //p - A point
@@ -88,5 +99,4 @@ float cabs(in vec2 a);
 
 //Quaternion operations
 vec4 qmul(in vec4 q1, in vec4 q2);
-
-```
+{% endhighlight %}
