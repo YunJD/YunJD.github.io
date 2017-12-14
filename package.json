@@ -38,6 +38,7 @@
     "react-swipeable-views": "^0.12.8",
     "redux": "^3.7.2",
     "reselect": "^3.0.1",
+    "rmwc": "0.0.1-rc11",
     "three": "^0.87.1",
     "tinycolor2": "^1.4.1",
     "webpack": "^3.5.6"

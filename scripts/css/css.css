@@ -28,6 +28,9 @@
   right: 25px;
   bottom: 25px; }
 
+.adjust-bottom-padding-for-fab {
+  padding-bottom: 81px; }
+
 .panels {
   display: flex; }
   .panels .panel {

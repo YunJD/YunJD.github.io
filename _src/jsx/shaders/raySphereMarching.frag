@@ -8,9 +8,7 @@ uniform mat4 invProjMat;
 uniform mat4 mat;
 varying vec2 vUv;
 precision highp float;
-
-vec3 b1 = vec3(-400.);
-vec3 b2 = vec3(400.);
+uniform vec3 bounds[2];
 
 /* Must use string replace here because the webpack glsl template loader will throw an error with just 
  *
@@ -30,7 +28,7 @@ void main() {
     rayDir.a = 0.;
     rayDir = mat * normalize(rayDir);
 
-    if(!intersectAABB(b1, b2, rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {
+    if(!intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {
         return;
     }
 

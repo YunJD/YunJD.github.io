@@ -1,20 +1,34 @@
 import {MDCTab, MDCTabFoundation} from '@material/tabs';
 import {MDCTabBar, MDCTabBarFoundation} from '@material/tabs';
-
+import TextField from 'rmwc/TextField';
+import Slider from 'rmwc/Slider';
 import * as T from 'three';
 import stuff from 'stuff';
 import raySphereMarchingShader from 'shaders/raySphereMarching.frag';
 import sdfSnippets from 'snippets/sdf_snippets.jsx';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
 export default function() {
     MDCTabBar.attachTo($('#code-tab-bar')[0]);
 
+    let settingsPanel;
     let $activePanel = $("#code");
     $('#code-tab-bar').find('.mdc-tab').on('click', function() {
         $activePanel.removeClass('active');
         $activePanel = $($(this).attr('href')).addClass('active');
         $("#editor").height($("#editor").parent().height() - 10);
         editor.resize();
+
+        //Have to initialize here, otherwise some property of being hidden.
+        if(!settingsPanel) {
+            settingsPanel = ReactDOM.render(<Settings 
+                 boundingBox={marchPass.material.uniforms.bounds.value}
+                 camera={camera} 
+                 onChangeBounds={updateBounds}
+                 onChangeFov={updateCameraFov}/>,
+            $("#settings-container")[0]);
+        }
     });
 
     let editor = ace.edit('editor');
@@ -38,13 +52,31 @@ export default function() {
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
     let origin = new T.Vector3(0., 0., 0.);
+
     updateCamera();
+
     function setCameraPosition() {
         camera.position.set(
             camR * Math.cos(camPhi) * Math.sin(camTheta),
             camR * Math.cos(camTheta),
             camR * Math.sin(camPhi) * Math.sin(camTheta)
         );
+    }
+    function updateCameraFov(fov) {
+        camera.fov = fov;
+        camera.updateProjectionMatrix();
+        marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
+        needsUpdate = true;
+    }
+    function updateBounds(which, dim, value) {
+        let bounds = marchPass.material.uniforms.bounds.value;
+        if(which == 0) {
+            bounds[0][dim] = Math.min(value, bounds[1][dim] - 10);
+        }
+        else {
+            bounds[1][dim] = Math.max(value, bounds[0][dim] + 10);
+        }
+        needsUpdate = true;
     }
     function updateCamera() {
         setCameraPosition();
@@ -72,14 +104,17 @@ export default function() {
     }
     let marchPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
+            bounds: {
+                type: 'v4v',
+                value: [
+                    new T.Vector3(-400, -400, -400),
+                    new T.Vector3(400, 400, 400)
+                ]
+            },
             //Used to quit early.
             far: {
                 type: 'f',
                 value: 1e6
-            },
-            relaxation: {
-                type: 'f',
-                value: 1.6
             },
             threshold: {
                 type: 'f',
@@ -116,8 +151,6 @@ export default function() {
         fragmentShader: `
             varying vec2 vUv;
             uniform sampler2D surfaceData;
-            vec3 b1 = vec3(-100.);
-            vec3 b2 = vec3(100.);
 
             void main() {
                 vec4 color = texture2D(surfaceData, vUv);
@@ -126,7 +159,7 @@ export default function() {
                         gl_FragColor = vec4(color.xyz, 1.);
                     }
                     else {
-                        gl_FragColor = vec4(length(color.xyz) / 150.);
+                        gl_FragColor = vec4(1. - log(color.w) / log(1000.)) + vec4(length(color.xyz) / 550.);
                     }
                 }
             }
@@ -152,7 +185,7 @@ export default function() {
         viewerPass.resize($viewParent.width(), $viewParent.height());
 
         marchPass.resize($viewParent.width(), $viewParent.height());
-        marchPass.material.uniforms.invProjMat.value = new T.Matrix4().getInverse(camera.projectionMatrix);
+        marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
 
         needsUpdate = true;
     }
@@ -317,4 +350,48 @@ export default function() {
             }
         }
     });
+}
+
+class Settings extends React.Component {
+    constructor(props) {
+        super(props);
+        this.changeFov = function(e) {
+            this.props.onChangeFov(e.target.value);
+            this.forceUpdate();
+        }.bind(this);
+        this.changeBounds = function(bound, dimension, e) {
+            //Reverse
+            this.props.onChangeBounds(bound, dimension, bound == 0 ? -e.target.value : e.target.value);
+            this.forceUpdate();
+        }.bind(this);
+    }
+    render() {
+        return (
+            <div>
+                <p>Camera</p>
+                <div className="mdc-typography--caption">FOV</div>
+                <Slider displayMarkers discrete step="1" value={this.props.camera.fov} min={30} max={120} onChange={this.changeFov}/>
+
+                <p>Scene</p>
+                <div className="mdc-typography--caption">Bounding Box</div>
+                <p>x: <strong>{this.props.boundingBox[0].x.toFixed(1)}, {this.props.boundingBox[1].x.toFixed(1)}</strong></p>
+                <div dir="rtl">
+                    <Slider step="0.5" value={-this.props.boundingBox[0].x} min={-500} max={500} onChange={this.changeBounds.bind(null, 0, 'x')}/>
+                </div>
+                <Slider step="0.5" value={this.props.boundingBox[1].x} min={-500} max={500} onChange={this.changeBounds.bind(null, 1, 'x')}/>
+
+                <p>y: <strong>{this.props.boundingBox[0].y.toFixed(1)}, {this.props.boundingBox[1].y.toFixed(1)}</strong></p>
+                <div dir="rtl">
+                    <Slider step="0.5" value={-this.props.boundingBox[0].y} min={-500} max={500} onChange={this.changeBounds.bind(null, 0, 'y')}/>
+                </div>
+                <Slider step="0.5" value={this.props.boundingBox[1].y} min={-500} max={500} onChange={this.changeBounds.bind(null, 1, 'y')}/>
+
+                <p>z: <strong>{this.props.boundingBox[0].z.toFixed(1)}, {this.props.boundingBox[1].z.toFixed(1)}</strong></p>
+                <div dir="rtl">
+                    <Slider step="0.5" value={-this.props.boundingBox[0].z} min={-500} max={500} onChange={this.changeBounds.bind(null, 0, 'z')}/>
+                </div>
+                <Slider step="0.5" value={this.props.boundingBox[1].z} min={-500} max={500} onChange={this.changeBounds.bind(null, 1, 'z')}/>
+            </div>
+        );
+    }
 }
