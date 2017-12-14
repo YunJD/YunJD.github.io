@@ -128,7 +128,8 @@
   line-height: 2rem;
   text-decoration: inherit;
   text-transform: inherit;
-  text-transform: uppercase; }
+  text-transform: uppercase;
+  margin-top: 2.5rem; }
 
 .markdown h3 {
   font-family: Roboto, sans-serif;
@@ -139,7 +140,8 @@
   letter-spacing: 0.02em;
   line-height: 2rem;
   text-decoration: inherit;
-  text-transform: inherit; }
+  text-transform: inherit;
+  margin-top: 2rem; }
 
 .markdown h4 {
   font-family: Roboto, sans-serif;

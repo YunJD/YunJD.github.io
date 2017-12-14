@@ -28,9 +28,11 @@
     h2 {
         @include mdc-typography('headline');
         text-transform: uppercase;
+        margin-top: 2.5rem;
     }
     h3 {
         @include mdc-typography('title');
+        margin-top: 2rem;
     }
 
     h4 {
