@@ -24,7 +24,6 @@
     "eslint": "^4.6.1",
     "eslint-plugin-react": "^7.3.0",
     "glsl-template-loader": "^1.1.0",
-    "highlight.js": "^9.12.0",
     "html-loader": "^0.5.1",
     "humps": "^2.0.1",
     "immutable": "^3.8.1",

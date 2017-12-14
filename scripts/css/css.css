@@ -87,17 +87,24 @@
 
 /* TODO(sgomes): Figure out what to do about desktop font sizes. */
 /* TODO(sgomes): Figure out what to do about i18n and i18n font sizes. */
-.markdown * {
-  max-width: 1400px;
+.markdown > * {
+  max-width: 1200px;
   margin-left: auto;
-  margin-right: auto; }
+  margin-right: auto;
+  padding-left: 10px;
+  padding-right: 10px; }
 
-.markdown .no-center {
+.markdown > .no-center {
   max-width: 100%; }
+
+.markdown > .large {
+  max-width: 1700px; }
 
 .markdown img {
   display: block;
-  max-width: 100%; }
+  max-width: 100%;
+  padding-left: 0;
+  padding-right: 0; }
 
 .markdown h1 {
   font-family: Roboto, sans-serif;

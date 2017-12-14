@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/scripts/css/default.css"/>
         <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/scripts/css/normalize.css"/>
         <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/scripts/css/css.css"/>
         {{page.header}}
@@ -13,5 +14,10 @@
             {{ content }}
         </div>
         <script type="text/javascript" src="{{ site.baseurl }}/scripts/js/jquery.min.js"></script>
+        <script type="text/javascript" src="{{ site.baseurl }}/scripts/js/highlight.pack.js"></script>
+        <script type="text/javascript">
+            //Go away rouge
+            hljs.initHighlightingOnLoad();
+        </script>
     </body>
 </html>

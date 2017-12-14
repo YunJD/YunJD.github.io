@@ -4,44 +4,6 @@ title: Implicit Surface Rendering Experiment - Quick Help / Reference
 ---
 # Implicit Surface Rendering Experiment - Quick Help / Reference
 
-## Graphical Glitch?
-
-If you get a surface like the following:
-
-<div class="no-center">
-    <img src="{{site.baseurl}}/images/sdf-glitch.png" />
-</div>
-
-That means that the calculations are taking too many steps.  Other reasons could be that there are numerical errors, caused by the fact that squares have rapid increase.  The screenshot shows bounds of -400 to 400, and 400<sup>2</sup> is 160,000 (GPUs suck at tiny/large numbers it seems)!
-
-### Option 1: Reduce Bounds
-
-<div class="no-center">
-    <img src="{{site.baseurl}}/images/sdf-reduce-bounds.png"/>
-</div>
-
-Reducing bounds realistically does something similar to axis scaling, i.e. we're hiding the parts the ray marcher is bad at.  It also causes the ray to start at the bounding box, which is closer to that part of the surface.
-
-### Option 2: Increase the denominator of the squares (better scales)
-
-<div class="no-center">
-    <img src="{{site.baseurl}}/images/sdf-scale-dims.png" />
-</div>
-
-Increasing the denominator gives a more reasonable result.  Admittedly it means certain scales can't be visualized due to computational difficulties. Note that this is also similar to decreasing the bounds further.
-
-### Results
-
-<p class="no-center">
-    <img src="{{site.baseurl}}/images/sdf-nice1.png" />
-</p>
-
-<p class="no-center">
-    <img src="{{site.baseurl}}/images/sdf-nice2.png" />
-</p>
-
-Those steps will prevent sections where the ray marching diverges / can't find the threshold.  If better techniques are known, feel free to open issues and tell me how it's done!
-
 ## Keyboard shortcuts
 
 {:.shortcuts-table}
@@ -52,24 +14,27 @@ Those steps will prevent sections where the ray marching diverges / can't find t
 
 I'm simply going to provide a link to an article I found very helpful: [modeling with distance functions](http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm)
 
-## Other functions
+## Other signed distance functions
 
-{% highlight glsl linenos %}
+~~~glsl
 //Simple plane:
 return p.x - p.y - 1.;
 
 //Paraboloid
 return p.y - pow(p.x, 2.) / 350. - pow(p.x, 2.) / 350.;
 
+//Hyperboloid
+return p.y + pow(p.x, 2.) / 350. - pow(p.x, 2.) / 350.;
+
 //Bubbly
 return sin(p.x) * cos(p.z) - p.y;
-{% endhighlight %}
+~~~
 
-## Extra implemented functions
+## Included Functions
 
-These are functions that can be called in the code block.
+These functions have been implemented and can be called in the code block.
 
-{% highlight glsl linenos %}
+~~~glsl
 //b1 - Lower bounds
 //b2 - Upper bounds
 //p - A point
@@ -99,4 +64,43 @@ float cabs(in vec2 a);
 
 //Quaternion operations
 vec4 qmul(in vec4 q1, in vec4 q2);
-{% endhighlight %}
+~~~
+
+## Graphical Glitch?
+
+If you get a surface like the following:
+
+<div class="large">
+    <img src="{{site.baseurl}}/images/sdf-glitch.png" />
+</div>
+
+That means that the calculations are taking too many steps.  Other reasons could be that there are numerical errors, caused by the fact that squares have rapid increase.  The screenshot shows bounds of -400 to 400, and 400<sup>2</sup> is 160,000 (GPUs suck at tiny/large numbers it seems)!
+
+### Option 1: Reduce Bounds
+
+<div class="large">
+    <img src="{{site.baseurl}}/images/sdf-reduce-bounds.png"/>
+</div>
+
+Reducing bounds realistically does something similar to axis scaling, i.e. we're hiding the parts the ray marcher is bad at.  It also causes the ray to start at the bounding box, which is closer to that part of the surface.
+
+### Option 2: Increase the denominator of the squares (better scales)
+
+<div class="large">
+    <img src="{{site.baseurl}}/images/sdf-scale-dims.png" />
+</div>
+
+Increasing the denominator gives a more reasonable result.  Admittedly it means certain scales can't be visualized due to computational difficulties. Note that this is also similar to decreasing the bounds further.
+
+### Results
+
+<p class="large">
+    <img src="{{site.baseurl}}/images/sdf-nice1.png" />
+</p>
+
+<p class="large">
+    <img src="{{site.baseurl}}/images/sdf-nice2.png" />
+</p>
+
+Those steps will prevent sections where the ray marching diverges / can't find the threshold.  If better techniques are known, feel free to open issues and tell me how it's done!
+
