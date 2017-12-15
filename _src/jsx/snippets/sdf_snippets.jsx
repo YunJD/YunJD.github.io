@@ -33,6 +33,8 @@ vec3 gradient(in vec4 p, float t, int i) {
     vec3 gPos;
     vec3 gNeg;
 
+    //Unfortunately I don't know how to pass a function as an argument, so I'm forced to put the computations here.
+
     //Numerically compute the positive direction deltas
     delta.x += 5e-4;
     gPos.x = distance(delta, t, i);
@@ -50,6 +52,6 @@ vec3 gradient(in vec4 p, float t, int i) {
     delta.y = p.y; delta.z -= 5e-4;
     gNeg.z = distance(delta, t, i);
 
-    return normalize(numericalGradient(gPos, gNeg, 5e-4));
+    return numericalGradient(gPos, gNeg, 5e-4);
 }
 `.trim()

@@ -39,7 +39,7 @@ void main() {
     for(int i = 1; i <= 2500; ++i) {
         if(abs(dist) <= threshold) {
             if(t >= bbmin - threshold && t <= bbmax + threshold) {
-                gl_FragColor = vec4(gradient(rayPos + t * rayDir, t, i), t);
+                gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir, t, i)), t);
             }
             return;
         }
