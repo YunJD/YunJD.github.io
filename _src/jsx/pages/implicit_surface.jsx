@@ -125,7 +125,7 @@ export default function() {
                 type: 'm4',
                 value: new T.Matrix4().getInverse(camera.projectionMatrix)
             },
-            mat: {
+            cameraMat: {
                 type: 'm4',
                 value: camera.matrix
             }
@@ -159,7 +159,7 @@ export default function() {
                         gl_FragColor = vec4(color.xyz, 1.);
                     }
                     else {
-                        gl_FragColor = vec4(1. - log(color.w) / log(1000.)) + vec4(length(color.xyz) / 550.);
+                        gl_FragColor = vec4(color.xyz, 1.);
                     }
                 }
             }
@@ -168,10 +168,6 @@ export default function() {
 
     let $view = $(viewerPass.renderer.domElement);
     $viewParent.append($view);
-
-    //Needs the same renderer in order to share data. Booo.
-    marchPass.renderer.dispose();
-    marchPass.renderer = viewerPass.renderer;
 
     let needsUpdate = true;
 
@@ -208,7 +204,6 @@ export default function() {
                     //Find the start of the distance program.
                     let i;
                     for(i = 0; i < lines.length; ++i) {
-                        console.log(lines[i]);
                         if(lines[i] == '//FIRSTLINE') {
                             break;
                         }
@@ -228,7 +223,6 @@ export default function() {
                             text: code + ':' + text,
                             type: "error"
                         });
-                        console.log(error, row, column);
                     }
                     editor.session.setAnnotations(annotations);
                 }

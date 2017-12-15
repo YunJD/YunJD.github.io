@@ -70,37 +70,27 @@ vec4 qmul(in vec4 q1, in vec4 q2);
 
 If you get a surface like the following:
 
-<div class="large">
-    <img src="{{site.baseurl}}/images/sdf-glitch.png" />
-</div>
+<img src="{{site.baseurl}}/images/sdf-glitch.png" />
 
 That means that the calculations are taking too many steps.  Other reasons could be that there are numerical errors, caused by the fact that squares have rapid increase.  The screenshot shows bounds of -400 to 400, and 400<sup>2</sup> is 160,000 (GPUs suck at tiny/large numbers it seems)!
 
 ### Option 1: Reduce Bounds
 
-<div class="large">
-    <img src="{{site.baseurl}}/images/sdf-reduce-bounds.png"/>
-</div>
+<img src="{{site.baseurl}}/images/sdf-reduce-bounds.png"/>
 
 Reducing bounds realistically does something similar to axis scaling, i.e. we're hiding the parts the ray marcher is bad at.  It also causes the ray to start at the bounding box, which is closer to that part of the surface.
 
 ### Option 2: Increase the denominator of the squares (better scales)
 
-<div class="large">
-    <img src="{{site.baseurl}}/images/sdf-scale-dims.png" />
-</div>
+<img src="{{site.baseurl}}/images/sdf-scale-dims.png" />
 
 Increasing the denominator gives a more reasonable result.  Admittedly it means certain scales can't be visualized due to computational difficulties. Note that this is also similar to decreasing the bounds further.
 
 ### Results
 
-<p class="large">
-    <img src="{{site.baseurl}}/images/sdf-nice1.png" />
-</p>
+<img src="{{site.baseurl}}/images/sdf-nice1.png" />
 
-<p class="large">
-    <img src="{{site.baseurl}}/images/sdf-nice2.png" />
-</p>
+<img src="{{site.baseurl}}/images/sdf-nice2.png" />
 
 Those steps will prevent sections where the ray marching diverges / can't find the threshold.  If better techniques are known, feel free to open issues and tell me how it's done!
 

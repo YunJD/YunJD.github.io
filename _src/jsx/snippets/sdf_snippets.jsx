@@ -1,7 +1,7 @@
 //The glsl loader will remove white-space and comments.
 export default `
 //Define the GLSL distance function that is used by the ray-sphere-marching algorithm.
-float sixFunkySpheres(in vec4 p, in vec4 rp, in vec4 rd) {
+float sixFunkySpheres(in vec4 p) {
     return 2.5 * sin(p.x/4.) + cos(p.y/4.) + sin(p.z/4.) + max(
         length(p) - 140.0,
         min(
@@ -21,10 +21,35 @@ float sixFunkySpheres(in vec4 p, in vec4 rp, in vec4 rd) {
 }
 
 //Make sure to keep the function signature the same!
-float distance(in vec4 p, in vec4 rp, in vec4 rd, int i) {
+float distance(in vec4 p, float t, int i) {
     //p: the point calculated by rp + t * rd
     //rp: Ray start position.
     //rd: Ray direction.
-    return sixFunkySpheres(p, rp, rd);
+    return sixFunkySpheres(p);
+}
+
+vec3 gradient(in vec4 p, float t, int i) {
+    vec4 delta = p;
+    vec3 gPos;
+    vec3 gNeg;
+
+    //Numerically compute the positive direction deltas
+    delta.x += 5e-4;
+    gPos.x = distance(delta, t, i);
+    delta.x = p.x; delta.y += 5e-4;
+    gPos.y = distance(delta, t, i);
+    delta.y = p.y; delta.z += 5e-4;
+    gPos.z = distance(delta, t, i);
+    delta.z = p.z;
+
+    //Numerically compute the negative direction deltas
+    delta.x -= 5e-4;
+    gNeg.x = distance(delta, t, i);
+    delta.x = p.x; delta.y -= 5e-4;
+    gNeg.y = distance(delta, t, i);
+    delta.y = p.y; delta.z -= 5e-4;
+    gNeg.z = distance(delta, t, i);
+
+    return normalize(numericalGradient(gPos, gNeg, 5e-4));
 }
 `.trim()

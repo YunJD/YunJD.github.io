@@ -87,114 +87,93 @@
 
 /* TODO(sgomes): Figure out what to do about desktop font sizes. */
 /* TODO(sgomes): Figure out what to do about i18n and i18n font sizes. */
-.markdown > * {
+.markdown {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 10px;
   padding-right: 10px; }
-
-.markdown > .no-center {
-  max-width: 100%; }
-
-.markdown > .large {
-  max-width: 1700px; }
-
-.markdown img {
-  display: block;
-  max-width: 100%;
-  padding-left: 0;
-  padding-right: 0; }
-
-.markdown h1 {
-  font-family: Roboto, sans-serif;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  font-size: 2.125rem;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2.5rem;
-  text-decoration: inherit;
-  text-transform: inherit;
-  margin-top: 3rem; }
-
-.markdown h2 {
-  font-family: Roboto, sans-serif;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  font-size: 1.5rem;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 2rem;
-  text-decoration: inherit;
-  text-transform: inherit;
-  margin-top: 2.5rem; }
-
-.markdown h3 {
-  font-family: Roboto, sans-serif;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  font-size: 1.25rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 2rem;
-  text-decoration: inherit;
-  text-transform: inherit;
-  margin-top: 2rem;
-  text-transform: uppercase; }
-
-.markdown h4 {
-  font-family: Roboto, sans-serif;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  font-size: 1rem;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  line-height: 1.75rem;
-  text-decoration: inherit;
-  text-transform: inherit; }
-
-.markdown h5 {
-  font-family: Roboto, sans-serif;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  font-size: 0.938rem;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  line-height: 1.5rem;
-  text-decoration: inherit;
-  text-transform: inherit; }
-
-.markdown h6 {
-  font-family: Roboto, sans-serif;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  font-size: 0.75rem;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  line-height: 1.25rem;
-  text-decoration: inherit;
-  text-transform: inherit; }
-
-.markdown p {
-  font-family: Roboto, sans-serif;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  line-height: 1.5rem;
-  text-decoration: inherit;
-  text-transform: inherit; }
-
-.markdown table {
-  width: 100%; }
-
-.markdown .shortcuts-table td {
-  padding-bottom: 8px; }
-  .markdown .shortcuts-table td:first-child {
-    width: 150px;
+  .markdown img {
+    max-width: 100%; }
+  .markdown h1 {
+    font-family: Roboto, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-size: 2.125rem;
+    font-weight: 400;
+    letter-spacing: normal;
+    line-height: 2.5rem;
+    text-decoration: inherit;
+    text-transform: inherit;
+    margin-top: 3rem; }
+  .markdown h2 {
+    font-family: Roboto, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-size: 1.5rem;
+    font-weight: 400;
+    letter-spacing: normal;
+    line-height: 2rem;
+    text-decoration: inherit;
+    text-transform: inherit;
+    margin-top: 2.5rem; }
+  .markdown h3 {
+    font-family: Roboto, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 2rem;
+    text-decoration: inherit;
+    text-transform: inherit;
+    margin-top: 2rem;
     text-transform: uppercase; }
+  .markdown h4 {
+    font-family: Roboto, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    line-height: 1.75rem;
+    text-decoration: inherit;
+    text-transform: inherit; }
+  .markdown h5 {
+    font-family: Roboto, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-size: 0.938rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    line-height: 1.5rem;
+    text-decoration: inherit;
+    text-transform: inherit; }
+  .markdown h6 {
+    font-family: Roboto, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    line-height: 1.25rem;
+    text-decoration: inherit;
+    text-transform: inherit; }
+  .markdown p {
+    font-family: Roboto, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1.5rem;
+    text-decoration: inherit;
+    text-transform: inherit; }
+  .markdown .shortcuts-table td {
+    padding-bottom: 8px; }
+    .markdown .shortcuts-table td:first-child {
+      width: 150px;
+      text-transform: uppercase; }
 
 @keyframes mdc-ripple-fg-radius-in {
   from {
