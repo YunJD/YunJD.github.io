@@ -10,7 +10,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 export default function() {
-    MDCTabBar.attachTo($('#code-tab-bar')[0]);
+    let tabBar = MDCTabBar.attachTo($('#code-tab-bar')[0]);
+    //Blegh, there's no documentation on toolbar text links...what?
+    tabBar.tabs.splice(0, 1);
+    tabBar.activeTabIndex = 0;
 
     let fabTop = $("#fab-tune").offset().top;
     let fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
@@ -18,7 +21,10 @@ export default function() {
 
     let settingsPanel;
     let $activePanel = $("#code");
-    $('#code-tab-bar').find('.mdc-tab').on('click', function() {
+    $('#code-tab-bar').find('.mdc-tab').on('click', function(e) {
+        if($(this).attr('href').indexOf('#') == -1) {
+            return;
+        }
         $activePanel.removeClass('active');
         $activePanel = $($(this).attr('href')).addClass('active');
         $("#editor").height($("#editor").parent().height());

@@ -56591,7 +56591,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 exports.default = function () {
-    _tabs.MDCTabBar.attachTo($('#code-tab-bar')[0]);
+    var tabBar = _tabs.MDCTabBar.attachTo($('#code-tab-bar')[0]);
+    //Blegh, there's no documentation on toolbar text links...what?
+    tabBar.tabs.splice(0, 1);
+    tabBar.activeTabIndex = 0;
 
     var fabTop = $("#fab-tune").offset().top;
     var fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
@@ -56599,7 +56602,10 @@ exports.default = function () {
 
     var settingsPanel = void 0;
     var $activePanel = $("#code");
-    $('#code-tab-bar').find('.mdc-tab').on('click', function () {
+    $('#code-tab-bar').find('.mdc-tab').on('click', function (e) {
+        if ($(this).attr('href').indexOf('#') == -1) {
+            return;
+        }
         $activePanel.removeClass('active');
         $activePanel = $($(this).attr('href')).addClass('active');
         $("#editor").height($("#editor").parent().height());
@@ -77249,7 +77255,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 //The glsl loader will remove white-space and comments.
-exports.default = "\n//Define the GLSL distance function that is used by the ray-sphere-marching algorithm.\nfloat sixFunkySpheres(in vec4 p) {\n    return 2.5 * sin(p.x/4.) + cos(p.y/4.) + sin(p.z/4.) + max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                    min(\n                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                    )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, float t, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return sixFunkySpheres(p);\n}\n\nvec3 gradient(in vec4 p, float t, int i) {\n    vec4 delta = p;\n    vec3 gPos;\n    vec3 gNeg;\n\n    //Unfortunately I don't know how to pass a function as an argument, so I'm forced to put the computations here.\n\n    //Numerically compute the positive direction deltas\n    delta.x += 5e-4;\n    gPos.x = distance(delta, t, i);\n    delta.x = p.x; delta.y += 5e-4;\n    gPos.y = distance(delta, t, i);\n    delta.y = p.y; delta.z += 5e-4;\n    gPos.z = distance(delta, t, i);\n    delta.z = p.z;\n\n    //Numerically compute the negative direction deltas\n    delta.x -= 5e-4;\n    gNeg.x = distance(delta, t, i);\n    delta.x = p.x; delta.y -= 5e-4;\n    gNeg.y = distance(delta, t, i);\n    delta.y = p.y; delta.z -= 5e-4;\n    gNeg.z = distance(delta, t, i);\n\n    return numericalGradient(gPos, gNeg, 5e-4);\n}\n".trim();
+exports.default = "\n//Define the GLSL distance function that is used by the ray-sphere-marching algorithm.\nfloat sixFunkySpheres(in vec4 p) {\n    return max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                    min(\n                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                    )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, float t, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return sixFunkySpheres(p);\n}\n\nvec3 gradient(in vec4 p, float t, int i) {\n    vec4 delta = p;\n    vec3 gPos;\n    vec3 gNeg;\n\n    //Unfortunately I don't know how to pass a function as an argument, so I'm forced to put the computations here.\n\n    //Numerically compute the positive direction deltas\n    delta.x += 5e-4;\n    gPos.x = distance(delta, t, i);\n    delta.x = p.x; delta.y += 5e-4;\n    gPos.y = distance(delta, t, i);\n    delta.y = p.y; delta.z += 5e-4;\n    gPos.z = distance(delta, t, i);\n    delta.z = p.z;\n\n    //Numerically compute the negative direction deltas\n    delta.x -= 5e-4;\n    gNeg.x = distance(delta, t, i);\n    delta.x = p.x; delta.y -= 5e-4;\n    gNeg.y = distance(delta, t, i);\n    delta.y = p.y; delta.z -= 5e-4;\n    gNeg.z = distance(delta, t, i);\n\n    return numericalGradient(gPos, gNeg, 5e-4);\n}\n".trim();
 
 /***/ })
 /******/ ]);

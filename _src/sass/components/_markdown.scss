@@ -1,5 +1,8 @@
 @import '@material/typography/mixins';
 .markdown {
+    code.hljs {
+        padding: 20px 10px;
+    }
     max-width: 1200px;
     margin-left: auto;
     margin-right: auto;

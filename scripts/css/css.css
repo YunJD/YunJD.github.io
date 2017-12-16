@@ -96,6 +96,8 @@
   margin-right: auto;
   padding-left: 10px;
   padding-right: 10px; }
+  .markdown code.hljs {
+    padding: 20px 10px; }
   .markdown img {
     max-width: 100%; }
   .markdown h1 {

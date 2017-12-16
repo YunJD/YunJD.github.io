@@ -51,15 +51,8 @@ header: |
             width: 100%;
             min-height: 20px;
         }
-        .help-button {
-            position :fixed;
-            right: 10px;
-            top: 10px;
-            color: white;
-        }
     </style>
 ---
-<a class="help-button mdc-button mdc-button--raised" style="color: white" href="implicit-surface-help.html" target="_blank">Help / Reference</a>
 <div id="view-container" class="view-container" style="touch-action: none;"></div>
 <div id="bottom-sheet" class="bottom-sheet mdc-theme--text-primary-on-primary-dark">
     <header class="mdc-toolbar" style="background: transparent">
@@ -69,7 +62,12 @@ header: |
             </section>
             <section class="mdc-toolbar__section mdc-toolbar__section--align-end">
                 <div>
-                    <nav id="code-tab-bar" class="mdc-tab-bar mdc-tab-bar--icon-tab-bar">
+                    <span id="code-tab-bar" class="mdc-tab-bar mdc-tab-bar--icon-tab-bar">
+                        <a class="mdc-tab" href="implicit-surface-help.html" aria-controls="help" target="_blank">
+                            <i class="material-icons mdc-tab__icon">
+                                help
+                            </i>
+                        </a>
                         <a class="mdc-tab mdc-tab--active" href="#code" aria-controls="code">
                             <i class="material-icons mdc-tab__icon" aria-label="Recents">code</i>
                         </a>
@@ -82,7 +80,7 @@ header: |
                             <i class="material-icons mdc-tab__icon" aria-label="Recents">settings</i>
                         </a>
                         <span class="mdc-tab-bar__indicator"></span>
-                    </nav>
+                    </span>
                 </div>
             </section>
         </div>

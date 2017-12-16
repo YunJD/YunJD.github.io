@@ -2,7 +2,7 @@
 export default `
 //Define the GLSL distance function that is used by the ray-sphere-marching algorithm.
 float sixFunkySpheres(in vec4 p) {
-    return 2.5 * sin(p.x/4.) + cos(p.y/4.) + sin(p.z/4.) + max(
+    return max(
         length(p) - 140.0,
         min(
             (length(vec3(p.x - 125., p.y, p.z)) - 100.),
