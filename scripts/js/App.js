@@ -56593,8 +56593,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 exports.default = function () {
     var tabBar = _tabs.MDCTabBar.attachTo($('#code-tab-bar')[0]);
     //Blegh, there's no documentation on toolbar text links...what?
-    tabBar.tabs.splice(0, 1);
-    tabBar.activeTabIndex = 0;
+    tabBar.tabs[0].destroy();
 
     var fabTop = $("#fab-tune").offset().top;
     var fabBottom = $(window).height() - fabTop - $("#fab-tune").height();

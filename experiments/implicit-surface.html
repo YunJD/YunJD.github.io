@@ -11,6 +11,8 @@ header: |
         }
         #editor-container {
             overflow-y: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         body {
             overflow: hidden;
@@ -25,8 +27,11 @@ header: |
         .bottom-sheet header {
             height: 64px !important;
         }
+        .ace-dracula {
+            background-color: transparent !important;
+        }
         .bottom-sheet {
-            background: #0a0b0e;
+            background: #111117;
             position: fixed;
             bottom: 0;
             width: 100%;
@@ -65,7 +70,7 @@ header: |
                     <span id="code-tab-bar" class="mdc-tab-bar mdc-tab-bar--icon-tab-bar">
                         <a class="mdc-tab" href="implicit-surface-help.html" aria-controls="help" target="_blank">
                             <i class="material-icons mdc-tab__icon">
-                                help
+                                help_outline
                             </i>
                         </a>
                         <a class="mdc-tab mdc-tab--active" href="#code" aria-controls="code">

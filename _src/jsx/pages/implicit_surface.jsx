@@ -12,8 +12,7 @@ import ReactDOM from 'react-dom';
 export default function() {
     let tabBar = MDCTabBar.attachTo($('#code-tab-bar')[0]);
     //Blegh, there's no documentation on toolbar text links...what?
-    tabBar.tabs.splice(0, 1);
-    tabBar.activeTabIndex = 0;
+    tabBar.tabs[0].destroy();
 
     let fabTop = $("#fab-tune").offset().top;
     let fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
