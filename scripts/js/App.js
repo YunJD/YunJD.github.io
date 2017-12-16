@@ -56593,6 +56593,10 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 exports.default = function () {
     _tabs.MDCTabBar.attachTo($('#code-tab-bar')[0]);
 
+    var fabTop = $("#fab-tune").offset().top;
+    var fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
+    var fabEvenSpacing = fabTop - fabBottom;
+
     var settingsPanel = void 0;
     var $activePanel = $("#code");
     $('#code-tab-bar').find('.mdc-tab').on('click', function () {
@@ -56612,7 +56616,9 @@ exports.default = function () {
     });
 
     var editor = ace.edit('editor');
-    editor.setTheme('ace/theme/solarized_dark');
+    editor.setOption('highlightActiveLine', false);
+    editor.renderer.setScrollMargin(16, 16);
+    editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
     editor.setValue(_sdf_snippets2.default, 1);
     editor.commands.addCommand({
@@ -56992,6 +56998,15 @@ var Settings = function (_React$Component) {
             return _react2.default.createElement(
                 'div',
                 null,
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    _react2.default.createElement(
+                        'em',
+                        null,
+                        'Waiting on official support for ranged sliders, so two sliders for now :/'
+                    )
+                ),
                 _react2.default.createElement(
                     'p',
                     null,

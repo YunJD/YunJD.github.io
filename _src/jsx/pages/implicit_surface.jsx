@@ -12,6 +12,10 @@ import ReactDOM from 'react-dom';
 export default function() {
     MDCTabBar.attachTo($('#code-tab-bar')[0]);
 
+    let fabTop = $("#fab-tune").offset().top;
+    let fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
+    let fabEvenSpacing = fabTop - fabBottom;
+
     let settingsPanel;
     let $activePanel = $("#code");
     $('#code-tab-bar').find('.mdc-tab').on('click', function() {
@@ -32,7 +36,9 @@ export default function() {
     });
 
     let editor = ace.edit('editor');
-    editor.setTheme('ace/theme/solarized_dark');
+    editor.setOption('highlightActiveLine', false);
+    editor.renderer.setScrollMargin(16, 16);
+    editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
     editor.setValue(sdfSnippets, 1);
     editor.commands.addCommand({
@@ -362,6 +368,7 @@ class Settings extends React.Component {
     render() {
         return (
             <div>
+                <div className="mdc-typography--caption"><em>Waiting on official support for ranged sliders, so two sliders for now :/</em></div>
                 <p>Camera</p>
                 <div className="mdc-typography--caption">FOV</div>
                 <Slider displayMarkers discrete step="1" value={this.props.camera.fov} min={30} max={120} onChange={this.changeFov}/>
