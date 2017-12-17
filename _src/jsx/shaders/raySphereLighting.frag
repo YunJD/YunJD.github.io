@@ -30,12 +30,17 @@ void main() {
     normal *= dot(rayDir, normal) < 0. ? 1. : -1.;
 
     float occlusion = 0.;
-    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES - 1);
+    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);
     float t = 1e-3;
+    //Normalization factor. More samples should not change the brightness!
+    float total = 0.;
 
-    for(int i = 1; i <= N_SAMPLES; ++i) {
-        occlusion += abs(t - abs(distance(startPos + t * normal, t, i)));
+    for(int i = 0; i < N_SAMPLES; ++i) {
+        //Strength decreases with distance, square cubed law and such. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).
+        float strength = float(SAMPLE_DISTANCE) * pow((1. - float(i) / float(N_SAMPLES)), 2.);
+        total += t * strength;
+        occlusion += strength * abs(t - abs(distance(startPos + t * normal, t, i)));
         t += stepSize;
     }
-    gl_FragColor = vec4(1. - clamp(occlusion, 0., 0.9));
+    gl_FragColor = vec4(1. - clamp(occlusion / total, 0., 0.9));
 }

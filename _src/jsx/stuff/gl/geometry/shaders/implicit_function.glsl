@@ -5,7 +5,7 @@ uniform float far;
 uniform float threshold;
 
 bool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {
-    t = max(tmin, 0.1);
+    t = max(tmin, 0.001);
     tmax = min(tmax, far);
 
     float dist = SDF_FN(rayPos + t * rayDir, t, 0);

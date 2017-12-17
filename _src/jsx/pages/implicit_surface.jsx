@@ -1,3 +1,4 @@
+import {ChromePicker} from 'react-color';
 import {MDCTab, MDCTabFoundation, MDCTabBar, MDCTabBarFoundation} from '@material/tabs';
 import {MDCRipple, MDCRippleFoundation, util} from '@material/ripple';
 import TextField from 'rmwc/TextField';
@@ -5,14 +6,15 @@ import Slider from 'rmwc/Slider';
 import * as T from 'three';
 import stuff from 'stuff';
 import raySphereMarchingShader from 'shaders/raySphereMarching.frag';
-import raySphereDFAOShader from 'shaders/raySphereDFAO.frag';
+import raySphereLightingShader from 'shaders/raySphereLighting.frag';
 import sdfSnippets from 'snippets/sdf_snippets.jsx';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
 export default function() {
+    let start = new Date();
     let aoParams = {
-        sampleDistance: 0.29,
+        sampleDistance: 1.,
         nSamples: 10
     };
     let tabBar = MDCTabBar.attachTo($('#code-tab-bar')[0]);
@@ -24,26 +26,16 @@ export default function() {
     let fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
     let fabEvenSpacing = fabTop - fabBottom;
 
-    let settingsPanel;
-    let $activePanel = $("#code");
+    let $activePanel = $("#lighting");
     $('#code-tab-bar').find('.mdc-tab').on('click', function(e) {
         if($(this).attr('href').indexOf('#') == -1) {
             return;
         }
+
         $activePanel.removeClass('active');
         $activePanel = $($(this).attr('href')).addClass('active');
         $("#editor").height($("#editor").parent().height());
         editor.resize();
-
-        //Have to initialize here, otherwise some property of being hidden.
-        if(!settingsPanel) {
-            settingsPanel = ReactDOM.render(<Settings 
-                 boundingBox={marchPass.material.uniforms.bounds.value}
-                 camera={camera} 
-                 onChangeBounds={updateBounds}
-                 onChangeFov={updateCameraFov}/>,
-            $("#settings-container")[0]);
-        }
     });
 
     let editor = ace.edit('editor');
@@ -88,13 +80,21 @@ export default function() {
         marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
         needsUpdate = true;
     }
+    function updateLighting(type, colorVec) {
+        viewerPass.material.uniforms[type].value.copy(colorVec);
+        needsUpdate = true;
+    }
+    function updateAO(settings) {
+        Object.assign(aoParams, settings);
+        updateProgram();
+    }
     function updateBounds(which, dim, value) {
         let bounds = marchPass.material.uniforms.bounds.value;
         if(which == 0) {
-            bounds[0][dim] = Math.min(value, bounds[1][dim]);
+            bounds[0][dim] = Math.min(value, bounds[1][dim] - 0.01);
         }
         else {
-            bounds[1][dim] = Math.max(value, bounds[0][dim] + 10);
+            bounds[1][dim] = Math.max(value, bounds[0][dim] + 0.01);
         }
         needsUpdate = true;
     }
@@ -124,6 +124,10 @@ export default function() {
     }
     let marchPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
+            time: {
+                type: 'f',
+                value: 0.
+            },
             bounds: {
                 type: 'v4v',
                 value: [
@@ -159,6 +163,7 @@ export default function() {
 
     let aoPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
+            time: marchPass.material.uniforms.time,
             invProjMat: marchPass.material.uniforms.invProjMat,
             cameraMat: marchPass.material.uniforms.cameraMat,
             surfaceData: {
@@ -166,7 +171,7 @@ export default function() {
                 value: marchPass.texTarget.t.texture
             }
         },
-        fragmentShader: raySphereDFAOShader(aoParams).replace("float distanceProgram;", editor.getValue())
+        fragmentShader: raySphereLightingShader(aoParams).replace("float distanceProgram;", editor.getValue())
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     let viewerPass = new stuff.gl.ComputeShaderPass({
@@ -180,17 +185,23 @@ export default function() {
                 value: aoPass.texTarget.t.texture
             },
             ambient: {
-                type: 'f',
-                value: 1
+                type: 'v3',
+                value: new T.Vector3(0.9, 0.9, 0.9)
+            },
+            background: {
+                type: 'v3',
+                value: new T.Vector3(0.8, 0.8, 0.8)
             }
         },
         fragmentShader: `
             varying vec2 vUv;
             uniform sampler2D surfaceData;
             uniform sampler2D ao;
-            uniform float ambient;
+            uniform vec3 ambient;
+            uniform vec3 background;
 
             void main() {
+                gl_FragColor = vec4(background, 1.);
                 vec4 color = texture2D(surfaceData, vUv);
                 vec4 occlusion = texture2D(ao, vUv);
                 if(color.a != -1.) {
@@ -219,7 +230,7 @@ export default function() {
         }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
         marchPass.material.needsUpdate = true;
 
-        aoPass.material.fragmentShader = raySphereDFAOShader(aoParams).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        aoPass.material.fragmentShader = raySphereLightingShader(aoParams).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
         aoPass.material.needsUpdate = true;
         needsUpdate = true;
     }
@@ -247,57 +258,55 @@ export default function() {
         if($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
             resize();
         }
-        if(needsUpdate) {
-            needsUpdate = false;
-            marchPass.execute();
+        marchPass.material.uniforms.time.value = new Date() - start;
+        marchPass.execute();
 
-            //TODO: Move this into stuff.js
-            let diagnostics = marchPass.material.program.diagnostics;
-            if(diagnostics) {
-                let log = diagnostics.fragmentShader.log;
-                if(log.indexOf('ERROR') != -1) {
-                    let prefixLines = diagnostics.fragmentShader.prefix.split('\n');
-                    let lines = marchPass.material.fragmentShader.split('\n');
+        //TODO: Move this into stuff.js
+        let diagnostics = marchPass.material.program.diagnostics;
+        if(diagnostics) {
+            let log = diagnostics.fragmentShader.log;
+            if(log.indexOf('ERROR') != -1) {
+                let prefixLines = diagnostics.fragmentShader.prefix.split('\n');
+                let lines = marchPass.material.fragmentShader.split('\n');
 
-                    //Find the start of the distance program.
-                    let i;
-                    for(i = 0; i < lines.length; ++i) {
-                        if(lines[i] == '//FIRSTLINE') {
-                            break;
-                        }
+                //Find the start of the distance program.
+                let i;
+                for(i = 0; i < lines.length; ++i) {
+                    if(lines[i] == '//FIRSTLINE') {
+                        break;
                     }
-                    i += prefixLines.length;
+                }
+                i += prefixLines.length;
 
-                    let annotations = [];
-                    //Parse the error.
-                    for(let error of log.split('\n')) {
-                        if(!error || error.indexOf('ERROR') == -1) {
-                            break;
-                        }
-                        let [column, row, code, text] = error.substring(7).split(':');
-                        column = parseInt(column);
-                        row = parseInt(row);
-                        row -= i + 1;
+                let annotations = [];
+                //Parse the error.
+                for(let error of log.split('\n')) {
+                    if(!error || error.indexOf('ERROR') == -1) {
+                        break;
+                    }
+                    let [column, row, code, text] = error.substring(7).split(':');
+                    column = parseInt(column);
+                    row = parseInt(row);
+                    row -= i + 1;
+                    annotations.push({
+                        row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column,
+                        text: code + ':' + text,
+                        type: "error"
+                    });
+                    if(row < 0 || row >= editor.session.getLength()) {
                         annotations.push({
-                            row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column,
-                            text: code + ':' + text,
+                            row: editor.session.getLength() - 1, 
+                            column: 0,
+                            text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
                             type: "error"
                         });
-                        if(row < 0 || row >= editor.session.getLength()) {
-                            annotations.push({
-                                row: editor.session.getLength() - 1, 
-                                column: 0,
-                                text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
-                                type: "error"
-                            });
-                        }
                     }
-                    editor.session.setAnnotations(annotations);
                 }
+                editor.session.setAnnotations(annotations);
             }
-            aoPass.execute();
-            viewerPass.execute(true);
         }
+        aoPass.execute();
+        viewerPass.execute(true);
         requestAnimationFrame(draw);
     }
     requestAnimationFrame(draw);
@@ -416,6 +425,70 @@ export default function() {
             }
         }
     });
+
+    ReactDOM.render(<Settings 
+         boundingBox={marchPass.material.uniforms.bounds.value}
+         camera={camera} 
+         onChangeBounds={updateBounds}
+         onChangeFov={updateCameraFov}/>,
+    $("#settings-container")[0]);
+
+    ReactDOM.render(<Lighting
+         aoParams={aoParams}
+         lightingParams={viewerPass.material.uniforms}
+         onUpdateLighting={updateLighting}
+         onUpdateAO={updateAO}/>,
+    $("#lighting-container")[0]);
+}
+
+class Lighting extends React.Component {
+    constructor(props) {
+        super(props);
+        this.changeAOSamples = function(e) {
+            this.props.onUpdateAO({
+                nSamples: e.target.value
+            });
+            this.forceUpdate();
+        }.bind(this);
+        this.changeAODistance = function(e) {
+            this.props.onUpdateAO({
+                sampleDistance: e.target.value
+            });
+            this.forceUpdate();
+        }.bind(this);
+        this.changeLighting = function(which, color, e) {
+            this.props.onUpdateLighting(which, new T.Vector3(
+                color.rgb.r / 255,
+                color.rgb.g / 255,
+                color.rgb.b / 255
+            ));
+        }.bind(this);
+    }
+    render() {
+        let ambientColor = this.props.lightingParams.ambient.value;
+        ambientColor = { r: ambientColor.x * 255, g: ambientColor.y * 255, b: ambientColor.z * 255 };
+
+        let bgColor = this.props.lightingParams.background.value;
+        bgColor = { r: bgColor.x * 255, g: bgColor.y * 255, b: bgColor.z * 255 };
+        return (
+            <div>
+                <p>Ambient Occlusion</p>
+                <div className="mdc-typography--caption">Number of samples ({this.props.aoParams.nSamples.toLocaleString()})</div>
+                <Slider discrete step="1" value={this.props.aoParams.nSamples} min={0} max={20} onChange={this.changeAOSamples}/>
+                <div className="mdc-typography--caption">Distance ({this.props.aoParams.sampleDistance.toFixed(2)})</div>
+                <Slider step={0.01} value={this.props.aoParams.sampleDistance} min={0.05} max={2} onChange={this.changeAODistance}/>
+                <p>Lighting</p>
+                <div style={{ display: 'inline-block', marginRight: 10 }}>
+                    <div className="mdc-typography--caption">Ambient</div>
+                    <ChromePicker color={ambientColor} onChange={this.changeLighting.bind(null, 'ambient')}/>
+                </div>
+                <div style={{ display: 'inline-block', marginRight: 10 }}>
+                    <div className="mdc-typography--caption">Background</div>
+                    <ChromePicker color={bgColor} onChange={this.changeLighting.bind(null, 'background')}/>
+                </div>
+            </div>
+        );
+    }
 }
 
 class Settings extends React.Component {
@@ -436,28 +509,28 @@ class Settings extends React.Component {
             <div>
                 <div className="mdc-typography--caption"><em>Waiting on official support for ranged sliders, so two sliders for now :/</em></div>
                 <p>Camera</p>
-                <div className="mdc-typography--caption">FOV</div>
-                <Slider displayMarkers discrete step="1" value={this.props.camera.fov} min={30} max={120} onChange={this.changeFov}/>
+                <div className="mdc-typography--caption">FOV ({this.props.camera.fov.toLocaleString()})</div>
+                <Slider discrete step="1" value={this.props.camera.fov} min={30} max={120} onChange={this.changeFov}/>
 
                 <p>Scene</p>
                 <div className="mdc-typography--caption">Bounding Box</div>
-                <p>x: <strong>{this.props.boundingBox[0].x.toFixed(1)}, {this.props.boundingBox[1].x.toFixed(1)}</strong></p>
+                <p>x: <strong>{this.props.boundingBox[0].x.toFixed(2)}, {this.props.boundingBox[1].x.toFixed(2)}</strong></p>
                 <div dir="rtl">
-                    <Slider step="0.5" value={-this.props.boundingBox[0].x} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'x')}/>
+                    <Slider step="0.01" value={-this.props.boundingBox[0].x} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'x')}/>
                 </div>
-                <Slider step="0.5" value={this.props.boundingBox[1].x} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'x')}/>
+                <Slider step="0.01" value={this.props.boundingBox[1].x} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'x')}/>
 
-                <p>y: <strong>{this.props.boundingBox[0].y.toFixed(1)}, {this.props.boundingBox[1].y.toFixed(1)}</strong></p>
+                <p>y: <strong>{this.props.boundingBox[0].y.toFixed(2)}, {this.props.boundingBox[1].y.toFixed(2)}</strong></p>
                 <div dir="rtl">
-                    <Slider step="0.5" value={-this.props.boundingBox[0].y} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'y')}/>
+                    <Slider step="0.01" value={-this.props.boundingBox[0].y} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'y')}/>
                 </div>
-                <Slider step="0.5" value={this.props.boundingBox[1].y} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'y')}/>
+                <Slider step="0.01" value={this.props.boundingBox[1].y} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'y')}/>
 
-                <p>z: <strong>{this.props.boundingBox[0].z.toFixed(1)}, {this.props.boundingBox[1].z.toFixed(1)}</strong></p>
+                <p>z: <strong>{this.props.boundingBox[0].z.toFixed(2)}, {this.props.boundingBox[1].z.toFixed(2)}</strong></p>
                 <div dir="rtl">
-                    <Slider step="0.5" value={-this.props.boundingBox[0].z} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'z')}/>
+                    <Slider step="0.01" value={-this.props.boundingBox[0].z} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'z')}/>
                 </div>
-                <Slider step="0.5" value={this.props.boundingBox[1].z} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'z')}/>
+                <Slider step="0.01" value={this.props.boundingBox[1].z} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'z')}/>
             </div>
         );
     }

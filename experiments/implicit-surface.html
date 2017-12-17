@@ -4,15 +4,17 @@ title: Implicit Surface Rendering Experiment
 startscript: App.pages.ImplicitSurfacePage()
 header: |
     <style>
+        header {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
         .content-container {
             overflow-x: hidden;
             overflow-y: auto;
-            height: calc(75vh - 220px);
+            height: calc(75vh - 175px);
         }
         #editor-container {
             overflow-y: hidden;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         body {
             overflow: hidden;
@@ -27,11 +29,8 @@ header: |
         .bottom-sheet header {
             height: 64px !important;
         }
-        .ace-dracula {
-            background-color: transparent !important;
-        }
         .bottom-sheet {
-            background: #111117;
+            background: #131313;
             position: fixed;
             bottom: 0;
             width: 100%;
@@ -67,22 +66,24 @@ header: |
             </section>
             <section class="mdc-toolbar__section mdc-toolbar__section--align-end">
                 <div>
-                    <span id="code-tab-bar" class="mdc-tab-bar mdc-tab-bar--icon-tab-bar">
-                        <a class="mdc-tab" href="implicit-surface-help.html" aria-controls="help" target="_blank">
+                    <span id="code-tab-bar" class="mdc-tab-bar mdc-tab-bar--icon-with-text">
+                        <a class="mdc-tab mdc-tab--with-icon-and-text" href="implicit-surface-help.html" aria-controls="help" target="_blank">
                             <i class="material-icons mdc-tab__icon">
                                 help_outline
                             </i>
+                            <span class="mdc-tab__icon-text">Quick help / Reference</span>
                         </a>
-                        <a class="mdc-tab mdc-tab--active" href="#code" aria-controls="code">
-                            <i class="material-icons mdc-tab__icon" aria-label="Recents">code</i>
+                        <a class="mdc-tab mdc-tab--with-icon-and-text mdc-tab--active" href="#lighting" aria-controls="lighting">
+                            <i class="material-icons mdc-tab__icon" aria-label="light settings">brightness_medium</i>
+                            <span class="mdc-tab__icon-text">Lighting</span>
                         </a>
-                        <!--
-                        <a class="mdc-tab" href="#materials" aria-controls="materials">
-                            <i class="material-icons mdc-tab__icon" aria-label="Recents">tonality</i>
+                        <a class="mdc-tab mdc-tab--with-icon-and-text" href="#code" aria-controls="code">
+                            <i class="material-icons mdc-tab__icon" aria-label="code">code</i>
+                            <span class="mdc-tab__icon-text">Signed Distance Function</span>
                         </a>
-                        -->
-                        <a class="mdc-tab" href="#settings" aria-controls="settings">
-                            <i class="material-icons mdc-tab__icon" aria-label="Recents">settings</i>
+                        <a class="mdc-tab mdc-tab--with-icon-and-text" href="#settings" aria-controls="settings">
+                            <i class="material-icons mdc-tab__icon" aria-label="settings">settings</i>
+                            <span class="mdc-tab__icon-text">Settings</span>
                         </a>
                         <span class="mdc-tab-bar__indicator"></span>
                     </span>
@@ -91,17 +92,16 @@ header: |
         </div>
     </header>
     <section class="panels mdc-theme--dark">
-        <div id="code" class="panel active" role="tabpanel" aria-hidden="false">
-            <div style="padding: 0 25px" class="mdc-typography--title mdc-typography--adjust-margin">Signed Distance Function</div>
+        <div id="code" class="panel" role="tabpanel" aria-hidden="false">
             <section id="editor-container" class="content-container">
                 <div id="editor"></div>
             </section>
         </div>
         <div id="settings" class="panel" role="tabpanel" aria-hidden="false">
-            <div style="padding: 0 25px" class="mdc-typography--title mdc-typography--adjust-margin">
-                Settings
-            </div>
             <section style="padding: 0 25px" id="settings-container" class="content-container"></section>
+        </div>
+        <div id="lighting" class="panel active" role="tabpanel" aria-hidden="false">
+            <section style="padding: 0 25px" id="lighting-container" class="content-container"></section>
         </div>
     </section>
 </div>
