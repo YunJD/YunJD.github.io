@@ -7,7 +7,7 @@ title: Implicit Surface Rendering Experiment - Quick Help / Reference
 ## Keyboard shortcuts
 
 {:.shortcuts-table}
-| **Escape** | Open bottom sheet |
+| **Shift+Escape** | Open bottom sheet |
 | **Ctrl+Enter** | Compile SDF shader when bottom sheet is open |
 
 ## CSG

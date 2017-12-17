@@ -61,7 +61,7 @@ var App =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 96);
+/******/ 	return __webpack_require__(__webpack_require__.s = 97);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -348,7 +348,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 var _prodInvariant = __webpack_require__(2);
 
 var DOMProperty = __webpack_require__(17);
-var ReactDOMComponentFlags = __webpack_require__(68);
+var ReactDOMComponentFlags = __webpack_require__(69);
 
 var invariant = __webpack_require__(0);
 
@@ -664,9 +664,9 @@ module.exports = { debugTool: debugTool };
 var _prodInvariant = __webpack_require__(2),
     _assign = __webpack_require__(3);
 
-var CallbackQueue = __webpack_require__(72);
+var CallbackQueue = __webpack_require__(73);
 var PooledClass = __webpack_require__(12);
-var ReactFeatureFlags = __webpack_require__(73);
+var ReactFeatureFlags = __webpack_require__(74);
 var ReactReconciler = __webpack_require__(18);
 var Transaction = __webpack_require__(29);
 
@@ -1413,7 +1413,7 @@ class MDCFoundation {
 
 var _assign = __webpack_require__(3);
 
-var ReactBaseClasses = __webpack_require__(61);
+var ReactBaseClasses = __webpack_require__(62);
 var ReactChildren = __webpack_require__(125);
 var ReactDOMFactories = __webpack_require__(130);
 var ReactElement = __webpack_require__(15);
@@ -1551,10 +1551,10 @@ var _assign = __webpack_require__(3);
 var ReactCurrentOwner = __webpack_require__(10);
 
 var warning = __webpack_require__(1);
-var canDefineProperty = __webpack_require__(63);
+var canDefineProperty = __webpack_require__(64);
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 
-var REACT_ELEMENT_TYPE = __webpack_require__(64);
+var REACT_ELEMENT_TYPE = __webpack_require__(65);
 
 var RESERVED_PROPS = {
   key: true,
@@ -2330,7 +2330,7 @@ var DOMNamespaces = __webpack_require__(45);
 var setInnerHTML = __webpack_require__(31);
 
 var createMicrosoftUnsafeLocalFunction = __webpack_require__(46);
-var setTextContent = __webpack_require__(77);
+var setTextContent = __webpack_require__(78);
 
 var ELEMENT_NODE_TYPE = 1;
 var DOCUMENT_FRAGMENT_NODE_TYPE = 11;
@@ -2625,8 +2625,8 @@ module.exports = reactProdInvariant;
 var EventPluginHub = __webpack_require__(23);
 var EventPluginUtils = __webpack_require__(39);
 
-var accumulateInto = __webpack_require__(69);
-var forEachAccumulated = __webpack_require__(70);
+var accumulateInto = __webpack_require__(70);
+var forEachAccumulated = __webpack_require__(71);
 var warning = __webpack_require__(1);
 
 var getListener = EventPluginHub.getListener;
@@ -2765,8 +2765,8 @@ var EventPluginRegistry = __webpack_require__(38);
 var EventPluginUtils = __webpack_require__(39);
 var ReactErrorUtils = __webpack_require__(40);
 
-var accumulateInto = __webpack_require__(69);
-var forEachAccumulated = __webpack_require__(70);
+var accumulateInto = __webpack_require__(70);
+var forEachAccumulated = __webpack_require__(71);
 var invariant = __webpack_require__(0);
 
 /**
@@ -3198,7 +3198,7 @@ Object.defineProperty(exports, 'withRipple', {
   }
 });
 
-var _withTheme = __webpack_require__(67);
+var _withTheme = __webpack_require__(68);
 
 Object.defineProperty(exports, 'withTheme', {
   enumerable: true,
@@ -3207,7 +3207,7 @@ Object.defineProperty(exports, 'withTheme', {
   }
 });
 
-var _withMDC = __webpack_require__(94);
+var _withMDC = __webpack_require__(95);
 
 Object.defineProperty(exports, 'withMDC', {
   enumerable: true,
@@ -3491,7 +3491,7 @@ module.exports = TransactionImpl;
 
 
 var SyntheticUIEvent = __webpack_require__(24);
-var ViewportMetrics = __webpack_require__(76);
+var ViewportMetrics = __webpack_require__(77);
 
 var getEventModifierState = __webpack_require__(43);
 
@@ -3795,7 +3795,7 @@ var _assign = __webpack_require__(3);
 
 var EventPluginRegistry = __webpack_require__(38);
 var ReactEventEmitterMixin = __webpack_require__(171);
-var ViewportMetrics = __webpack_require__(76);
+var ViewportMetrics = __webpack_require__(77);
 
 var getVendorPrefixedEventName = __webpack_require__(172);
 var isEventSupported = __webpack_require__(42);
@@ -48352,13 +48352,13 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _snackbar = __webpack_require__(101);
+var _snackbar = __webpack_require__(102);
 
-var _gl = __webpack_require__(104);
+var _gl = __webpack_require__(105);
 
 var gl = _interopRequireWildcard(_gl);
 
-var _mt = __webpack_require__(107);
+var _mt = __webpack_require__(108);
 
 var _mt2 = _interopRequireDefault(_mt);
 
@@ -49275,7 +49275,7 @@ var ReactInstrumentation = __webpack_require__(8);
 
 var createMicrosoftUnsafeLocalFunction = __webpack_require__(46);
 var setInnerHTML = __webpack_require__(31);
-var setTextContent = __webpack_require__(77);
+var setTextContent = __webpack_require__(78);
 
 function getNodeAfter(parentNode, node) {
   // Special case for text components, which return [open, close] comments
@@ -49558,7 +49558,7 @@ module.exports = createMicrosoftUnsafeLocalFunction;
 var _prodInvariant = __webpack_require__(2);
 
 var ReactPropTypesSecret = __webpack_require__(174);
-var propTypesFactory = __webpack_require__(65);
+var propTypesFactory = __webpack_require__(66);
 
 var React = __webpack_require__(14);
 var PropTypes = propTypesFactory(React.isValidElement);
@@ -50608,8 +50608,8 @@ module.exports = getEventCharCode;
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_component__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__material_ripple__ = __webpack_require__(114);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(59);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__material_ripple__ = __webpack_require__(57);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(60);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__foundation__ = __webpack_require__(117);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_3__foundation__["a"]; });
 /**
@@ -50668,7 +50668,7 @@ class MDCTab extends __WEBPACK_IMPORTED_MODULE_0__material_base_component__["a" 
   constructor(...args) {
     super(...args);
 
-    this.ripple_ = __WEBPACK_IMPORTED_MODULE_1__material_ripple__["a" /* MDCRipple */].attachTo(this.root_);
+    this.ripple_ = __WEBPACK_IMPORTED_MODULE_1__material_ripple__["MDCRipple"].attachTo(this.root_);
   }
 
   destroy() {
@@ -50702,6 +50702,159 @@ class MDCTab extends __WEBPACK_IMPORTED_MODULE_0__material_base_component__["a" 
 
 /***/ }),
 /* 57 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MDCRipple", function() { return MDCRipple; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_component__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adapter__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__foundation__ = __webpack_require__(115);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__util__ = __webpack_require__(59);
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCRippleFoundation", function() { return __WEBPACK_IMPORTED_MODULE_2__foundation__["a"]; });
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "util", function() { return __WEBPACK_IMPORTED_MODULE_3__util__; });
+/**
+ * @license
+ * Copyright 2016 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+
+
+
+/**
+ * @extends MDCComponent<!MDCRippleFoundation>
+ */
+class MDCRipple extends __WEBPACK_IMPORTED_MODULE_0__material_base_component__["a" /* default */] {
+  /** @param {...?} args */
+  constructor(...args) {
+    super(...args);
+
+    /** @type {boolean} */
+    this.disabled = false;
+
+    /** @private {boolean} */
+    this.unbounded_;
+  }
+
+  /**
+   * @param {!Element} root
+   * @param {{isUnbounded: (boolean|undefined)}=} options
+   * @return {!MDCRipple}
+   */
+  static attachTo(root, {isUnbounded = undefined} = {}) {
+    const ripple = new MDCRipple(root);
+    // Only override unbounded behavior if option is explicitly specified
+    if (isUnbounded !== undefined) {
+      ripple.unbounded = /** @type {boolean} */ (isUnbounded);
+    }
+    return ripple;
+  }
+
+  /**
+   * @param {!RippleCapableSurface} instance
+   * @return {!MDCRippleAdapter}
+   */
+  static createAdapter(instance) {
+    const MATCHES = __WEBPACK_IMPORTED_MODULE_3__util__["getMatchesProperty"](HTMLElement.prototype);
+
+    return {
+      browserSupportsCssVars: () => __WEBPACK_IMPORTED_MODULE_3__util__["supportsCssVariables"](window),
+      isUnbounded: () => instance.unbounded,
+      isSurfaceActive: () => instance.root_[MATCHES](':active'),
+      isSurfaceDisabled: () => instance.disabled,
+      addClass: (className) => instance.root_.classList.add(className),
+      removeClass: (className) => instance.root_.classList.remove(className),
+      registerInteractionHandler: (evtType, handler) =>
+        instance.root_.addEventListener(evtType, handler, __WEBPACK_IMPORTED_MODULE_3__util__["applyPassive"]()),
+      deregisterInteractionHandler: (evtType, handler) =>
+        instance.root_.removeEventListener(evtType, handler, __WEBPACK_IMPORTED_MODULE_3__util__["applyPassive"]()),
+      registerResizeHandler: (handler) => window.addEventListener('resize', handler),
+      deregisterResizeHandler: (handler) => window.removeEventListener('resize', handler),
+      updateCssVariable: (varName, value) => instance.root_.style.setProperty(varName, value),
+      computeBoundingRect: () => instance.root_.getBoundingClientRect(),
+      getWindowPageOffset: () => ({x: window.pageXOffset, y: window.pageYOffset}),
+    };
+  }
+
+  /** @return {boolean} */
+  get unbounded() {
+    return this.unbounded_;
+  }
+
+  /** @param {boolean} unbounded */
+  set unbounded(unbounded) {
+    const {UNBOUNDED} = __WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */].cssClasses;
+    this.unbounded_ = Boolean(unbounded);
+    if (this.unbounded_) {
+      this.root_.classList.add(UNBOUNDED);
+    } else {
+      this.root_.classList.remove(UNBOUNDED);
+    }
+  }
+
+  activate() {
+    this.foundation_.activate();
+  }
+
+  deactivate() {
+    this.foundation_.deactivate();
+  }
+
+  layout() {
+    this.foundation_.layout();
+  }
+
+  /** @return {!MDCRippleFoundation} */
+  getDefaultFoundation() {
+    return new __WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */](MDCRipple.createAdapter(this));
+  }
+
+  initialSyncWithDOM() {
+    this.unbounded = 'mdcRippleIsUnbounded' in this.root_.dataset;
+  }
+}
+
+/**
+ * See Material Design spec for more details on when to use ripples.
+ * https://material.io/guidelines/motion/choreography.html#choreography-creation
+ * @record
+ */
+class RippleCapableSurface {}
+
+/** @protected {!Element} */
+RippleCapableSurface.prototype.root_;
+
+/**
+ * Whether or not the ripple bleeds out of the bounds of the element.
+ * @type {boolean|undefined}
+ */
+RippleCapableSurface.prototype.unbounded;
+
+/**
+ * Whether or not the ripple is attached to a disabled component.
+ * @type {boolean|undefined}
+ */
+RippleCapableSurface.prototype.disabled;
+
+
+
+
+/***/ }),
+/* 58 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -50803,14 +50956,15 @@ class MDCRippleAdapter {
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return supportsCssVariables; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return applyPassive; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return getMatchesProperty; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return getNormalizedEventCoords; });
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "supportsCssVariables", function() { return supportsCssVariables; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "applyPassive", function() { return applyPassive; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getMatchesProperty", function() { return getMatchesProperty; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getNormalizedEventCoords", function() { return getNormalizedEventCoords; });
 /**
  * @license
  * Copyright 2016 Google Inc. All Rights Reserved.
@@ -50955,7 +51109,7 @@ function getNormalizedEventCoords(ev, pageOffset, clientRect) {
 
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -50989,7 +51143,7 @@ const strings = {
 
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -51110,7 +51264,7 @@ class MDCTabBar extends __WEBPACK_IMPORTED_MODULE_0__material_base_component__["
 
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51127,9 +51281,9 @@ class MDCTabBar extends __WEBPACK_IMPORTED_MODULE_0__material_base_component__["
 var _prodInvariant = __webpack_require__(21),
     _assign = __webpack_require__(3);
 
-var ReactNoopUpdateQueue = __webpack_require__(62);
+var ReactNoopUpdateQueue = __webpack_require__(63);
 
-var canDefineProperty = __webpack_require__(63);
+var canDefineProperty = __webpack_require__(64);
 var emptyObject = __webpack_require__(26);
 var invariant = __webpack_require__(0);
 var lowPriorityWarning = __webpack_require__(124);
@@ -51256,7 +51410,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51354,7 +51508,7 @@ var ReactNoopUpdateQueue = {
 module.exports = ReactNoopUpdateQueue;
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51383,7 +51537,7 @@ if (false) {
 module.exports = canDefineProperty;
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51406,7 +51560,7 @@ var REACT_ELEMENT_TYPE = typeof Symbol === 'function' && Symbol['for'] && Symbol
 module.exports = REACT_ELEMENT_TYPE;
 
 /***/ }),
-/* 65 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51432,7 +51586,7 @@ module.exports = function(isValidElement) {
 
 
 /***/ }),
-/* 66 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51451,7 +51605,7 @@ module.exports = ReactPropTypesSecret;
 
 
 /***/ }),
-/* 67 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51514,7 +51668,7 @@ exports.withTheme = withTheme;
 
 
 /***/ }),
-/* 68 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51535,7 +51689,7 @@ var ReactDOMComponentFlags = {
 module.exports = ReactDOMComponentFlags;
 
 /***/ }),
-/* 69 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51596,7 +51750,7 @@ function accumulateInto(current, next) {
 module.exports = accumulateInto;
 
 /***/ }),
-/* 70 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51630,7 +51784,7 @@ function forEachAccumulated(arr, cb, scope) {
 module.exports = forEachAccumulated;
 
 /***/ }),
-/* 71 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51666,7 +51820,7 @@ function getTextContentAccessor() {
 module.exports = getTextContentAccessor;
 
 /***/ }),
-/* 72 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51788,7 +51942,7 @@ var CallbackQueue = function () {
 module.exports = PooledClass.addPoolingTo(CallbackQueue);
 
 /***/ }),
-/* 73 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51813,7 +51967,7 @@ var ReactFeatureFlags = {
 module.exports = ReactFeatureFlags;
 
 /***/ }),
-/* 74 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51939,7 +52093,7 @@ var inputValueTracking = {
 module.exports = inputValueTracking;
 
 /***/ }),
-/* 75 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -51993,7 +52147,7 @@ function isTextInputElement(elem) {
 module.exports = isTextInputElement;
 
 /***/ }),
-/* 76 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52021,7 +52175,7 @@ var ViewportMetrics = {
 module.exports = ViewportMetrics;
 
 /***/ }),
-/* 77 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52076,7 +52230,7 @@ if (ExecutionEnvironment.canUseDOM) {
 module.exports = setTextContent;
 
 /***/ }),
-/* 78 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52106,7 +52260,7 @@ function focusNode(node) {
 module.exports = focusNode;
 
 /***/ }),
-/* 79 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52264,7 +52418,7 @@ var CSSProperty = {
 module.exports = CSSProperty;
 
 /***/ }),
-/* 80 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52502,7 +52656,7 @@ var DOMPropertyOperations = {
 module.exports = DOMPropertyOperations;
 
 /***/ }),
-/* 81 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52705,7 +52859,7 @@ function _handleChange(event) {
 module.exports = ReactDOMSelect;
 
 /***/ }),
-/* 82 */
+/* 83 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -52895,7 +53049,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 83 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -52913,8 +53067,8 @@ var _prodInvariant = __webpack_require__(2),
     _assign = __webpack_require__(3);
 
 var ReactCompositeComponent = __webpack_require__(179);
-var ReactEmptyComponent = __webpack_require__(85);
-var ReactHostComponent = __webpack_require__(86);
+var ReactEmptyComponent = __webpack_require__(86);
+var ReactHostComponent = __webpack_require__(87);
 
 var getNextDebugID = __webpack_require__(180);
 var invariant = __webpack_require__(0);
@@ -53027,7 +53181,7 @@ _assign(ReactCompositeComponentWrapper.prototype, ReactCompositeComponent, {
 module.exports = instantiateReactComponent;
 
 /***/ }),
-/* 84 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53070,7 +53224,7 @@ var ReactNodeTypes = {
 module.exports = ReactNodeTypes;
 
 /***/ }),
-/* 85 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53103,7 +53257,7 @@ ReactEmptyComponent.injection = ReactEmptyComponentInjection;
 module.exports = ReactEmptyComponent;
 
 /***/ }),
-/* 86 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53174,7 +53328,7 @@ var ReactHostComponent = {
 module.exports = ReactHostComponent;
 
 /***/ }),
-/* 87 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53353,7 +53507,7 @@ function traverseAllChildren(children, callback, traverseContext) {
 module.exports = traverseAllChildren;
 
 /***/ }),
-/* 88 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53735,7 +53889,7 @@ var ReactComponentTreeHook = {
 module.exports = ReactComponentTreeHook;
 
 /***/ }),
-/* 89 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53815,7 +53969,7 @@ var EventListener = {
 module.exports = EventListener;
 
 /***/ }),
-/* 90 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53832,8 +53986,8 @@ module.exports = EventListener;
 var ReactDOMSelection = __webpack_require__(194);
 
 var containsNode = __webpack_require__(196);
-var focusNode = __webpack_require__(78);
-var getActiveElement = __webpack_require__(91);
+var focusNode = __webpack_require__(79);
+var getActiveElement = __webpack_require__(92);
 
 function isInDocument(node) {
   return containsNode(document.documentElement, node);
@@ -53941,7 +54095,7 @@ var ReactInputSelection = {
 module.exports = ReactInputSelection;
 
 /***/ }),
-/* 91 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -53983,7 +54137,7 @@ function getActiveElement(doc) /*?DOMElement*/{
 module.exports = getActiveElement;
 
 /***/ }),
-/* 92 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54007,7 +54161,7 @@ var ReactCurrentOwner = __webpack_require__(10);
 var ReactDOMComponentTree = __webpack_require__(4);
 var ReactDOMContainerInfo = __webpack_require__(211);
 var ReactDOMFeatureFlags = __webpack_require__(212);
-var ReactFeatureFlags = __webpack_require__(73);
+var ReactFeatureFlags = __webpack_require__(74);
 var ReactInstanceMap = __webpack_require__(25);
 var ReactInstrumentation = __webpack_require__(8);
 var ReactMarkupChecksum = __webpack_require__(213);
@@ -54016,7 +54170,7 @@ var ReactUpdateQueue = __webpack_require__(52);
 var ReactUpdates = __webpack_require__(9);
 
 var emptyObject = __webpack_require__(26);
-var instantiateReactComponent = __webpack_require__(83);
+var instantiateReactComponent = __webpack_require__(84);
 var invariant = __webpack_require__(0);
 var setInnerHTML = __webpack_require__(31);
 var shouldUpdateReactComponent = __webpack_require__(50);
@@ -54524,7 +54678,7 @@ var ReactMount = {
 module.exports = ReactMount;
 
 /***/ }),
-/* 93 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54538,7 +54692,7 @@ module.exports = ReactMount;
 
 
 
-var ReactNodeTypes = __webpack_require__(84);
+var ReactNodeTypes = __webpack_require__(85);
 
 function getHostComponentFromComposite(inst) {
   var type;
@@ -54557,7 +54711,7 @@ function getHostComponentFromComposite(inst) {
 module.exports = getHostComponentFromComposite;
 
 /***/ }),
-/* 94 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54770,7 +54924,7 @@ exports.withMDC = withMDC;
 
 
 /***/ }),
-/* 95 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -54804,7 +54958,7 @@ if (false) {
 
 
 /***/ }),
-/* 96 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -54815,7 +54969,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.pages = undefined;
 
-var _pages = __webpack_require__(97);
+var _pages = __webpack_require__(98);
 
 var pages = _interopRequireWildcard(_pages);
 
@@ -54832,55 +54986,6 @@ exports.pages = pages; //Roundabout way to export all page functions into the ou
 _stuff2.default.mdc.init();
 
 /***/ }),
-/* 97 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _gallery = __webpack_require__(98);
-
-Object.defineProperty(exports, 'GalleryPage', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_gallery).default;
-  }
-});
-
-var _mandelbrot = __webpack_require__(99);
-
-Object.defineProperty(exports, 'MandelbrotPage', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_mandelbrot).default;
-  }
-});
-
-var _buddhabrot = __webpack_require__(100);
-
-Object.defineProperty(exports, 'BuddhabrotPage', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_buddhabrot).default;
-  }
-});
-
-var _implicit_surface = __webpack_require__(112);
-
-Object.defineProperty(exports, 'ImplicitSurfacePage', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_implicit_surface).default;
-  }
-});
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/***/ }),
 /* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -54891,7 +54996,43 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-exports.default = function () {};
+var _gallery = __webpack_require__(99);
+
+Object.defineProperty(exports, 'GalleryPage', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_gallery).default;
+  }
+});
+
+var _mandelbrot = __webpack_require__(100);
+
+Object.defineProperty(exports, 'MandelbrotPage', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_mandelbrot).default;
+  }
+});
+
+var _buddhabrot = __webpack_require__(101);
+
+Object.defineProperty(exports, 'BuddhabrotPage', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_buddhabrot).default;
+  }
+});
+
+var _implicit_surface = __webpack_require__(113);
+
+Object.defineProperty(exports, 'ImplicitSurfacePage', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_implicit_surface).default;
+  }
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ }),
 /* 99 */
@@ -54908,6 +55049,19 @@ exports.default = function () {};
 
 /***/ }),
 /* 100 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function () {};
+
+/***/ }),
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55185,19 +55339,19 @@ var _stuff = __webpack_require__(35);
 
 var _stuff2 = _interopRequireDefault(_stuff);
 
-var _mandelbrot = __webpack_require__(108);
+var _mandelbrot = __webpack_require__(109);
 
 var _mandelbrot2 = _interopRequireDefault(_mandelbrot);
 
-var _sampleMandelbrotEscape = __webpack_require__(109);
+var _sampleMandelbrotEscape = __webpack_require__(110);
 
 var _sampleMandelbrotEscape2 = _interopRequireDefault(_sampleMandelbrotEscape);
 
-var _mandelbrotStep = __webpack_require__(110);
+var _mandelbrotStep = __webpack_require__(111);
 
 var _mandelbrotStep2 = _interopRequireDefault(_mandelbrotStep);
 
-var _mersenneTwister = __webpack_require__(111);
+var _mersenneTwister = __webpack_require__(112);
 
 var _mersenneTwister2 = _interopRequireDefault(_mersenneTwister);
 
@@ -55482,13 +55636,13 @@ function visualizeMandelbrotPdf(pdf) {
 }
 
 /***/ }),
-/* 101 */
+/* 102 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base__ = __webpack_require__(55);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__foundation__ = __webpack_require__(102);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__foundation__ = __webpack_require__(103);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__material_animation__ = __webpack_require__(36);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCSnackbarFoundation", function() { return __WEBPACK_IMPORTED_MODULE_1__foundation__["a"]; });
 /**
@@ -55572,12 +55726,12 @@ class MDCSnackbar extends __WEBPACK_IMPORTED_MODULE_0__material_base__["a" /* MD
 
 
 /***/ }),
-/* 102 */
+/* 103 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base__ = __webpack_require__(55);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(103);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(104);
 /**
  * Copyright 2016 Google Inc. All Rights Reserved.
  *
@@ -55825,7 +55979,7 @@ class MDCSnackbarFoundation extends __WEBPACK_IMPORTED_MODULE_0__material_base__
 
 
 /***/ }),
-/* 103 */
+/* 104 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -55872,7 +56026,7 @@ const numbers = {
 
 
 /***/ }),
-/* 104 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55882,7 +56036,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _ShaderComputePass = __webpack_require__(105);
+var _ShaderComputePass = __webpack_require__(106);
 
 Object.defineProperty(exports, 'ComputeShaderPass', {
   enumerable: true,
@@ -55894,7 +56048,7 @@ Object.defineProperty(exports, 'ComputeShaderPass', {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ }),
-/* 105 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -55910,7 +56064,7 @@ var _three = __webpack_require__(34);
 
 var T = _interopRequireWildcard(_three);
 
-var _compute_vertex = __webpack_require__(106);
+var _compute_vertex = __webpack_require__(107);
 
 var _compute_vertex2 = _interopRequireDefault(_compute_vertex);
 
@@ -56068,13 +56222,13 @@ var _class = function () {
 exports.default = _class;
 
 /***/ }),
-/* 106 */
+/* 107 */
 /***/ (function(module, exports) {
 
 module.exports=opts=>"varying vec2 vUv;\nvoid main() {\n\tvUv = uv;\n\tgl_Position = (projectionMatrix * modelViewMatrix) * vec4(position, 1.0);\n}\n";
 
 /***/ }),
-/* 107 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56285,7 +56439,7 @@ MersenneTwister.prototype.genrand_res53 = function () {
 exports.default = MersenneTwister;
 
 /***/ }),
-/* 108 */
+/* 109 */
 /***/ (function(module, exports) {
 
 module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_ITER "+
@@ -56310,7 +56464,7 @@ opts.MAX_ITER+".\n#define BAILOUT2 "+
 opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2D prev;\nuniform vec2 translate;\nuniform float scale;\nuniform float aspect;\nvarying vec2 vUv;\nvec2 coord() {\n\treturn ((((vUv * 2.) - 1.) * vec2(aspect, 1.)) * scale) + translate;\n}\nvoid main() {\n\tvec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n\tif (zPrev.a != 0.) {\n\t\tgl_FragColor = zPrev;\n\t\treturn ;\n\t}\n\tvec2 c = coord();\n\tvec2 z = zPrev.xy;\n\tfor (float i = 0.; i <= MAX_ITER; ++i) {\n\t\tif (cabs2(z) >= BAILOUT2) {\n\t\t\tgl_FragColor = vec4(c, zPrev.b + i, 1.);\n\t\t\treturn ;\n\t\t}\n\t\tz = cmul(z, z) + c;\n\t}\n\tgl_FragColor = vec4(z, zPrev.b + MAX_ITER, 0.);\n}\n";
 
 /***/ }),
-/* 109 */
+/* 110 */
 /***/ (function(module, exports) {
 
 module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_CHUNK "+
@@ -56335,7 +56489,7 @@ opts.MAX_CHUNK+".\n#define BAILOUT2 "+
 opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2D prev;\nuniform sampler2D samples;\nvarying vec2 vUv;\nvoid main() {\n\tvec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n\tif (zPrev.r != 0.) {\n\t\tgl_FragColor = zPrev;\n\t\treturn ;\n\t}\n\tvec4 s = texture2D(samples, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = zPrev.ba;\n\tfor (float i = 0.; i <= MAX_CHUNK; ++i) {\n\t\tz = cmul(z, z) + c;\n\t\tif (cabs2(z) >= BAILOUT2) {\n\t\t\tgl_FragColor = vec4(1., zPrev.g + i, z);\n\t\t\treturn ;\n\t\t}\n\t}\n\tgl_FragColor = vec4(0., zPrev.g + MAX_CHUNK, z);\n}\n";
 
 /***/ }),
-/* 110 */
+/* 111 */
 /***/ (function(module, exports) {
 
 module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_ITER "+
@@ -56360,7 +56514,7 @@ opts.MAX_ITER+".\n#define BAILOUT2 "+
 opts.BAILOUT2+".\nprecision highp float;\nuniform int clear;\nuniform sampler2D samples;\nuniform sampler2D prev;\nvarying vec2 vUv;\nvoid main() {\n\tif (clear == 1) {\n\t\tgl_FragColor = vec4(0.);\n\t\treturn ;\n\t}\n\tvec4 s = texture2D(samples, vUv);\n\tif (s.z == -1.) {\n\t\treturn ;\n\t}\n\tvec4 p = texture2D(prev, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = p.xy;\n\tif (((p.a == 1.) || (p.b > MAX_ITER)) || (cabs2(z) >= BAILOUT2)) {\n\t\tgl_FragColor = vec4(p.xyz, 1.);\n\t\treturn ;\n\t}\n\tgl_FragColor = vec4(cmul(z, z) + c, p.b + 1., 0.);\n}\n";
 
 /***/ }),
-/* 111 */
+/* 112 */
 /***/ (function(module, exports) {
 
 /*
@@ -56576,7 +56730,7 @@ module.exports = MersenneTwister;
 
 
 /***/ }),
-/* 112 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -56591,9 +56745,14 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 exports.default = function () {
+    var aoParams = {
+        sampleDistance: 0.29,
+        nSamples: 10
+    };
     var tabBar = _tabs.MDCTabBar.attachTo($('#code-tab-bar')[0]);
     //Blegh, there's no documentation on toolbar text links...what?
     tabBar.tabs[0].destroy();
+    _ripple.MDCRipple.attachTo($("#code-tab-bar").children()[0]);
 
     var fabTop = $("#fab-tune").offset().top;
     var fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
@@ -56621,11 +56780,14 @@ exports.default = function () {
     });
 
     var editor = ace.edit('editor');
+    editor.$blockScrolling = Infinity;
+    editor.setShowPrintMargin(false);
     editor.setOption('highlightActiveLine', false);
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
     editor.setValue(_sdf_snippets2.default, 1);
+    editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
         bindKey: {
@@ -56639,7 +56801,7 @@ exports.default = function () {
     var $viewParent = $('#view-container');
 
     var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
-    var camR = 400,
+    var camR = 1,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
     var origin = new T.Vector3(0., 0., 0.);
@@ -56671,7 +56833,7 @@ exports.default = function () {
         needsUpdate = true;
     }
     function zoom(amount) {
-        camR = T.Math.clamp(camR + amount, 0.2, 1500);
+        camR = T.Math.clamp(camR + amount, 0.01, 50);
         updateCamera();
     }
     function rotateTheta(amount) {
@@ -56691,16 +56853,16 @@ exports.default = function () {
         uniforms: {
             bounds: {
                 type: 'v4v',
-                value: [new T.Vector3(-400, -400, -400), new T.Vector3(400, 400, 400)]
+                value: [new T.Vector3(-5, -5, -5), new T.Vector3(5, 5, 5)]
             },
-            //Used to quit early.
+            //Used to quit early. Kinda useless.
             far: {
                 type: 'f',
                 value: 1e6
             },
             threshold: {
                 type: 'f',
-                value: 1e-2
+                value: 5e-5
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -56713,30 +56875,59 @@ exports.default = function () {
             }
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
-        fragmentShader: (0, _raySphereMarching2.default)().replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue())
+        fragmentShader: (0, _raySphereMarching2.default)({
+            maxSteps: 1000,
+            sdf: 'distance'
+        }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue())
     }, $viewParent.width(), $viewParent.height());
 
-    function updateProgram() {
-        editor.session.clearAnnotations();
-        marchPass.material.fragmentShader = (0, _raySphereMarching2.default)().replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
-        marchPass.material.needsUpdate = true;
-        needsUpdate = true;
-    }
+    var aoPass = new _stuff2.default.gl.ComputeShaderPass({
+        uniforms: {
+            invProjMat: marchPass.material.uniforms.invProjMat,
+            cameraMat: marchPass.material.uniforms.cameraMat,
+            surfaceData: {
+                type: 't',
+                value: marchPass.texTarget.t.texture
+            }
+        },
+        fragmentShader: (0, _raySphereDFAO2.default)(aoParams).replace("float distanceProgram;", editor.getValue())
+    }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
             surfaceData: {
                 type: 't',
                 value: marchPass.texTarget.t.texture
+            },
+            ao: {
+                type: 't',
+                value: aoPass.texTarget.t.texture
+            },
+            ambient: {
+                type: 'f',
+                value: 1
             }
         },
-        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n\n            void main() {\n                vec4 color = texture2D(surfaceData, vUv);\n                if(color.a != -1.) {\n                    if(color.a == -2.) {\n                        gl_FragColor = vec4(color.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = vec4(color.xyz, 1.);\n                    }\n                }\n            }\n        '
+        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D ao;\n            uniform float ambient;\n\n            void main() {\n                vec4 color = texture2D(surfaceData, vUv);\n                vec4 occlusion = texture2D(ao, vUv);\n                if(color.a != -1.) {\n                    if(color.a == -2.) {\n                        gl_FragColor = vec4(color.xyz, 1.);\n                    }\n                    else {\n                        //Fake the direction of the ambient light\n                        gl_FragColor = vec4(vec3(occlusion.x * ambient), 1.);\n                    }\n                }\n            }\n        '
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     var $view = $(viewerPass.renderer.domElement);
     $viewParent.append($view);
 
     var needsUpdate = true;
+
+    function updateProgram() {
+        editor.session.clearAnnotations();
+        marchPass.material.fragmentShader = (0, _raySphereMarching2.default)({
+            maxSteps: 1000,
+            sdf: 'distance'
+        }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        marchPass.material.needsUpdate = true;
+
+        aoPass.material.fragmentShader = (0, _raySphereDFAO2.default)(aoParams).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        aoPass.material.needsUpdate = true;
+        needsUpdate = true;
+    }
 
     function resize() {
         $("#editor").height($("#editor").parent().height());
@@ -56749,6 +56940,8 @@ exports.default = function () {
 
         marchPass.resize($viewParent.width(), $viewParent.height());
         marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
+
+        aoPass.resize($viewParent.width(), $viewParent.height());
 
         needsUpdate = true;
     }
@@ -56767,7 +56960,9 @@ exports.default = function () {
             if (diagnostics) {
                 var log = diagnostics.fragmentShader.log;
                 if (log.indexOf('ERROR') != -1) {
-                    var lines = (diagnostics.fragmentShader.prefix + marchPass.material.fragmentShader).split('\n');
+                    var prefixLines = diagnostics.fragmentShader.prefix.split('\n');
+                    var lines = marchPass.material.fragmentShader.split('\n');
+
                     //Find the start of the distance program.
                     var i = void 0;
                     for (i = 0; i < lines.length; ++i) {
@@ -56775,6 +56970,8 @@ exports.default = function () {
                             break;
                         }
                     }
+                    i += prefixLines.length;
+
                     var annotations = [];
                     //Parse the error.
                     var _iteratorNormalCompletion = true;
@@ -56798,12 +56995,20 @@ exports.default = function () {
 
                             column = parseInt(column);
                             row = parseInt(row);
-                            row -= i + 2;
+                            row -= i + 1;
                             annotations.push({
-                                row: row, column: column,
+                                row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column: column,
                                 text: code + ':' + text,
                                 type: "error"
                             });
+                            if (row < 0 || row >= editor.session.getLength()) {
+                                annotations.push({
+                                    row: editor.session.getLength() - 1,
+                                    column: 0,
+                                    text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
+                                    type: "error"
+                                });
+                            }
                         }
                     } catch (err) {
                         _didIteratorError = true;
@@ -56823,6 +57028,7 @@ exports.default = function () {
                     editor.session.setAnnotations(annotations);
                 }
             }
+            aoPass.execute();
             viewerPass.execute(true);
         }
         requestAnimationFrame(draw);
@@ -56890,37 +57096,40 @@ exports.default = function () {
             var scale = Math.sqrt(Math.pow(e.touches[0].pageX - e.touches[1].pageX, 2) + Math.pow(e.touches[0].pageY - e.touches[1].pageY, 2));
             var delta = scale - oldScale; //Positive means fingers moved apart, negative means fingers moved together.
             //Define 1 change 'unit' as the fingers moving half the minimum screen extent. Tweak after experimentation.
-            zoom(5 * Math.log(camR / 5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
+            zoom(Math.log(camR / 0.5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
         }
     });
     $view.on('mousewheel', function (e) {
         //Zoom slower as we paroach camR = 0;
-        zoom(5 * Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
+        zoom(Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
     });
 
+    var fabSwitchTimeout = void 0;
     $('#fab-tune').on('click', function () {
+        clearTimeout(fabSwitchTimeout);
         $(this).addClass('mdc-fab--exited');
         $viewParent.addClass('shrunk');
         $('#bottom-sheet').addClass('visible');
         //500ms delay while we wait for the bottom sheet to show up.
-        setTimeout(function () {
+        fabSwitchTimeout = setTimeout(function () {
             $("#fab-update").removeClass("mdc-fab--exited");
-        }, 500);
+        }, 250);
     });
     $("#close-bottom-sheet").on('click', function () {
+        clearTimeout(fabSwitchTimeout);
         $("#fab-update").addClass("mdc-fab--exited");
         $viewParent.removeClass('shrunk');
         $('#bottom-sheet').removeClass('visible');
-        setTimeout(function () {
+        fabSwitchTimeout = setTimeout(function () {
             return $("#fab-tune").removeClass("mdc-fab--exited");
-        }, 500);
+        }, 250);
     });
     $("#fab-update").on('click', updateProgram);
     $(window).on('keydown', function (e) {
         if (e.which == 13 && e.ctrlKey && $('#bottom-sheet').hasClass('visible')) {
             e.preventDefault();
             updateProgram();
-        } else if (e.which == 27) {
+        } else if (e.which == 27 && e.shiftKey) {
             e.preventDefault();
             if ($('#bottom-sheet').hasClass('visible')) {
                 $('#close-bottom-sheet').click();
@@ -56933,7 +57142,9 @@ exports.default = function () {
     });
 };
 
-var _tabs = __webpack_require__(113);
+var _tabs = __webpack_require__(114);
+
+var _ripple = __webpack_require__(57);
 
 var _TextField = __webpack_require__(123);
 
@@ -56955,7 +57166,11 @@ var _raySphereMarching = __webpack_require__(226);
 
 var _raySphereMarching2 = _interopRequireDefault(_raySphereMarching);
 
-var _sdf_snippets = __webpack_require__(227);
+var _raySphereDFAO = __webpack_require__(227);
+
+var _raySphereDFAO2 = _interopRequireDefault(_raySphereDFAO);
+
+var _sdf_snippets = __webpack_require__(228);
 
 var _sdf_snippets2 = _interopRequireDefault(_sdf_snippets);
 
@@ -57048,9 +57263,9 @@ var Settings = function (_React$Component) {
                 _react2.default.createElement(
                     'div',
                     { dir: 'rtl' },
-                    _react2.default.createElement(_Slider2.default, { step: '0.5', value: -this.props.boundingBox[0].x, min: -500, max: 500, onChange: this.changeBounds.bind(null, 0, 'x') })
+                    _react2.default.createElement(_Slider2.default, { step: '0.5', value: -this.props.boundingBox[0].x, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'x') })
                 ),
-                _react2.default.createElement(_Slider2.default, { step: '0.5', value: this.props.boundingBox[1].x, min: -500, max: 500, onChange: this.changeBounds.bind(null, 1, 'x') }),
+                _react2.default.createElement(_Slider2.default, { step: '0.5', value: this.props.boundingBox[1].x, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'x') }),
                 _react2.default.createElement(
                     'p',
                     null,
@@ -57066,9 +57281,9 @@ var Settings = function (_React$Component) {
                 _react2.default.createElement(
                     'div',
                     { dir: 'rtl' },
-                    _react2.default.createElement(_Slider2.default, { step: '0.5', value: -this.props.boundingBox[0].y, min: -500, max: 500, onChange: this.changeBounds.bind(null, 0, 'y') })
+                    _react2.default.createElement(_Slider2.default, { step: '0.5', value: -this.props.boundingBox[0].y, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'y') })
                 ),
-                _react2.default.createElement(_Slider2.default, { step: '0.5', value: this.props.boundingBox[1].y, min: -500, max: 500, onChange: this.changeBounds.bind(null, 1, 'y') }),
+                _react2.default.createElement(_Slider2.default, { step: '0.5', value: this.props.boundingBox[1].y, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'y') }),
                 _react2.default.createElement(
                     'p',
                     null,
@@ -57084,9 +57299,9 @@ var Settings = function (_React$Component) {
                 _react2.default.createElement(
                     'div',
                     { dir: 'rtl' },
-                    _react2.default.createElement(_Slider2.default, { step: '0.5', value: -this.props.boundingBox[0].z, min: -500, max: 500, onChange: this.changeBounds.bind(null, 0, 'z') })
+                    _react2.default.createElement(_Slider2.default, { step: '0.5', value: -this.props.boundingBox[0].z, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'z') })
                 ),
-                _react2.default.createElement(_Slider2.default, { step: '0.5', value: this.props.boundingBox[1].z, min: -500, max: 500, onChange: this.changeBounds.bind(null, 1, 'z') })
+                _react2.default.createElement(_Slider2.default, { step: '0.5', value: this.props.boundingBox[1].z, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'z') })
             );
         }
     }]);
@@ -57095,7 +57310,7 @@ var Settings = function (_React$Component) {
 }(_react2.default.Component);
 
 /***/ }),
-/* 113 */
+/* 114 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -57103,7 +57318,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__tab__ = __webpack_require__(56);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTabFoundation", function() { return __WEBPACK_IMPORTED_MODULE_0__tab__["b"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTab", function() { return __WEBPACK_IMPORTED_MODULE_0__tab__["a"]; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__tab_bar__ = __webpack_require__(60);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__tab_bar__ = __webpack_require__(61);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTabBarFoundation", function() { return __WEBPACK_IMPORTED_MODULE_1__tab_bar__["b"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "MDCTabBar", function() { return __WEBPACK_IMPORTED_MODULE_1__tab_bar__["a"]; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__tab_bar_scroller__ = __webpack_require__(120);
@@ -57131,166 +57346,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 /***/ }),
-/* 114 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return MDCRipple; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_component__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adapter__ = __webpack_require__(57);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__foundation__ = __webpack_require__(115);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__util__ = __webpack_require__(58);
-/* unused harmony reexport MDCRippleFoundation */
-/* unused harmony reexport util */
-/**
- * @license
- * Copyright 2016 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
-
-
-
-
-/**
- * @extends MDCComponent<!MDCRippleFoundation>
- */
-class MDCRipple extends __WEBPACK_IMPORTED_MODULE_0__material_base_component__["a" /* default */] {
-  /** @param {...?} args */
-  constructor(...args) {
-    super(...args);
-
-    /** @type {boolean} */
-    this.disabled = false;
-
-    /** @private {boolean} */
-    this.unbounded_;
-  }
-
-  /**
-   * @param {!Element} root
-   * @param {{isUnbounded: (boolean|undefined)}=} options
-   * @return {!MDCRipple}
-   */
-  static attachTo(root, {isUnbounded = undefined} = {}) {
-    const ripple = new MDCRipple(root);
-    // Only override unbounded behavior if option is explicitly specified
-    if (isUnbounded !== undefined) {
-      ripple.unbounded = /** @type {boolean} */ (isUnbounded);
-    }
-    return ripple;
-  }
-
-  /**
-   * @param {!RippleCapableSurface} instance
-   * @return {!MDCRippleAdapter}
-   */
-  static createAdapter(instance) {
-    const MATCHES = __WEBPACK_IMPORTED_MODULE_3__util__["b" /* getMatchesProperty */](HTMLElement.prototype);
-
-    return {
-      browserSupportsCssVars: () => __WEBPACK_IMPORTED_MODULE_3__util__["d" /* supportsCssVariables */](window),
-      isUnbounded: () => instance.unbounded,
-      isSurfaceActive: () => instance.root_[MATCHES](':active'),
-      isSurfaceDisabled: () => instance.disabled,
-      addClass: (className) => instance.root_.classList.add(className),
-      removeClass: (className) => instance.root_.classList.remove(className),
-      registerInteractionHandler: (evtType, handler) =>
-        instance.root_.addEventListener(evtType, handler, __WEBPACK_IMPORTED_MODULE_3__util__["a" /* applyPassive */]()),
-      deregisterInteractionHandler: (evtType, handler) =>
-        instance.root_.removeEventListener(evtType, handler, __WEBPACK_IMPORTED_MODULE_3__util__["a" /* applyPassive */]()),
-      registerResizeHandler: (handler) => window.addEventListener('resize', handler),
-      deregisterResizeHandler: (handler) => window.removeEventListener('resize', handler),
-      updateCssVariable: (varName, value) => instance.root_.style.setProperty(varName, value),
-      computeBoundingRect: () => instance.root_.getBoundingClientRect(),
-      getWindowPageOffset: () => ({x: window.pageXOffset, y: window.pageYOffset}),
-    };
-  }
-
-  /** @return {boolean} */
-  get unbounded() {
-    return this.unbounded_;
-  }
-
-  /** @param {boolean} unbounded */
-  set unbounded(unbounded) {
-    const {UNBOUNDED} = __WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */].cssClasses;
-    this.unbounded_ = Boolean(unbounded);
-    if (this.unbounded_) {
-      this.root_.classList.add(UNBOUNDED);
-    } else {
-      this.root_.classList.remove(UNBOUNDED);
-    }
-  }
-
-  activate() {
-    this.foundation_.activate();
-  }
-
-  deactivate() {
-    this.foundation_.deactivate();
-  }
-
-  layout() {
-    this.foundation_.layout();
-  }
-
-  /** @return {!MDCRippleFoundation} */
-  getDefaultFoundation() {
-    return new __WEBPACK_IMPORTED_MODULE_2__foundation__["a" /* default */](MDCRipple.createAdapter(this));
-  }
-
-  initialSyncWithDOM() {
-    this.unbounded = 'mdcRippleIsUnbounded' in this.root_.dataset;
-  }
-}
-
-/**
- * See Material Design spec for more details on when to use ripples.
- * https://material.io/guidelines/motion/choreography.html#choreography-creation
- * @record
- */
-class RippleCapableSurface {}
-
-/** @protected {!Element} */
-RippleCapableSurface.prototype.root_;
-
-/**
- * Whether or not the ripple bleeds out of the bounds of the element.
- * @type {boolean|undefined}
- */
-RippleCapableSurface.prototype.unbounded;
-
-/**
- * Whether or not the ripple is attached to a disabled component.
- * @type {boolean|undefined}
- */
-RippleCapableSurface.prototype.disabled;
-
-
-
-
-/***/ }),
 /* 115 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adapter__ = __webpack_require__(57);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__adapter__ = __webpack_require__(58);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(116);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__util__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__util__ = __webpack_require__(59);
 /**
  * @license
  * Copyright 2016 Google Inc. All Rights Reserved.
@@ -57611,7 +57674,7 @@ class MDCRippleFoundation extends __WEBPACK_IMPORTED_MODULE_0__material_base_fou
 
     let startPoint;
     if (wasActivatedByPointer) {
-      startPoint = Object(__WEBPACK_IMPORTED_MODULE_3__util__["c" /* getNormalizedEventCoords */])(
+      startPoint = Object(__WEBPACK_IMPORTED_MODULE_3__util__["getNormalizedEventCoords"])(
         /** @type {!Event} */ (activationEvent),
         this.adapter_.getWindowPageOffset(), this.adapter_.computeBoundingRect()
       );
@@ -57870,7 +57933,7 @@ const numbers = {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_base_foundation__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(59);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__constants__ = __webpack_require__(60);
 /**
  * Copyright 2017 Google Inc. All Rights Reserved.
  *
@@ -58206,7 +58269,7 @@ const strings = {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__material_animation__ = __webpack_require__(36);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__material_base_component__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__tab_bar__ = __webpack_require__(60);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__tab_bar__ = __webpack_require__(61);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__foundation__ = __webpack_require__(121);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_3__foundation__["a"]; });
 /**
@@ -59226,7 +59289,7 @@ module.exports = PooledClass;
 var _prodInvariant = __webpack_require__(21);
 
 var ReactCurrentOwner = __webpack_require__(10);
-var REACT_ELEMENT_TYPE = __webpack_require__(64);
+var REACT_ELEMENT_TYPE = __webpack_require__(65);
 
 var getIteratorFn = __webpack_require__(128);
 var invariant = __webpack_require__(0);
@@ -59683,7 +59746,7 @@ module.exports = ReactDOMFactories;
 var _require = __webpack_require__(15),
     isValidElement = _require.isValidElement;
 
-var factory = __webpack_require__(65);
+var factory = __webpack_require__(66);
 
 module.exports = factory(isValidElement);
 
@@ -59706,7 +59769,7 @@ var invariant = __webpack_require__(0);
 var warning = __webpack_require__(1);
 var assign = __webpack_require__(3);
 
-var ReactPropTypesSecret = __webpack_require__(66);
+var ReactPropTypesSecret = __webpack_require__(67);
 var checkPropTypes = __webpack_require__(133);
 
 module.exports = function(isValidElement, throwOnDirectAccess) {
@@ -60334,13 +60397,13 @@ module.exports = '15.6.2';
 
 
 
-var _require = __webpack_require__(61),
+var _require = __webpack_require__(62),
     Component = _require.Component;
 
 var _require2 = __webpack_require__(15),
     isValidElement = _require2.isValidElement;
 
-var ReactNoopUpdateQueue = __webpack_require__(62);
+var ReactNoopUpdateQueue = __webpack_require__(63);
 var factory = __webpack_require__(136);
 
 module.exports = factory(Component, isValidElement, ReactNoopUpdateQueue);
@@ -64076,7 +64139,7 @@ var _classnames = __webpack_require__(16);
 
 var _classnames2 = _interopRequireDefault(_classnames);
 
-var _withTheme = __webpack_require__(67);
+var _withTheme = __webpack_require__(68);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -64427,13 +64490,13 @@ exports.default = Ripple;
 
 var ReactDOMComponentTree = __webpack_require__(4);
 var ReactDefaultInjection = __webpack_require__(143);
-var ReactMount = __webpack_require__(92);
+var ReactMount = __webpack_require__(93);
 var ReactReconciler = __webpack_require__(18);
 var ReactUpdates = __webpack_require__(9);
 var ReactVersion = __webpack_require__(215);
 
 var findDOMNode = __webpack_require__(216);
-var getHostComponentFromComposite = __webpack_require__(93);
+var getHostComponentFromComposite = __webpack_require__(94);
 var renderSubtreeIntoContainer = __webpack_require__(217);
 var warning = __webpack_require__(1);
 
@@ -65094,7 +65157,7 @@ var _assign = __webpack_require__(3);
 
 var PooledClass = __webpack_require__(12);
 
-var getTextContentAccessor = __webpack_require__(71);
+var getTextContentAccessor = __webpack_require__(72);
 
 /**
  * This helper class stores information about text content of a target node,
@@ -65274,10 +65337,10 @@ var ReactDOMComponentTree = __webpack_require__(4);
 var ReactUpdates = __webpack_require__(9);
 var SyntheticEvent = __webpack_require__(11);
 
-var inputValueTracking = __webpack_require__(74);
+var inputValueTracking = __webpack_require__(75);
 var getEventTarget = __webpack_require__(41);
 var isEventSupported = __webpack_require__(42);
-var isTextInputElement = __webpack_require__(75);
+var isTextInputElement = __webpack_require__(76);
 
 var eventTypes = {
   change: {
@@ -66581,15 +66644,15 @@ var CSSPropertyOperations = __webpack_require__(163);
 var DOMLazyTree = __webpack_require__(19);
 var DOMNamespaces = __webpack_require__(45);
 var DOMProperty = __webpack_require__(17);
-var DOMPropertyOperations = __webpack_require__(80);
+var DOMPropertyOperations = __webpack_require__(81);
 var EventPluginHub = __webpack_require__(23);
 var EventPluginRegistry = __webpack_require__(38);
 var ReactBrowserEventEmitter = __webpack_require__(33);
-var ReactDOMComponentFlags = __webpack_require__(68);
+var ReactDOMComponentFlags = __webpack_require__(69);
 var ReactDOMComponentTree = __webpack_require__(4);
 var ReactDOMInput = __webpack_require__(173);
 var ReactDOMOption = __webpack_require__(175);
-var ReactDOMSelect = __webpack_require__(81);
+var ReactDOMSelect = __webpack_require__(82);
 var ReactDOMTextarea = __webpack_require__(176);
 var ReactInstrumentation = __webpack_require__(8);
 var ReactMultiChild = __webpack_require__(177);
@@ -66600,7 +66663,7 @@ var escapeTextContentForBrowser = __webpack_require__(32);
 var invariant = __webpack_require__(0);
 var isEventSupported = __webpack_require__(42);
 var shallowEqual = __webpack_require__(49);
-var inputValueTracking = __webpack_require__(74);
+var inputValueTracking = __webpack_require__(75);
 var validateDOMNesting = __webpack_require__(53);
 var warning = __webpack_require__(1);
 
@@ -67590,7 +67653,7 @@ module.exports = ReactDOMComponent;
 
 var ReactDOMComponentTree = __webpack_require__(4);
 
-var focusNode = __webpack_require__(78);
+var focusNode = __webpack_require__(79);
 
 var AutoFocusUtils = {
   focusDOMComponent: function () {
@@ -67615,7 +67678,7 @@ module.exports = AutoFocusUtils;
 
 
 
-var CSSProperty = __webpack_require__(79);
+var CSSProperty = __webpack_require__(80);
 var ExecutionEnvironment = __webpack_require__(5);
 var ReactInstrumentation = __webpack_require__(8);
 
@@ -67911,7 +67974,7 @@ module.exports = camelize;
 
 
 
-var CSSProperty = __webpack_require__(79);
+var CSSProperty = __webpack_require__(80);
 var warning = __webpack_require__(1);
 
 var isUnitlessNumber = CSSProperty.isUnitlessNumber;
@@ -68275,7 +68338,7 @@ module.exports = getVendorPrefixedEventName;
 var _prodInvariant = __webpack_require__(2),
     _assign = __webpack_require__(3);
 
-var DOMPropertyOperations = __webpack_require__(80);
+var DOMPropertyOperations = __webpack_require__(81);
 var LinkedValueUtils = __webpack_require__(47);
 var ReactDOMComponentTree = __webpack_require__(4);
 var ReactUpdates = __webpack_require__(9);
@@ -68586,7 +68649,7 @@ var _assign = __webpack_require__(3);
 
 var React = __webpack_require__(14);
 var ReactDOMComponentTree = __webpack_require__(4);
-var ReactDOMSelect = __webpack_require__(81);
+var ReactDOMSelect = __webpack_require__(82);
 
 var warning = __webpack_require__(1);
 var didWarnInvalidOptionChildren = false;
@@ -69321,10 +69384,10 @@ module.exports = ReactMultiChild;
 
 var ReactReconciler = __webpack_require__(18);
 
-var instantiateReactComponent = __webpack_require__(83);
+var instantiateReactComponent = __webpack_require__(84);
 var KeyEscapeUtils = __webpack_require__(51);
 var shouldUpdateReactComponent = __webpack_require__(50);
-var traverseAllChildren = __webpack_require__(87);
+var traverseAllChildren = __webpack_require__(88);
 var warning = __webpack_require__(1);
 
 var ReactComponentTreeHook;
@@ -69335,7 +69398,7 @@ if (typeof process !== 'undefined' && Object({"NODE_ENV":"production"}) && "prod
   // https://github.com/facebook/react/issues/7240
   // Remove the inline requires when we don't need them anymore:
   // https://github.com/facebook/react/pull/7178
-  ReactComponentTreeHook = __webpack_require__(88);
+  ReactComponentTreeHook = __webpack_require__(89);
 }
 
 function instantiateChild(childInstances, child, name, selfDebugID) {
@@ -69459,7 +69522,7 @@ var ReactChildReconciler = {
 };
 
 module.exports = ReactChildReconciler;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(82)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(83)))
 
 /***/ }),
 /* 179 */
@@ -69485,7 +69548,7 @@ var ReactCurrentOwner = __webpack_require__(10);
 var ReactErrorUtils = __webpack_require__(40);
 var ReactInstanceMap = __webpack_require__(25);
 var ReactInstrumentation = __webpack_require__(8);
-var ReactNodeTypes = __webpack_require__(84);
+var ReactNodeTypes = __webpack_require__(85);
 var ReactReconciler = __webpack_require__(18);
 
 if (false) {
@@ -70472,7 +70535,7 @@ module.exports = getIteratorFn;
 
 
 var KeyEscapeUtils = __webpack_require__(51);
-var traverseAllChildren = __webpack_require__(87);
+var traverseAllChildren = __webpack_require__(88);
 var warning = __webpack_require__(1);
 
 var ReactComponentTreeHook;
@@ -70483,7 +70546,7 @@ if (typeof process !== 'undefined' && Object({"NODE_ENV":"production"}) && "prod
   // https://github.com/facebook/react/issues/7240
   // Remove the inline requires when we don't need them anymore:
   // https://github.com/facebook/react/pull/7178
-  ReactComponentTreeHook = __webpack_require__(88);
+  ReactComponentTreeHook = __webpack_require__(89);
 }
 
 /**
@@ -70533,7 +70596,7 @@ function flattenChildren(children, selfDebugID) {
 }
 
 module.exports = flattenChildren;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(82)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(83)))
 
 /***/ }),
 /* 184 */
@@ -71225,7 +71288,7 @@ module.exports = ReactDefaultBatchingStrategy;
 
 var _assign = __webpack_require__(3);
 
-var EventListener = __webpack_require__(89);
+var EventListener = __webpack_require__(90);
 var ExecutionEnvironment = __webpack_require__(5);
 var PooledClass = __webpack_require__(12);
 var ReactDOMComponentTree = __webpack_require__(4);
@@ -71427,9 +71490,9 @@ var DOMProperty = __webpack_require__(17);
 var EventPluginHub = __webpack_require__(23);
 var EventPluginUtils = __webpack_require__(39);
 var ReactComponentEnvironment = __webpack_require__(48);
-var ReactEmptyComponent = __webpack_require__(85);
+var ReactEmptyComponent = __webpack_require__(86);
 var ReactBrowserEventEmitter = __webpack_require__(33);
-var ReactHostComponent = __webpack_require__(86);
+var ReactHostComponent = __webpack_require__(87);
 var ReactUpdates = __webpack_require__(9);
 
 var ReactInjection = {
@@ -71462,10 +71525,10 @@ module.exports = ReactInjection;
 
 var _assign = __webpack_require__(3);
 
-var CallbackQueue = __webpack_require__(72);
+var CallbackQueue = __webpack_require__(73);
 var PooledClass = __webpack_require__(12);
 var ReactBrowserEventEmitter = __webpack_require__(33);
-var ReactInputSelection = __webpack_require__(90);
+var ReactInputSelection = __webpack_require__(91);
 var ReactInstrumentation = __webpack_require__(8);
 var Transaction = __webpack_require__(29);
 var ReactUpdateQueue = __webpack_require__(52);
@@ -71644,7 +71707,7 @@ module.exports = ReactReconcileTransaction;
 var ExecutionEnvironment = __webpack_require__(5);
 
 var getNodeForCharacterOffset = __webpack_require__(195);
-var getTextContentAccessor = __webpack_require__(71);
+var getTextContentAccessor = __webpack_require__(72);
 
 /**
  * While `isCollapsed` is available on the Selection object and `collapsed`
@@ -72340,11 +72403,11 @@ module.exports = SVGDOMPropertyConfig;
 var EventPropagators = __webpack_require__(22);
 var ExecutionEnvironment = __webpack_require__(5);
 var ReactDOMComponentTree = __webpack_require__(4);
-var ReactInputSelection = __webpack_require__(90);
+var ReactInputSelection = __webpack_require__(91);
 var SyntheticEvent = __webpack_require__(11);
 
-var getActiveElement = __webpack_require__(91);
-var isTextInputElement = __webpack_require__(75);
+var getActiveElement = __webpack_require__(92);
+var isTextInputElement = __webpack_require__(76);
 var shallowEqual = __webpack_require__(49);
 
 var skipSelectionChangeEvent = ExecutionEnvironment.canUseDOM && 'documentMode' in document && document.documentMode <= 11;
@@ -72531,7 +72594,7 @@ module.exports = SelectEventPlugin;
 
 var _prodInvariant = __webpack_require__(2);
 
-var EventListener = __webpack_require__(89);
+var EventListener = __webpack_require__(90);
 var EventPropagators = __webpack_require__(22);
 var ReactDOMComponentTree = __webpack_require__(4);
 var SyntheticAnimationEvent = __webpack_require__(202);
@@ -73445,7 +73508,7 @@ var ReactCurrentOwner = __webpack_require__(10);
 var ReactDOMComponentTree = __webpack_require__(4);
 var ReactInstanceMap = __webpack_require__(25);
 
-var getHostComponentFromComposite = __webpack_require__(93);
+var getHostComponentFromComposite = __webpack_require__(94);
 var invariant = __webpack_require__(0);
 var warning = __webpack_require__(1);
 
@@ -73502,7 +73565,7 @@ module.exports = findDOMNode;
 
 
 
-var ReactMount = __webpack_require__(92);
+var ReactMount = __webpack_require__(93);
 
 module.exports = ReactMount.renderSubtreeIntoContainer;
 
@@ -75151,7 +75214,7 @@ var _react = __webpack_require__(6);
 
 var React = _interopRequireWildcard(_react);
 
-var _withMDC = __webpack_require__(94);
+var _withMDC = __webpack_require__(95);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -75345,7 +75408,7 @@ var _classnames = __webpack_require__(16);
 
 var _classnames2 = _interopRequireDefault(_classnames);
 
-var _propTypes = __webpack_require__(95);
+var _propTypes = __webpack_require__(96);
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
 
@@ -75481,7 +75544,7 @@ exports.default = Icon;
 
 var emptyFunction = __webpack_require__(7);
 var invariant = __webpack_require__(0);
-var ReactPropTypesSecret = __webpack_require__(66);
+var ReactPropTypesSecret = __webpack_require__(67);
 
 module.exports = function() {
   function shim(props, propName, componentName, location, propFullName, secret) {
@@ -75548,7 +75611,7 @@ var _react = __webpack_require__(6);
 
 var React = _interopRequireWildcard(_react);
 
-var _propTypes = __webpack_require__(95);
+var _propTypes = __webpack_require__(96);
 
 var _propTypes2 = _interopRequireDefault(_propTypes);
 
@@ -77241,10 +77304,211 @@ var MDCSliderFoundation = function (_MDCFoundation) {
 /* 226 */
 /***/ (function(module, exports) {
 
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\nbool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {\n\treturn (((((p.x >= b1.x) && (p.x <= b2.x)) && (p.y >= b1.y)) && (p.y <= b2.y)) && (p.z >= b1.z)) && (p.z <= b2.z);\n}\nbool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0, out float t1) {\n\tbvec3 isNeg = bvec3(rd.x < 0., rd.y < 0., rd.z < 0.);\n\tvec3 invDir = 1. / rd;\n\tfloat tmin, tmax, ttmin, ttmax;\n\ttmin = isNeg.x ? (b2.x - rp.x) * invDir.x : (b1.x - rp.x) * invDir.x;\n\ttmax = isNeg.x ? (b1.x - rp.x) * invDir.x : (b2.x - rp.x) * invDir.x;\n\tttmin = isNeg.y ? (b2.y - rp.y) * invDir.y : (b1.y - rp.y) * invDir.y;\n\tttmax = isNeg.y ? (b1.y - rp.y) * invDir.y : (b2.y - rp.y) * invDir.y;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\ttmin = max(tmin, ttmin);\n\ttmax = min(tmax, ttmax);\n\tttmin = isNeg.z ? (b2.z - rp.z) * invDir.z : (b1.z - rp.z) * invDir.z;\n\tttmax = isNeg.z ? (b1.z - rp.z) * invDir.z : (b2.z - rp.z) * invDir.z;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\tt0 = max(tmin, ttmin);\n\tt1 = min(tmax, ttmax);\n\treturn true;\n}\nbool quadratic(float a, float b, float c, out float tmin, out float tmax) {\n\tfloat discr = (b * b) - ((4. * a) * c);\n\tif (discr < 0.) {\n\t\treturn false;\n\t}\n\tif (discr == 0.) {\n\t\ttmin = tmax = (-0.5 * b) / a;\n\t}\n\telse {\n\t\tfloat q = -0.5 * (b > 0. ? b + sqrt(discr) : b - sqrt(discr));\n\t\tfloat x0 = q / a;\n\t\tfloat x1 = c / q;\n\t\ttmin = min(x0, x1);\n\t\ttmax = max(x0, x1);\n\t}\n\treturn true;\n}\nbool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out float tmax) {\n\tfloat a = dot(rd, rd);\n\tfloat b = 2. * dot(rd, rp);\n\tfloat c = dot(rp, rp) - (radius * radius);\n\tif (!quadratic(a, b, c, tmin, tmax)) {\n\t\treturn false;\n\t}\n\treturn true;\n}\nfloat numericalGradient(float deltaPositive, float deltaNeg, float delta) {\n\treturn (deltaPositive - deltaNeg) / (2. * delta);\n}\nvec2 numericalGradient(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec3 numericalGradient(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec4 numericalGradient(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nuniform mat4 invProjMat;\nuniform mat4 cameraMat;\nvec4 getCameraPos() {\n\treturn cameraMat * vec4(0., 0., 0., 1.);\n}\nvec4 getCameraRay(in vec2 normPixel) {\n\tvec4 dir = invProjMat * vec4(2. * (normPixel - 0.5), 0., 1.);\n\tdir.a = 0.;\n\tdir = cameraMat * normalize(dir);\n\treturn dir;\n}\nuniform float far;\nuniform float threshold;\nvarying vec2 vUv;\nuniform vec3 bounds[2];\nfloat distanceProgram;\nvoid main() {\n\tgl_FragColor = vec4(-1.);\n\tvec4 rayPos = getCameraPos();\n\tvec4 rayDir = getCameraRay(vUv);\n\tfloat bbmin, bbmax;\n\tif (!intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n\t\treturn ;\n\t}\n\tbbmin = max(0., bbmin);\n\tbbmax = min(bbmax, far);\n\tfloat t = bbmin;\n\tfloat dist = distance(rayPos + (t * rayDir), t, 0);\n\tfloat fSign = dist < 0. ? -1. : 1.;\n\tfor (int i = 1; i <= 2500; ++i) {\n\t\tif (abs(dist) <= threshold) {\n\t\t\tif ((t >= (bbmin - threshold)) && (t <= (bbmax + threshold))) {\n\t\t\t\tgl_FragColor = vec4(normalize(gradient(rayPos + (t * rayDir), t, i)), t);\n\t\t\t}\n\t\t\treturn ;\n\t\t}\n\t\tt += (fSign * dist);\n\t\tif (t > (bbmax * 2.)) {\n\t\t\treturn ;\n\t\t}\n\t\tdist = distance(rayPos + (t * rayDir), t, i);\n\t}\n}\n";
+module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\nbool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {\n\treturn (((((p.x >= b1.x) && (p.x <= b2.x)) && (p.y >= b1.y)) && (p.y <= b2.y)) && (p.z >= b1.z)) && (p.z <= b2.z);\n}\nbool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0, out float t1) {\n\tbvec3 isNeg = bvec3(rd.x < 0., rd.y < 0., rd.z < 0.);\n\tvec3 invDir = 1. / rd;\n\tfloat tmin, tmax, ttmin, ttmax;\n\ttmin = isNeg.x ? (b2.x - rp.x) * invDir.x : (b1.x - rp.x) * invDir.x;\n\ttmax = isNeg.x ? (b1.x - rp.x) * invDir.x : (b2.x - rp.x) * invDir.x;\n\tttmin = isNeg.y ? (b2.y - rp.y) * invDir.y : (b1.y - rp.y) * invDir.y;\n\tttmax = isNeg.y ? (b1.y - rp.y) * invDir.y : (b2.y - rp.y) * invDir.y;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\ttmin = max(tmin, ttmin);\n\ttmax = min(tmax, ttmax);\n\tttmin = isNeg.z ? (b2.z - rp.z) * invDir.z : (b1.z - rp.z) * invDir.z;\n\tttmax = isNeg.z ? (b1.z - rp.z) * invDir.z : (b2.z - rp.z) * invDir.z;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\tt0 = max(tmin, ttmin);\n\tt1 = min(tmax, ttmax);\n\treturn true;\n}\nbool quadratic(float a, float b, float c, out float tmin, out float tmax) {\n\tfloat discr = (b * b) - ((4. * a) * c);\n\tif (discr < 0.) {\n\t\treturn false;\n\t}\n\tif (discr == 0.) {\n\t\ttmin = tmax = (-0.5 * b) / a;\n\t}\n\telse {\n\t\tfloat q = -0.5 * (b > 0. ? b + sqrt(discr) : b - sqrt(discr));\n\t\tfloat x0 = q / a;\n\t\tfloat x1 = c / q;\n\t\ttmin = min(x0, x1);\n\t\ttmax = max(x0, x1);\n\t}\n\treturn true;\n}\nbool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out float tmax) {\n\tfloat a = dot(rd, rd);\n\tfloat b = 2. * dot(rd, rp);\n\tfloat c = dot(rp, rp) - (radius * radius);\n\tif (!quadratic(a, b, c, tmin, tmax)) {\n\t\treturn false;\n\t}\n\treturn true;\n}\n\n#define NUM_GRAD3 numDiff(vec3(FN(gradP + gradD.yxx), FN(gradP + gradD.xyx), FN(gradP + gradD.xxy)), vec3(FN(gradP - gradD.yxx), FN(gradP - gradD.xyx), FN(gradP - gradD.xxy)), gradD.y)\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n\treturn (deltaPositive - deltaNeg) / (2. * delta);\n}\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nuniform mat4 invProjMat;\nuniform mat4 cameraMat;\nvec4 getCameraPos() {\n\treturn cameraMat * vec4(0., 0., 0., 1.);\n}\nvec4 getCameraRay(in vec2 normPixel) {\n\tvec4 dir = invProjMat * vec4(2. * (normPixel - 0.5), 0., 1.);\n\tdir.a = 0.;\n\tdir = cameraMat * normalize(dir);\n\treturn dir;\n}\nuniform vec3 bounds[2];\nvarying vec2 vUv;\nfloat distanceProgram;\n\n#define MAX_STEPS "+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+opts.maxSteps+"\n#define SDF_FN "+
+opts.sdf+"\nuniform float far;\nuniform float threshold;\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n\tt = max(tmin, 0.1);\n\ttmax = min(tmax, far);\n\tfloat dist = SDF_FN(rayPos + (t * rayDir), t, 0);\n\tfloat decay = 1.;\n\tfloat fSign = dist < 0. ? -1. : 1.;\n\tfor (int i = 1; i <= MAX_STEPS; ++i) {\n\t\tfloat precis = threshold * t;\n\t\tif (abs(dist) < abs(precis)) {\n\t\t\treturn (t >= (tmin - threshold)) && (t <= (tmax + threshold));\n\t\t}\n\t\tt += ((fSign * dist) * decay);\n\t\tif (t > (tmax * 2.)) {\n\t\t\treturn false;\n\t\t}\n\t\tdist = SDF_FN(rayPos + (t * rayDir), t, i);\n\t\tdecay *= (i >= 200 ? 0.99 : 1.);\n\t}\n\treturn false;\n}\nvoid main() {\n\tgl_FragColor = vec4(-1.);\n\tvec4 rayPos = getCameraPos();\n\tvec4 rayDir = getCameraRay(vUv);\n\tfloat bbmin, bbmax;\n\tif (intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n\t\tfloat t;\n\t\tif (intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {\n\t\t\tgl_FragColor = vec4(normalize(gradient(rayPos + (t * rayDir), t)), t);\n\t\t}\n\t}\n}\n";
 
 /***/ }),
 /* 227 */
+/***/ (function(module, exports) {
+
+module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\nbool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {\n\treturn (((((p.x >= b1.x) && (p.x <= b2.x)) && (p.y >= b1.y)) && (p.y <= b2.y)) && (p.z >= b1.z)) && (p.z <= b2.z);\n}\nbool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0, out float t1) {\n\tbvec3 isNeg = bvec3(rd.x < 0., rd.y < 0., rd.z < 0.);\n\tvec3 invDir = 1. / rd;\n\tfloat tmin, tmax, ttmin, ttmax;\n\ttmin = isNeg.x ? (b2.x - rp.x) * invDir.x : (b1.x - rp.x) * invDir.x;\n\ttmax = isNeg.x ? (b1.x - rp.x) * invDir.x : (b2.x - rp.x) * invDir.x;\n\tttmin = isNeg.y ? (b2.y - rp.y) * invDir.y : (b1.y - rp.y) * invDir.y;\n\tttmax = isNeg.y ? (b1.y - rp.y) * invDir.y : (b2.y - rp.y) * invDir.y;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\ttmin = max(tmin, ttmin);\n\ttmax = min(tmax, ttmax);\n\tttmin = isNeg.z ? (b2.z - rp.z) * invDir.z : (b1.z - rp.z) * invDir.z;\n\tttmax = isNeg.z ? (b1.z - rp.z) * invDir.z : (b2.z - rp.z) * invDir.z;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\tt0 = max(tmin, ttmin);\n\tt1 = min(tmax, ttmax);\n\treturn true;\n}\nbool quadratic(float a, float b, float c, out float tmin, out float tmax) {\n\tfloat discr = (b * b) - ((4. * a) * c);\n\tif (discr < 0.) {\n\t\treturn false;\n\t}\n\tif (discr == 0.) {\n\t\ttmin = tmax = (-0.5 * b) / a;\n\t}\n\telse {\n\t\tfloat q = -0.5 * (b > 0. ? b + sqrt(discr) : b - sqrt(discr));\n\t\tfloat x0 = q / a;\n\t\tfloat x1 = c / q;\n\t\ttmin = min(x0, x1);\n\t\ttmax = max(x0, x1);\n\t}\n\treturn true;\n}\nbool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out float tmax) {\n\tfloat a = dot(rd, rd);\n\tfloat b = 2. * dot(rd, rp);\n\tfloat c = dot(rp, rp) - (radius * radius);\n\tif (!quadratic(a, b, c, tmin, tmax)) {\n\t\treturn false;\n\t}\n\treturn true;\n}\n\n#define NUM_GRAD3 numDiff(vec3(FN(gradP + gradD.yxx), FN(gradP + gradD.xyx), FN(gradP + gradD.xxy)), vec3(FN(gradP - gradD.yxx), FN(gradP - gradD.xyx), FN(gradP - gradD.xxy)), gradD.y)\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n\treturn (deltaPositive - deltaNeg) / (2. * delta);\n}\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nuniform mat4 invProjMat;\nuniform mat4 cameraMat;\nvec4 getCameraPos() {\n\treturn cameraMat * vec4(0., 0., 0., 1.);\n}\nvec4 getCameraRay(in vec2 normPixel) {\n\tvec4 dir = invProjMat * vec4(2. * (normPixel - 0.5), 0., 1.);\n\tdir.a = 0.;\n\tdir = cameraMat * normalize(dir);\n\treturn dir;\n}\n#define SAMPLE_DISTANCE "+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+opts.sampleDistance+"\n#define N_SAMPLES "+
+opts.nSamples+"\n#define OCCLUSION_STRENGTH "+
+opts.occlusionStrength+"\nuniform sampler2D surfaceData;\nvarying vec2 vUv;\nfloat distanceProgram;\nvoid main() {\n\tvec4 data = texture2D(surfaceData, vUv);\n\tif (data.w == -1.) {\n\t\treturn ;\n\t}\n\tvec4 rayPos = getCameraPos();\n\tvec4 rayDir = getCameraRay(vUv);\n\tvec4 startPos = rayPos + (data.w * rayDir);\n\tvec4 normal = vec4(data.xyz, 0.);\n\tnormal *= (dot(rayDir, normal) < 0. ? 1. : -1.);\n\tfloat occlusion = 0.;\n\tfloat stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES - 1);\n\tfloat t = 1e-3;\n\tfor (int i = 1; i <= N_SAMPLES; ++i) {\n\t\tocclusion += abs(t - abs(distance(startPos + (t * normal), t, i)));\n\t\tt += stepSize;\n\t}\n\tgl_FragColor = vec4(1. - clamp(occlusion, 0., 0.9));\n}\n";
+
+/***/ }),
+/* 228 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -77254,7 +77518,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 //The glsl loader will remove white-space and comments.
-exports.default = "\n//Define the GLSL distance function that is used by the ray-sphere-marching algorithm.\nfloat sixFunkySpheres(in vec4 p) {\n    return max(\n        length(p) - 140.0,\n        min(\n            (length(vec3(p.x - 125., p.y, p.z)) - 100.),\n            min(\n                (length(vec3(p.x + 125., p.y, p.z)) - 100.),\n                min(\n                    (length(vec3(p.x, p.y + 125., p.z)) - 100.),\n                    min(\n                        (length(vec3(p.x, p.y, p.z - 125.)) - 100.),\n                        (length(vec3(p.x, p.y, p.z + 125.)) - 100.)\n                    )\n                )\n            )\n        )\n    );\n}\n\n//Make sure to keep the function signature the same!\nfloat distance(in vec4 p, float t, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return sixFunkySpheres(p);\n}\n\nvec3 gradient(in vec4 p, float t, int i) {\n    vec4 delta = p;\n    vec3 gPos;\n    vec3 gNeg;\n\n    //Unfortunately I don't know how to pass a function as an argument, so I'm forced to put the computations here.\n\n    //Numerically compute the positive direction deltas\n    delta.x += 5e-4;\n    gPos.x = distance(delta, t, i);\n    delta.x = p.x; delta.y += 5e-4;\n    gPos.y = distance(delta, t, i);\n    delta.y = p.y; delta.z += 5e-4;\n    gPos.z = distance(delta, t, i);\n    delta.z = p.z;\n\n    //Numerically compute the negative direction deltas\n    delta.x -= 5e-4;\n    gNeg.x = distance(delta, t, i);\n    delta.x = p.x; delta.y -= 5e-4;\n    gNeg.y = distance(delta, t, i);\n    delta.y = p.y; delta.z -= 5e-4;\n    gNeg.z = distance(delta, t, i);\n\n    return numericalGradient(gPos, gNeg, 5e-4);\n}\n".trim();
+exports.default = "\n//Make sure to keep the function signatures the same of every function here!\n\n//Edit this to see different shapes.\nfloat sdf(in vec3 p) {\n    float sphereDist = (length(p) - 0.2) * 0.5;\n    float displacement = sin(p.x * 50.) * sin(p.z * 50.) * sin(p.y * 50.);\n    return sphereDist + displacement * 0.03;\n}\n\n//Not really sure of a better way to do this. A macro is used because:\n//  A: How else can callbacks be performed in GLSL?\n//  B: This way, a new gradient function does not need to be defined for every new FN.\n//I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's\n//recommended that this function be replaced by a real gradient implementation.\n#define FN sdf\nvec3 gradient(in vec4 p, float t) {\n    //I couldn't make the functional macro definition work. I a dumb dumb.\n    vec2 gradD = vec2(0., 5e-4);\n    vec3 gradP = p.xyz;\n\n    //Numerical gradient macro.\n    return NUM_GRAD3;\n}\n#undef FN\n\nfloat distance(in vec4 p, float t, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return sdf(p.xyz);\n}\n\n".trim();
 
 /***/ })
 /******/ ]);

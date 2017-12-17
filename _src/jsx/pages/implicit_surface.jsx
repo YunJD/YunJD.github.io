@@ -1,18 +1,24 @@
-import {MDCTab, MDCTabFoundation} from '@material/tabs';
-import {MDCTabBar, MDCTabBarFoundation} from '@material/tabs';
+import {MDCTab, MDCTabFoundation, MDCTabBar, MDCTabBarFoundation} from '@material/tabs';
+import {MDCRipple, MDCRippleFoundation, util} from '@material/ripple';
 import TextField from 'rmwc/TextField';
 import Slider from 'rmwc/Slider';
 import * as T from 'three';
 import stuff from 'stuff';
 import raySphereMarchingShader from 'shaders/raySphereMarching.frag';
+import raySphereDFAOShader from 'shaders/raySphereDFAO.frag';
 import sdfSnippets from 'snippets/sdf_snippets.jsx';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
 export default function() {
+    let aoParams = {
+        sampleDistance: 0.29,
+        nSamples: 10
+    };
     let tabBar = MDCTabBar.attachTo($('#code-tab-bar')[0]);
     //Blegh, there's no documentation on toolbar text links...what?
     tabBar.tabs[0].destroy();
+    MDCRipple.attachTo($("#code-tab-bar").children()[0]);
 
     let fabTop = $("#fab-tune").offset().top;
     let fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
@@ -41,11 +47,14 @@ export default function() {
     });
 
     let editor = ace.edit('editor');
+    editor.$blockScrolling = Infinity;
+    editor.setShowPrintMargin(false);
     editor.setOption('highlightActiveLine', false);
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
     editor.setValue(sdfSnippets, 1);
+    editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
         bindKey: {
@@ -59,7 +68,7 @@ export default function() {
     let $viewParent = $('#view-container');
 
     let camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
-    let camR = 400,
+    let camR = 1,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
     let origin = new T.Vector3(0., 0., 0.);
@@ -96,7 +105,7 @@ export default function() {
         needsUpdate = true;
     }
     function zoom(amount) {
-        camR = T.Math.clamp(camR + amount, 0.2, 1500);
+        camR = T.Math.clamp(camR + amount, 0.01, 50);
         updateCamera();
     }
     function rotateTheta(amount) {
@@ -118,18 +127,18 @@ export default function() {
             bounds: {
                 type: 'v4v',
                 value: [
-                    new T.Vector3(-400, -400, -400),
-                    new T.Vector3(400, 400, 400)
+                    new T.Vector3(-5, -5, -5),
+                    new T.Vector3(5, 5, 5)
                 ]
             },
-            //Used to quit early.
+            //Used to quit early. Kinda useless.
             far: {
                 type: 'f',
                 value: 1e6
             },
             threshold: {
                 type: 'f',
-                value: 1e-2
+                value: 5e-5
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -142,35 +151,55 @@ export default function() {
             }
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
-        fragmentShader: raySphereMarchingShader().replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue())
+        fragmentShader: raySphereMarchingShader({
+            maxSteps: 1000,
+            sdf: 'distance'
+        }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue())
     }, $viewParent.width(), $viewParent.height());
 
-    function updateProgram() {
-        editor.session.clearAnnotations();
-        marchPass.material.fragmentShader = raySphereMarchingShader().replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
-        marchPass.material.needsUpdate = true;
-        needsUpdate = true;
-    }
+    let aoPass = new stuff.gl.ComputeShaderPass({
+        uniforms: {
+            invProjMat: marchPass.material.uniforms.invProjMat,
+            cameraMat: marchPass.material.uniforms.cameraMat,
+            surfaceData: {
+                type: 't',
+                value: marchPass.texTarget.t.texture
+            }
+        },
+        fragmentShader: raySphereDFAOShader(aoParams).replace("float distanceProgram;", editor.getValue())
+    }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     let viewerPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
             surfaceData: {
                 type: 't',
                 value: marchPass.texTarget.t.texture
+            },
+            ao: {
+                type: 't',
+                value: aoPass.texTarget.t.texture
+            },
+            ambient: {
+                type: 'f',
+                value: 1
             }
         },
         fragmentShader: `
             varying vec2 vUv;
             uniform sampler2D surfaceData;
+            uniform sampler2D ao;
+            uniform float ambient;
 
             void main() {
                 vec4 color = texture2D(surfaceData, vUv);
+                vec4 occlusion = texture2D(ao, vUv);
                 if(color.a != -1.) {
                     if(color.a == -2.) {
                         gl_FragColor = vec4(color.xyz, 1.);
                     }
                     else {
-                        gl_FragColor = vec4(color.xyz, 1.);
+                        //Fake the direction of the ambient light
+                        gl_FragColor = vec4(vec3(occlusion.x * ambient), 1.);
                     }
                 }
             }
@@ -181,6 +210,20 @@ export default function() {
     $viewParent.append($view);
 
     let needsUpdate = true;
+
+    function updateProgram() {
+        editor.session.clearAnnotations();
+        marchPass.material.fragmentShader = raySphereMarchingShader({
+            maxSteps: 1000,
+            sdf: 'distance'
+        }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        marchPass.material.needsUpdate = true;
+
+        aoPass.material.fragmentShader = raySphereDFAOShader(aoParams).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        aoPass.material.needsUpdate = true;
+        needsUpdate = true;
+    }
+
 
     function resize() {
         $("#editor").height($("#editor").parent().height());
@@ -193,6 +236,8 @@ export default function() {
 
         marchPass.resize($viewParent.width(), $viewParent.height());
         marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
+
+        aoPass.resize($viewParent.width(), $viewParent.height());
 
         needsUpdate = true;
     }
@@ -211,7 +256,9 @@ export default function() {
             if(diagnostics) {
                 let log = diagnostics.fragmentShader.log;
                 if(log.indexOf('ERROR') != -1) {
-                    let lines = (diagnostics.fragmentShader.prefix + marchPass.material.fragmentShader).split('\n');
+                    let prefixLines = diagnostics.fragmentShader.prefix.split('\n');
+                    let lines = marchPass.material.fragmentShader.split('\n');
+
                     //Find the start of the distance program.
                     let i;
                     for(i = 0; i < lines.length; ++i) {
@@ -219,6 +266,8 @@ export default function() {
                             break;
                         }
                     }
+                    i += prefixLines.length;
+
                     let annotations = [];
                     //Parse the error.
                     for(let error of log.split('\n')) {
@@ -228,16 +277,25 @@ export default function() {
                         let [column, row, code, text] = error.substring(7).split(':');
                         column = parseInt(column);
                         row = parseInt(row);
-                        row -= i + 2;
+                        row -= i + 1;
                         annotations.push({
-                            row, column,
+                            row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column,
                             text: code + ':' + text,
                             type: "error"
                         });
+                        if(row < 0 || row >= editor.session.getLength()) {
+                            annotations.push({
+                                row: editor.session.getLength() - 1, 
+                                column: 0,
+                                text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
+                                type: "error"
+                            });
+                        }
                     }
                     editor.session.setAnnotations(annotations);
                 }
             }
+            aoPass.execute();
             viewerPass.execute(true);
         }
         requestAnimationFrame(draw);
@@ -314,28 +372,31 @@ export default function() {
             );
             let delta = scale - oldScale; //Positive means fingers moved apart, negative means fingers moved together.
             //Define 1 change 'unit' as the fingers moving half the minimum screen extent. Tweak after experimentation.
-            zoom(5 * Math.log(camR / 5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
+            zoom(Math.log(camR / 0.5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
         }
     });
     $view.on('mousewheel', function(e) {
         //Zoom slower as we paroach camR = 0;
-        zoom(5 * Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
+        zoom(Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
     });
 
+    let fabSwitchTimeout;
     $('#fab-tune').on('click', function() {
+        clearTimeout(fabSwitchTimeout);
         $(this).addClass('mdc-fab--exited');
         $viewParent.addClass('shrunk');
         $('#bottom-sheet').addClass('visible');
         //500ms delay while we wait for the bottom sheet to show up.
-        setTimeout(() => {
+        fabSwitchTimeout = setTimeout(() => {
             $("#fab-update").removeClass("mdc-fab--exited");
-        }, 500);
+        }, 250);
     });
     $("#close-bottom-sheet").on('click', function() {
+        clearTimeout(fabSwitchTimeout);
         $("#fab-update").addClass("mdc-fab--exited");
         $viewParent.removeClass('shrunk');
         $('#bottom-sheet').removeClass('visible');
-        setTimeout(() => $("#fab-tune").removeClass("mdc-fab--exited"), 500);
+        fabSwitchTimeout = setTimeout(() => $("#fab-tune").removeClass("mdc-fab--exited"), 250);
     });
     $("#fab-update").on('click', updateProgram);
     $(window).on('keydown', function(e) {
@@ -343,7 +404,7 @@ export default function() {
             e.preventDefault();
             updateProgram();
         }
-        else if(e.which == 27) {
+        else if(e.which == 27 && e.shiftKey) {
             e.preventDefault();
             if($('#bottom-sheet').hasClass('visible')) {
                 $('#close-bottom-sheet').click();
@@ -382,21 +443,21 @@ class Settings extends React.Component {
                 <div className="mdc-typography--caption">Bounding Box</div>
                 <p>x: <strong>{this.props.boundingBox[0].x.toFixed(1)}, {this.props.boundingBox[1].x.toFixed(1)}</strong></p>
                 <div dir="rtl">
-                    <Slider step="0.5" value={-this.props.boundingBox[0].x} min={-500} max={500} onChange={this.changeBounds.bind(null, 0, 'x')}/>
+                    <Slider step="0.5" value={-this.props.boundingBox[0].x} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'x')}/>
                 </div>
-                <Slider step="0.5" value={this.props.boundingBox[1].x} min={-500} max={500} onChange={this.changeBounds.bind(null, 1, 'x')}/>
+                <Slider step="0.5" value={this.props.boundingBox[1].x} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'x')}/>
 
                 <p>y: <strong>{this.props.boundingBox[0].y.toFixed(1)}, {this.props.boundingBox[1].y.toFixed(1)}</strong></p>
                 <div dir="rtl">
-                    <Slider step="0.5" value={-this.props.boundingBox[0].y} min={-500} max={500} onChange={this.changeBounds.bind(null, 0, 'y')}/>
+                    <Slider step="0.5" value={-this.props.boundingBox[0].y} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'y')}/>
                 </div>
-                <Slider step="0.5" value={this.props.boundingBox[1].y} min={-500} max={500} onChange={this.changeBounds.bind(null, 1, 'y')}/>
+                <Slider step="0.5" value={this.props.boundingBox[1].y} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'y')}/>
 
                 <p>z: <strong>{this.props.boundingBox[0].z.toFixed(1)}, {this.props.boundingBox[1].z.toFixed(1)}</strong></p>
                 <div dir="rtl">
-                    <Slider step="0.5" value={-this.props.boundingBox[0].z} min={-500} max={500} onChange={this.changeBounds.bind(null, 0, 'z')}/>
+                    <Slider step="0.5" value={-this.props.boundingBox[0].z} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'z')}/>
                 </div>
-                <Slider step="0.5" value={this.props.boundingBox[1].z} min={-500} max={500} onChange={this.changeBounds.bind(null, 1, 'z')}/>
+                <Slider step="0.5" value={this.props.boundingBox[1].z} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'z')}/>
             </div>
         );
     }
