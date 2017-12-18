@@ -10,13 +10,6 @@ module.exports = {
     },
     module: {
         rules: [
-            { 
-                test: /\.(glsl|vert|frag)$/,
-                exclude: /node_modules/,
-                use: [{
-                    loader: 'glsl-template-loader'
-                }]
-            },
             {
                 test: /\.jsx?$/,
                 exclude: /node_modules/,

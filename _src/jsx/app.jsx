@@ -3,5 +3,3 @@ import * as pages from 'pages';
 export {pages};
 import stuff from 'stuff';
 stuff.mdc.init();
-import glsl from 'glsl-man';
-window.glsl = glsl;
