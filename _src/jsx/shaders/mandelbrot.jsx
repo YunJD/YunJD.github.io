@@ -1,14 +1,18 @@
+import ops from 'stuff/gl/complex/shaders/ops.jsx';
+export default ({MAX_ITER, BAILOUT2}) => `
+precision highp float;
+precision highp int;
 /* Pre-calculate a Mandelbrot set which will be used to help with random
  * sampling. This will make it possible to discard low-iteration escapes and
  * values that don't escape, giving higher chances of sampling interesting
  * locations.
  */
 
-#include stuff/gl/complex/shaders/ops.glsl;
+${ops()}
 
 //Can't use uniforms for this, because glsl does loop unrolling.
-#define MAX_ITER $MAX_ITER.
-#define BAILOUT2 $BAILOUT2.
+#define MAX_ITER ${MAX_ITER}.
+#define BAILOUT2 ${BAILOUT2}.
 precision highp float;
 
 uniform int usePrev;
@@ -42,3 +46,4 @@ void main() {
     }
     gl_FragColor = vec4(z, zPrev.b + MAX_ITER, 0.);
 }
+`

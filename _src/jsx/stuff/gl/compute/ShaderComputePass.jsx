@@ -1,5 +1,5 @@
 import * as T from 'three';
-import computeVertShader from './shaders/compute_vertex.vert';
+import computeVertShader from './shaders/compute_vertex.jsx';
 
 //We want a 1-to-1 projection from the texel to the data array. We can also normalize to extents [(-0.5, 0.5), (-0.5, 0.5)], by default.
 const COMPUTE_ORTHO_CAMERA = new T.OrthographicCamera(
@@ -42,7 +42,7 @@ export default class {
             this.texTarget.value = this.texTarget.v.texture;
         }
 
-        this.material = new T.ShaderMaterial({
+        this.material = new T.RawShaderMaterial({
             uniforms: shader.uniforms, //T.UniformsUtils.clone(shader.uniforms), //Clone breaks references to Float32 arrays and such for data textures.
             vertexShader: computeVertShader(),
             fragmentShader: shader.fragmentShader,

@@ -1,6 +1,27 @@
-import includes from './raySphereLightingIncludes.glsl';
+import ops from 'stuff/gl/complex/shaders/ops.jsx';
+import intersect from 'stuff/gl/geometry/shaders/intersect.jsx';
+import differential from 'stuff/gl/geometry/shaders/differential.jsx';
+import camera from 'stuff/gl/camera/shaders/camera.jsx';
+import lights from 'stuff/gl/lights/shaders/lights.jsx';
+import implicitFunction from 'stuff/gl/geometry/shaders/implicit_function.jsx';
 
-const program = `
+export default ({maxSteps, sdf, distanceProgram, sampleDistance, nSamples, occlusionStrength}) => `
+precision highp float;
+precision highp int;
+${ops()}
+${intersect()}
+${differential()}
+${camera()}
+${lights()}
+
+#define SAMPLE_DISTANCE ${sampleDistance}
+#define N_SAMPLES ${nSamples}
+#define OCCLUSION_STRENGTH ${occlusionStrength}
+
+${distanceProgram}
+
+${implicitFunction({sdf, maxSteps})}
+
 uniform sampler2D surfaceData;
 
 varying vec2 vUv;
@@ -50,9 +71,4 @@ void main() {
     }
     gl_FragColor = vec4(color, 1. - clamp(occlusion / total, 0., 0.9));
 }
-`.trim();
-
-//Workaround because includes clash with glsl-man
-export default function(params) {
-    return includes(params) + '\n' + program;
-}
+`;

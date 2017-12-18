@@ -1,3 +1,4 @@
+export default () => `
 //Stuff related to raytracing
 
 uniform mat4 invProjMat;
@@ -13,3 +14,4 @@ vec4 getCameraRay(in vec2 normPixel) {
     dir = cameraMat * normalize(dir);
     return dir;
 }
+`;

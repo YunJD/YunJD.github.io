@@ -1,3 +1,4 @@
+export default () => `
 //Although these can be used to ray trace shapes, they're really meant to provide bounds for rendering, which can speed things up.
 
 bool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {
@@ -73,3 +74,4 @@ bool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out f
     }
     return true;
 }
+`;

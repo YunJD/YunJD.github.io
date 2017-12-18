@@ -1,4 +1,3 @@
-import glsl from 'glsl-man';
 import {ChromePicker} from 'react-color';
 import {MDCTab, MDCTabFoundation, MDCTabBar, MDCTabBarFoundation} from '@material/tabs';
 import {MDCRipple, MDCRippleFoundation, util} from '@material/ripple';
@@ -6,7 +5,7 @@ import TextField from 'rmwc/TextField';
 import Slider from 'rmwc/Slider';
 import * as T from 'three';
 import stuff from 'stuff';
-import raySphereMarchingShader from 'shaders/raySphereMarching.frag';
+import raySphereMarchingShader from 'shaders/raySphereMarching.jsx';
 import raySphereLightingShader from 'shaders/raySphereLighting.jsx';
 import sdfSnippets from 'snippets/sdf_snippets.jsx';
 import React from 'react';
@@ -22,7 +21,6 @@ export default function() {
         maxSteps: 50,
         sdf: 'distance'
     };
-    Object.assign(lightingParams, aoParams);
 
     let tabBar = MDCTabBar.attachTo($('#code-tab-bar')[0]);
     //Blegh, there's no documentation on toolbar text links...what?
@@ -43,6 +41,7 @@ export default function() {
         $activePanel = $($(this).attr('href')).addClass('active');
         $("#editor").height($("#editor").parent().height());
         editor.resize();
+
     });
 
     let editor = ace.edit('editor');
@@ -93,7 +92,6 @@ export default function() {
     }
     function updateAO(settings) {
         Object.assign(aoParams, settings);
-        Object.assign(lightingParams, aoParams);
         updateProgram();
     }
     function updateBounds(which, dim, value) {
@@ -165,8 +163,9 @@ export default function() {
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: raySphereMarchingShader({
             maxSteps: 100,
-            sdf: 'distance'
-        }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue())
+            sdf: 'distance',
+            distanceProgram: `//FIRSTLINE\n${editor.getValue()}`
+        })
     }, $viewParent.width(), $viewParent.height());
 
     let lightingPass = new stuff.gl.ComputeShaderPass({
@@ -181,7 +180,9 @@ export default function() {
                 value: marchPass.texTarget.t.texture
             }
         },
-        fragmentShader: raySphereLightingShader(lightingParams).replace("float distanceProgram;", editor.getValue())
+        fragmentShader: raySphereLightingShader(Object.assign({
+            distanceProgram: editor.getValue()
+        }, lightingParams, aoParams))
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     let viewerPass = new stuff.gl.ComputeShaderPass({
@@ -204,6 +205,8 @@ export default function() {
             }
         },
         fragmentShader: `
+            precision highp float;
+            precision highp int;
             varying vec2 vUv;
             uniform sampler2D surfaceData;
             uniform sampler2D lighting;
@@ -233,13 +236,18 @@ export default function() {
 
     function updateProgram() {
         editor.session.clearAnnotations();
+        let distanceProgram = `//FIRSTLINE\n${editor.getValue()}`;
+
         marchPass.material.fragmentShader = raySphereMarchingShader({
             maxSteps: 100,
-            sdf: 'distance'
-        }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+            sdf: 'distance',
+            distanceProgram
+        });
         marchPass.material.needsUpdate = true;
 
-        lightingPass.material.fragmentShader = raySphereLightingShader(lightingParams).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        lightingPass.material.fragmentShader = raySphereLightingShader(Object.assign({
+            distanceProgram
+        }, lightingParams, aoParams));
         lightingPass.material.needsUpdate = true;
         needsUpdate = true;
     }
@@ -512,6 +520,7 @@ class Settings extends React.Component {
             this.props.onChangeBounds(bound, dimension, bound == 0 ? -e.target.value : e.target.value);
             this.forceUpdate();
         }.bind(this);
+        let self = this;
     }
     render() {
         return (

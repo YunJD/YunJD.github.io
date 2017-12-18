@@ -1,5 +1,6 @@
-#define MAX_STEPS $maxSteps
-#define SDF_FN $sdf
+export default ({maxSteps, sdf}) => `
+#define MAX_STEPS ${maxSteps}
+#define SDF_FN ${sdf}
 
 uniform float far;
 uniform float threshold;
@@ -29,3 +30,4 @@ bool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out flo
     }
     return false;
 }
+`

@@ -72402,15 +72402,15 @@ var _stuff = __webpack_require__(63);
 
 var _stuff2 = _interopRequireDefault(_stuff);
 
-var _mandelbrot = __webpack_require__(201);
+var _mandelbrot = __webpack_require__(505);
 
 var _mandelbrot2 = _interopRequireDefault(_mandelbrot);
 
-var _sampleMandelbrotEscape = __webpack_require__(202);
+var _sampleMandelbrotEscape = __webpack_require__(506);
 
 var _sampleMandelbrotEscape2 = _interopRequireDefault(_sampleMandelbrotEscape);
 
-var _mandelbrotStep = __webpack_require__(203);
+var _mandelbrotStep = __webpack_require__(507);
 
 var _mandelbrotStep2 = _interopRequireDefault(_mandelbrotStep);
 
@@ -73127,7 +73127,7 @@ var _three = __webpack_require__(62);
 
 var T = _interopRequireWildcard(_three);
 
-var _compute_vertex = __webpack_require__(199);
+var _compute_vertex = __webpack_require__(499);
 
 var _compute_vertex2 = _interopRequireDefault(_compute_vertex);
 
@@ -73183,7 +73183,7 @@ var _class = function () {
             this.texTarget.value = this.texTarget.v.texture;
         }
 
-        this.material = new T.ShaderMaterial({
+        this.material = new T.RawShaderMaterial({
             uniforms: shader.uniforms, //T.UniformsUtils.clone(shader.uniforms), //Clone breaks references to Float32 arrays and such for data textures.
             vertexShader: (0, _compute_vertex2.default)(),
             fragmentShader: shader.fragmentShader,
@@ -73285,12 +73285,7 @@ var _class = function () {
 exports.default = _class;
 
 /***/ }),
-/* 199 */
-/***/ (function(module, exports) {
-
-module.exports=opts=>"varying vec2 vUv;\nvoid main() {\n\tvUv = uv;\n\tgl_Position = (projectionMatrix * modelViewMatrix) * vec4(position, 1.0);\n}\n";
-
-/***/ }),
+/* 199 */,
 /* 200 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -73502,81 +73497,9 @@ MersenneTwister.prototype.genrand_res53 = function () {
 exports.default = MersenneTwister;
 
 /***/ }),
-/* 201 */
-/***/ (function(module, exports) {
-
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_ITER "+
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-opts.MAX_ITER+".\n#define BAILOUT2 "+
-opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2D prev;\nuniform vec2 translate;\nuniform float scale;\nuniform float aspect;\nvarying vec2 vUv;\nvec2 coord() {\n\treturn ((((vUv * 2.) - 1.) * vec2(aspect, 1.)) * scale) + translate;\n}\nvoid main() {\n\tvec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n\tif (zPrev.a != 0.) {\n\t\tgl_FragColor = zPrev;\n\t\treturn ;\n\t}\n\tvec2 c = coord();\n\tvec2 z = zPrev.xy;\n\tfor (float i = 0.; i <= MAX_ITER; ++i) {\n\t\tif (cabs2(z) >= BAILOUT2) {\n\t\t\tgl_FragColor = vec4(c, zPrev.b + i, 1.);\n\t\t\treturn ;\n\t\t}\n\t\tz = cmul(z, z) + c;\n\t}\n\tgl_FragColor = vec4(z, zPrev.b + MAX_ITER, 0.);\n}\n";
-
-/***/ }),
-/* 202 */
-/***/ (function(module, exports) {
-
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_CHUNK "+
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-opts.MAX_CHUNK+".\n#define BAILOUT2 "+
-opts.BAILOUT2+".\nprecision highp float;\nuniform int usePrev;\nuniform sampler2D prev;\nuniform sampler2D samples;\nvarying vec2 vUv;\nvoid main() {\n\tvec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n\tif (zPrev.r != 0.) {\n\t\tgl_FragColor = zPrev;\n\t\treturn ;\n\t}\n\tvec4 s = texture2D(samples, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = zPrev.ba;\n\tfor (float i = 0.; i <= MAX_CHUNK; ++i) {\n\t\tz = cmul(z, z) + c;\n\t\tif (cabs2(z) >= BAILOUT2) {\n\t\t\tgl_FragColor = vec4(1., zPrev.g + i, z);\n\t\t\treturn ;\n\t\t}\n\t}\n\tgl_FragColor = vec4(0., zPrev.g + MAX_CHUNK, z);\n}\n";
-
-/***/ }),
-/* 203 */
-/***/ (function(module, exports) {
-
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\n#define MAX_ITER "+
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-opts.MAX_ITER+".\n#define BAILOUT2 "+
-opts.BAILOUT2+".\nprecision highp float;\nuniform int clear;\nuniform sampler2D samples;\nuniform sampler2D prev;\nvarying vec2 vUv;\nvoid main() {\n\tif (clear == 1) {\n\t\tgl_FragColor = vec4(0.);\n\t\treturn ;\n\t}\n\tvec4 s = texture2D(samples, vUv);\n\tif (s.z == -1.) {\n\t\treturn ;\n\t}\n\tvec4 p = texture2D(prev, vUv);\n\tvec2 c = s.xy;\n\tvec2 z = p.xy;\n\tif (((p.a == 1.) || (p.b > MAX_ITER)) || (cabs2(z) >= BAILOUT2)) {\n\t\tgl_FragColor = vec4(p.xyz, 1.);\n\t\treturn ;\n\t}\n\tgl_FragColor = vec4(cmul(z, z) + c, p.b + 1., 0.);\n}\n";
-
-/***/ }),
+/* 201 */,
+/* 202 */,
+/* 203 */,
 /* 204 */
 /***/ (function(module, exports) {
 
@@ -73817,7 +73740,6 @@ exports.default = function () {
         maxSteps: 50,
         sdf: 'distance'
     };
-    Object.assign(lightingParams, aoParams);
 
     var tabBar = _tabs.MDCTabBar.attachTo($('#code-tab-bar')[0]);
     //Blegh, there's no documentation on toolbar text links...what?
@@ -73884,7 +73806,6 @@ exports.default = function () {
     }
     function updateAO(settings) {
         Object.assign(aoParams, settings);
-        Object.assign(lightingParams, aoParams);
         updateProgram();
     }
     function updateBounds(which, dim, value) {
@@ -73951,8 +73872,9 @@ exports.default = function () {
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: (0, _raySphereMarching2.default)({
             maxSteps: 100,
-            sdf: 'distance'
-        }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue())
+            sdf: 'distance',
+            distanceProgram: '//FIRSTLINE\n' + editor.getValue()
+        })
     }, $viewParent.width(), $viewParent.height());
 
     var lightingPass = new _stuff2.default.gl.ComputeShaderPass({
@@ -73967,7 +73889,9 @@ exports.default = function () {
                 value: marchPass.texTarget.t.texture
             }
         },
-        fragmentShader: (0, _raySphereLighting2.default)(lightingParams).replace("float distanceProgram;", editor.getValue())
+        fragmentShader: (0, _raySphereLighting2.default)(Object.assign({
+            distanceProgram: editor.getValue()
+        }, lightingParams, aoParams))
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
@@ -73989,7 +73913,7 @@ exports.default = function () {
                 value: new T.Vector3(0.8, 0.8, 0.8)
             }
         },
-        fragmentShader: '\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 ambient;\n            uniform vec3 background;\n\n            void main() {\n                gl_FragColor = vec4(background, 1.);\n                vec4 color = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n                if(color.a != -1.) {\n                    if(color.a == -2.) {\n                        gl_FragColor = vec4(color.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = vec4(lightingData.w * ambient + lightingData.xyz, 1.);\n                    }\n                }\n            }\n        '
+        fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 ambient;\n            uniform vec3 background;\n\n            void main() {\n                gl_FragColor = vec4(background, 1.);\n                vec4 color = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n                if(color.a != -1.) {\n                    if(color.a == -2.) {\n                        gl_FragColor = vec4(color.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = vec4(lightingData.w * ambient + lightingData.xyz, 1.);\n                    }\n                }\n            }\n        '
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     var $view = $(viewerPass.renderer.domElement);
@@ -73999,13 +73923,18 @@ exports.default = function () {
 
     function updateProgram() {
         editor.session.clearAnnotations();
+        var distanceProgram = '//FIRSTLINE\n' + editor.getValue();
+
         marchPass.material.fragmentShader = (0, _raySphereMarching2.default)({
             maxSteps: 100,
-            sdf: 'distance'
-        }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+            sdf: 'distance',
+            distanceProgram: distanceProgram
+        });
         marchPass.material.needsUpdate = true;
 
-        lightingPass.material.fragmentShader = (0, _raySphereLighting2.default)(lightingParams).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        lightingPass.material.fragmentShader = (0, _raySphereLighting2.default)(Object.assign({
+            distanceProgram: distanceProgram
+        }, lightingParams, aoParams));
         lightingPass.material.needsUpdate = true;
         needsUpdate = true;
     }
@@ -74233,10 +74162,6 @@ exports.default = function () {
         onUpdateAO: updateAO }), $("#lighting-container")[0]);
 };
 
-var _glslMan = __webpack_require__(101);
-
-var _glslMan2 = _interopRequireDefault(_glslMan);
-
 var _reactColor = __webpack_require__(227);
 
 var _tabs = __webpack_require__(397);
@@ -74259,7 +74184,7 @@ var _stuff = __webpack_require__(63);
 
 var _stuff2 = _interopRequireDefault(_stuff);
 
-var _raySphereMarching = __webpack_require__(494);
+var _raySphereMarching = __webpack_require__(508);
 
 var _raySphereMarching2 = _interopRequireDefault(_raySphereMarching);
 
@@ -74396,6 +74321,7 @@ var Settings = function (_React$Component2) {
             this.props.onChangeBounds(bound, dimension, bound == 0 ? -e.target.value : e.target.value);
             this.forceUpdate();
         }.bind(_this2);
+        var self = _this2;
         return _this2;
     }
 
@@ -113058,111 +112984,7 @@ var MDCSliderFoundation = function (_MDCFoundation) {
 });
 
 /***/ }),
-/* 494 */
-/***/ (function(module, exports) {
-
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\nbool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {\n\treturn (((((p.x >= b1.x) && (p.x <= b2.x)) && (p.y >= b1.y)) && (p.y <= b2.y)) && (p.z >= b1.z)) && (p.z <= b2.z);\n}\nbool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0, out float t1) {\n\tbvec3 isNeg = bvec3(rd.x < 0., rd.y < 0., rd.z < 0.);\n\tvec3 invDir = 1. / rd;\n\tfloat tmin, tmax, ttmin, ttmax;\n\ttmin = isNeg.x ? (b2.x - rp.x) * invDir.x : (b1.x - rp.x) * invDir.x;\n\ttmax = isNeg.x ? (b1.x - rp.x) * invDir.x : (b2.x - rp.x) * invDir.x;\n\tttmin = isNeg.y ? (b2.y - rp.y) * invDir.y : (b1.y - rp.y) * invDir.y;\n\tttmax = isNeg.y ? (b1.y - rp.y) * invDir.y : (b2.y - rp.y) * invDir.y;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\ttmin = max(tmin, ttmin);\n\ttmax = min(tmax, ttmax);\n\tttmin = isNeg.z ? (b2.z - rp.z) * invDir.z : (b1.z - rp.z) * invDir.z;\n\tttmax = isNeg.z ? (b1.z - rp.z) * invDir.z : (b2.z - rp.z) * invDir.z;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\tt0 = max(tmin, ttmin);\n\tt1 = min(tmax, ttmax);\n\treturn true;\n}\nbool quadratic(float a, float b, float c, out float tmin, out float tmax) {\n\tfloat discr = (b * b) - ((4. * a) * c);\n\tif (discr < 0.) {\n\t\treturn false;\n\t}\n\tif (discr == 0.) {\n\t\ttmin = tmax = (-0.5 * b) / a;\n\t}\n\telse {\n\t\tfloat q = -0.5 * (b > 0. ? b + sqrt(discr) : b - sqrt(discr));\n\t\tfloat x0 = q / a;\n\t\tfloat x1 = c / q;\n\t\ttmin = min(x0, x1);\n\t\ttmax = max(x0, x1);\n\t}\n\treturn true;\n}\nbool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out float tmax) {\n\tfloat a = dot(rd, rd);\n\tfloat b = 2. * dot(rd, rp);\n\tfloat c = dot(rp, rp) - (radius * radius);\n\tif (!quadratic(a, b, c, tmin, tmax)) {\n\t\treturn false;\n\t}\n\treturn true;\n}\n\n#define NUM_GRAD3 numDiff(vec3(FN(gradP + gradD.yxx), FN(gradP + gradD.xyx), FN(gradP + gradD.xxy)), vec3(FN(gradP - gradD.yxx), FN(gradP - gradD.xyx), FN(gradP - gradD.xxy)), gradD.y)\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n\treturn (deltaPositive - deltaNeg) / (2. * delta);\n}\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nuniform mat4 invProjMat;\nuniform mat4 cameraMat;\nvec4 getCameraPos() {\n\treturn cameraMat * vec4(0., 0., 0., 1.);\n}\nvec4 getCameraRay(in vec2 normPixel) {\n\tvec4 dir = invProjMat * vec4(2. * (normPixel - 0.5), 0., 1.);\n\tdir.a = 0.;\n\tdir = cameraMat * normalize(dir);\n\treturn dir;\n}\nuniform vec3 bounds[2];\nvarying vec2 vUv;\nfloat distanceProgram;\n\n#define MAX_STEPS "+
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-opts.maxSteps+"\n#define SDF_FN "+
-opts.sdf+"\nuniform float far;\nuniform float threshold;\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n\tt = max(tmin, 0.001);\n\ttmax = min(tmax, far);\n\tfloat dist = SDF_FN(rayPos + (t * rayDir), t, 0);\n\tfloat decay = 1.;\n\tfloat fSign = dist < 0. ? -1. : 1.;\n\tfor (int i = 1; i <= MAX_STEPS; ++i) {\n\t\tfloat precis = threshold * t;\n\t\tif (abs(dist) < abs(precis)) {\n\t\t\treturn (t >= (tmin - threshold)) && (t <= (tmax + threshold));\n\t\t}\n\t\tt += ((fSign * dist) * decay);\n\t\tif (t > (tmax * 2.)) {\n\t\t\treturn false;\n\t\t}\n\t\tdist = SDF_FN(rayPos + (t * rayDir), t, i);\n\t\tdecay *= (i >= 200 ? 0.99 : 1.);\n\t}\n\treturn false;\n}\nvoid main() {\n\tgl_FragColor = vec4(-1.);\n\tvec4 rayPos = getCameraPos();\n\tvec4 rayDir = getCameraRay(vUv);\n\tfloat bbmin, bbmax;\n\tif (intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n\t\tfloat t;\n\t\tif (intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {\n\t\t\tgl_FragColor = vec4(normalize(gradient(rayPos + (t * rayDir), t)), t);\n\t\t}\n\t}\n}\n";
-
-/***/ }),
+/* 494 */,
 /* 495 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -113173,140 +112995,44 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-exports.default = function (params) {
-    return (0, _raySphereLightingIncludes2.default)(params) + '\n' + program;
-};
+var _ops = __webpack_require__(500);
 
-var _raySphereLightingIncludes = __webpack_require__(496);
+var _ops2 = _interopRequireDefault(_ops);
 
-var _raySphereLightingIncludes2 = _interopRequireDefault(_raySphereLightingIncludes);
+var _intersect = __webpack_require__(501);
+
+var _intersect2 = _interopRequireDefault(_intersect);
+
+var _differential = __webpack_require__(502);
+
+var _differential2 = _interopRequireDefault(_differential);
+
+var _camera = __webpack_require__(503);
+
+var _camera2 = _interopRequireDefault(_camera);
+
+var _lights = __webpack_require__(498);
+
+var _lights2 = _interopRequireDefault(_lights);
+
+var _implicit_function = __webpack_require__(504);
+
+var _implicit_function2 = _interopRequireDefault(_implicit_function);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var program = '\nuniform sampler2D surfaceData;\n\nvarying vec2 vUv;\n\nPointLight lights[2];\n\nvoid main() {\n    lights[0] = PointLight(vec3(0.8, 2.7, 0.), vec3(100.));\n    lights[1] = PointLight(vec3(1., 1., 2.), 0.7 * vec3(30., 60., 100.));\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    float cameraCos = dot(rayDir, normal);\n    normal *= cameraCos < 0. ? 1. : -1.;\n    cameraCos = dot(-rayDir, normal);\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    //Normalization factor. More samples should not change the brightness!\n    float total = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance, square cubed law and such. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = float(SAMPLE_DISTANCE) * pow((1. - float(i) / float(N_SAMPLES)), 2.);\n        total += t * strength;\n        occlusion += strength * abs(t - abs(distance(startPos + t * normal, t, i)));\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n    for(int i = 0; i < 2; ++i) {\n        vec4 lightDir = vec4(sampleDirectLight(lights[i], startPos.xyz, tmax), 0.);\n        if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {\n            //TODO: Materials, currently the 0.2 is the albedo for the diffuse surface\n            color += Le(lights[i], startPos.xyz) * max(0., dot(lightDir, normal)) * (0.8 / 3.14159265);\n        }\n    }\n    gl_FragColor = vec4(color, 1. - clamp(occlusion / total, 0., 0.9));\n}\n'.trim();
-
-//Workaround because includes clash with glsl-man
+exports.default = function (_ref) {
+    var maxSteps = _ref.maxSteps,
+        sdf = _ref.sdf,
+        distanceProgram = _ref.distanceProgram,
+        sampleDistance = _ref.sampleDistance,
+        nSamples = _ref.nSamples,
+        occlusionStrength = _ref.occlusionStrength;
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\n\nvarying vec2 vUv;\n\nPointLight lights[2];\n\nvoid main() {\n    lights[0] = PointLight(vec3(0.8, 2.7, 0.), vec3(100.));\n    lights[1] = PointLight(vec3(1., 1., 2.), 0.7 * vec3(30., 60., 100.));\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    float cameraCos = dot(rayDir, normal);\n    normal *= cameraCos < 0. ? 1. : -1.;\n    cameraCos = dot(-rayDir, normal);\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    //Normalization factor. More samples should not change the brightness!\n    float total = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance, square cubed law and such. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = float(SAMPLE_DISTANCE) * pow((1. - float(i) / float(N_SAMPLES)), 2.);\n        total += t * strength;\n        occlusion += strength * abs(t - abs(distance(startPos + t * normal, t, i)));\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n    for(int i = 0; i < 2; ++i) {\n        vec4 lightDir = vec4(sampleDirectLight(lights[i], startPos.xyz, tmax), 0.);\n        if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {\n            //TODO: Materials, currently the 0.2 is the albedo for the diffuse surface\n            color += Le(lights[i], startPos.xyz) * max(0., dot(lightDir, normal)) * (0.8 / 3.14159265);\n        }\n    }\n    gl_FragColor = vec4(color, 1. - clamp(occlusion / total, 0., 0.9));\n}\n';
+};
 
 /***/ }),
-/* 496 */
-/***/ (function(module, exports) {
-
-module.exports=opts=>"vec2 cmul(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) - (a.y * b.y), (a.x * b.y) + (a.y * b.x));\n}\nvec2 cdiv(in vec2 a, in vec2 b) {\n\treturn vec2((a.x * b.x) + (a.y * b.y), (a.y * b.x) - (a.x * b.y)) / ((b.x * b.x) + (b.y * b.y));\n}\nfloat cabs2(in vec2 a) {\n\treturn (a.x * a.x) + (a.y * a.y);\n}\nfloat cabs(in vec2 a) {\n\treturn sqrt(cabs2(a));\n}\nvec4 qmul(in vec4 q1, in vec4 q2) {\n\tvec4 r;\n\tr.x = (q1.x * q2.x) - dot(q1.yzw, q2.yzw);\n\tr.yzw = ((q1.x * q2.yzw) + (q2.x * q1.yzw)) + cross(q1.yzw, q2.yzw);\n\treturn r;\n}\nbool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {\n\treturn (((((p.x >= b1.x) && (p.x <= b2.x)) && (p.y >= b1.y)) && (p.y <= b2.y)) && (p.z >= b1.z)) && (p.z <= b2.z);\n}\nbool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0, out float t1) {\n\tbvec3 isNeg = bvec3(rd.x < 0., rd.y < 0., rd.z < 0.);\n\tvec3 invDir = 1. / rd;\n\tfloat tmin, tmax, ttmin, ttmax;\n\ttmin = isNeg.x ? (b2.x - rp.x) * invDir.x : (b1.x - rp.x) * invDir.x;\n\ttmax = isNeg.x ? (b1.x - rp.x) * invDir.x : (b2.x - rp.x) * invDir.x;\n\tttmin = isNeg.y ? (b2.y - rp.y) * invDir.y : (b1.y - rp.y) * invDir.y;\n\tttmax = isNeg.y ? (b1.y - rp.y) * invDir.y : (b2.y - rp.y) * invDir.y;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\ttmin = max(tmin, ttmin);\n\ttmax = min(tmax, ttmax);\n\tttmin = isNeg.z ? (b2.z - rp.z) * invDir.z : (b1.z - rp.z) * invDir.z;\n\tttmax = isNeg.z ? (b1.z - rp.z) * invDir.z : (b2.z - rp.z) * invDir.z;\n\tif ((ttmin > tmax) || (ttmax < tmin)) {\n\t\treturn false;\n\t}\n\tt0 = max(tmin, ttmin);\n\tt1 = min(tmax, ttmax);\n\treturn true;\n}\nbool quadratic(float a, float b, float c, out float tmin, out float tmax) {\n\tfloat discr = (b * b) - ((4. * a) * c);\n\tif (discr < 0.) {\n\t\treturn false;\n\t}\n\tif (discr == 0.) {\n\t\ttmin = tmax = (-0.5 * b) / a;\n\t}\n\telse {\n\t\tfloat q = -0.5 * (b > 0. ? b + sqrt(discr) : b - sqrt(discr));\n\t\tfloat x0 = q / a;\n\t\tfloat x1 = c / q;\n\t\ttmin = min(x0, x1);\n\t\ttmax = max(x0, x1);\n\t}\n\treturn true;\n}\nbool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out float tmax) {\n\tfloat a = dot(rd, rd);\n\tfloat b = 2. * dot(rd, rp);\n\tfloat c = dot(rp, rp) - (radius * radius);\n\tif (!quadratic(a, b, c, tmin, tmax)) {\n\t\treturn false;\n\t}\n\treturn true;\n}\n\n#define NUM_GRAD3 numDiff(vec3(FN(gradP + gradD.yxx), FN(gradP + gradD.xyx), FN(gradP + gradD.xxy)), vec3(FN(gradP - gradD.yxx), FN(gradP - gradD.xyx), FN(gradP - gradD.xxy)), gradD.y)\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n\treturn (deltaPositive - deltaNeg) / (2. * delta);\n}\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n\treturn (deltaPositive - deltaNegative) / (2. * delta);\n}\nuniform mat4 invProjMat;\nuniform mat4 cameraMat;\nvec4 getCameraPos() {\n\treturn cameraMat * vec4(0., 0., 0., 1.);\n}\nvec4 getCameraRay(in vec2 normPixel) {\n\tvec4 dir = invProjMat * vec4(2. * (normPixel - 0.5), 0., 1.);\n\tdir.a = 0.;\n\tdir = cameraMat * normalize(dir);\n\treturn dir;\n}\nstruct PointLight {\n\tvec3 position;\n\tvec3 intensity;\n};\nvec3 sampleDirectLight(in PointLight light, in vec3 pos, out float tmax) {\n\tvec3 lightdir = light.position - pos;\n\ttmax = length(lightdir);\n\treturn lightdir / tmax;\n}\nvec3 Le(in PointLight light, in vec3 pos) {\n\tvec3 r = light.position - pos;\n\treturn light.intensity / ((4. * 3.14159265) * dot(r, r));\n}\n#define SAMPLE_DISTANCE "+
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-opts.sampleDistance+"\n#define N_SAMPLES "+
-opts.nSamples+"\n#define OCCLUSION_STRENGTH "+
-opts.occlusionStrength+"\nfloat distanceProgram;\n\n#define MAX_STEPS "+
-
-
-opts.maxSteps+"\n#define SDF_FN "+
-opts.sdf+"\nuniform float far;\nuniform float threshold;\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n\tt = max(tmin, 0.001);\n\ttmax = min(tmax, far);\n\tfloat dist = SDF_FN(rayPos + (t * rayDir), t, 0);\n\tfloat decay = 1.;\n\tfloat fSign = dist < 0. ? -1. : 1.;\n\tfor (int i = 1; i <= MAX_STEPS; ++i) {\n\t\tfloat precis = threshold * t;\n\t\tif (abs(dist) < abs(precis)) {\n\t\t\treturn (t >= (tmin - threshold)) && (t <= (tmax + threshold));\n\t\t}\n\t\tt += ((fSign * dist) * decay);\n\t\tif (t > (tmax * 2.)) {\n\t\t\treturn false;\n\t\t}\n\t\tdist = SDF_FN(rayPos + (t * rayDir), t, i);\n\t\tdecay *= (i >= 200 ? 0.99 : 1.);\n\t}\n\treturn false;\n}\n";
-
-/***/ }),
+/* 496 */,
 /* 497 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -113316,8 +113042,226 @@ opts.sdf+"\nuniform float far;\nuniform float threshold;\nbool intersectImplicit
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-//The glsl loader will remove white-space and comments.
+//This is the initial program.
+
 exports.default = "\nuniform float time;\n//Make sure to keep the function signatures the same of every function here!\n\n//Edit this to see different shapes.\nfloat sdf(in vec3 p) {\n    float sphereDist = (length(p) - 0.2);\n    float displacement = sin(p.x * 50. + time * 0.001) * sin(p.z * 50. + time * 0.001) * sin(p.y * 50.);\n    float plane = p.y + 0.6;\n    return min(\n        sphereDist * 0.3 + displacement * 0.03,\n        plane\n    );\n}\n\n//Not really sure of a better way to do this. A macro is used because:\n//  A: This way, a new gradient function does not need to be defined for every new FN.\n//  B: How else can callbacks be performed in GLSL?\n//I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's\n//recommended that this function be replaced by an analytical gradient implementation.\n#define FN sdf\nvec3 gradient(in vec4 p, float t) {\n    //I couldn't make the functional macro definition work. I a dumb dumb.\n    vec2 gradD = vec2(0., 5e-4);\n    vec3 gradP = p.xyz;\n\n    //Numerical gradient macro.\n    return NUM_GRAD3;\n}\n#undef FN\n\nfloat distance(in vec4 p, float t, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return sdf(p.xyz);\n}\n\n".trim();
+
+/***/ }),
+/* 498 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function () {
+    return "\nstruct PointLight {\n    vec3 position;\n    vec3 intensity;\n};\n\nvec3 sampleDirectLight(in PointLight light, in vec3 pos, out float tmax) {\n    vec3 lightdir = light.position - pos;\n    tmax = length(lightdir);\n    return lightdir / tmax;\n}\n\nvec3 Le(in PointLight light, in vec3 pos) {\n    vec3 r = light.position - pos;\n    return light.intensity / (4. * 3.14159265 * dot(r, r));\n}\n";
+};
+
+/***/ }),
+/* 499 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+//Copy some prefix items from THREE.js, but ultimately don't need most of them for the compute part.
+exports.default = function () {
+    return "\nprecision highp float;\nprecision highp int;\nuniform mat4 modelViewMatrix;\nuniform mat4 projectionMatrix;\nattribute vec3 position;\nattribute vec2 uv;\n\nvarying vec2 vUv;\nvoid main() {\n    vUv = uv;\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}\n";
+};
+
+/***/ }),
+/* 500 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function () {
+    return "\n//Bunch of complex ops\nvec2 cmul(in vec2 a, in vec2 b) {\n    return vec2(\n        a.x * b.x - a.y * b.y,\n        a.x * b.y + a.y * b.x\n    );\n}\n\nvec2 cdiv(in vec2 a, in vec2 b) {\n    return vec2(a.x * b.x + a.y * b.y, a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y);\n}\n\nfloat cabs2(in vec2 a) {\n    return a.x * a.x + a.y * a.y;\n}\n\nfloat cabs(in vec2 a) {\n    return sqrt(cabs2(a));\n}\n\n//Quaternions\nvec4 qmul(in vec4 q1, in vec4 q2) {\n    vec4 r;\n    r.x = q1.x * q2.x - dot(q1.yzw, q2.yzw);\n    r.yzw = q1.x * q2.yzw + q2.x * q1.yzw + cross(q1.yzw, q2.yzw);\n    return r;\n}\n";
+};
+
+/***/ }),
+/* 501 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function () {
+    return "\n//Although these can be used to ray trace shapes, they're really meant to provide bounds for rendering, which can speed things up.\n\nbool insideAABB(in vec3 b1, in vec3 b2, in vec3 p) {\n    return p.x >= b1.x && p.x <= b2.x\n        && p.y >= b1.y && p.y <= b2.y\n        && p.z >= b1.z && p.z <= b2.z;\n}\n\nbool intersectAABB(in vec3 b1, in vec3 b2, in vec3 rp, in vec3 rd, out float t0, out float t1) {\n    bvec3 isNeg = bvec3(\n        rd.x < 0.,\n        rd.y < 0.,\n        rd.z < 0.\n    );\n\n    vec3 invDir = 1. / rd;\n\n    float tmin, tmax, ttmin, ttmax;\n    tmin = isNeg.x ? (b2.x - rp.x) * invDir.x : (b1.x - rp.x) * invDir.x;\n    tmax = isNeg.x ? (b1.x - rp.x) * invDir.x : (b2.x - rp.x) * invDir.x;\n\n    ttmin = isNeg.y ? (b2.y - rp.y) * invDir.y : (b1.y - rp.y) * invDir.y;\n    ttmax = isNeg.y ? (b1.y - rp.y) * invDir.y : (b2.y - rp.y) * invDir.y;\n\n    if((ttmin > tmax) || (ttmax < tmin)) {\n        return false;\n    }\n\n    tmin = max(tmin, ttmin);\n    tmax = min(tmax, ttmax);\n\n    ttmin = isNeg.z ? (b2.z - rp.z) * invDir.z : (b1.z - rp.z) * invDir.z;\n    ttmax = isNeg.z ? (b1.z - rp.z) * invDir.z : (b2.z - rp.z) * invDir.z;\n\n    if((ttmin > tmax) || (ttmax < tmin)) {\n        return false;\n    }\n\n    t0 = max(tmin, ttmin);\n    t1 = min(tmax, ttmax);\n\n    return true;\n}\n\nbool quadratic(float a, float b, float c, out float tmin, out float tmax) {\n    float discr = b * b - 4. * a * c;\n    if(discr < 0.) {\n        return false;\n    }\n    if(discr == 0.) {\n        tmin = tmax = -0.5 * b / a;\n    }\n    else {\n        float q = -0.5 * (b > 0.\n            ? b + sqrt(discr)\n            : b - sqrt(discr)\n        );\n        float x0 = q / a;\n        float x1 = c / q;\n        tmin = min(x0, x1);\n        tmax = max(x0, x1);\n    }\n    return true;\n}\n\n//Use matrix transformations on rp and rd to transform the sphere.\nbool intersectSphere(float radius, in vec3 rp, in vec3 rd, out float tmin, out float tmax) {\n    float a = dot(rd, rd);\n    float b = 2. * dot(rd, rp);\n    float c = dot(rp, rp) - radius * radius;\n    if(!quadratic(a, b, c, tmin, tmax)) {\n        return false;\n    }\n    return true;\n}\n";
+};
+
+/***/ }),
+/* 502 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function () {
+    return "\n#define NUM_GRAD3 numDiff(vec3(FN(gradP + gradD.yxx), FN(gradP + gradD.xyx), FN(gradP + gradD.xxy)), vec3(FN(gradP - gradD.yxx), FN(gradP - gradD.xyx), FN(gradP - gradD.xxy)), gradD.y)\n\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n    return (deltaPositive - deltaNeg) / (2. * delta);\n}\n\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n";
+};
+
+/***/ }),
+/* 503 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function () {
+    return "\n//Stuff related to raytracing\n\nuniform mat4 invProjMat;\nuniform mat4 cameraMat;\n\nvec4 getCameraPos() {\n    return cameraMat * vec4(0., 0., 0., 1.);\n}\n\nvec4 getCameraRay(in vec2 normPixel) {\n    vec4 dir = invProjMat * vec4(2. * (normPixel - 0.5), 0., 1.);\n    dir.a = 0.;\n    dir = cameraMat * normalize(dir);\n    return dir;\n}\n";
+};
+
+/***/ }),
+/* 504 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function (_ref) {
+    var maxSteps = _ref.maxSteps,
+        sdf = _ref.sdf;
+    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.001);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos + t * rayDir, t, 0);\n    float decay = 1.;//March by less than the full sphere distance, helps with certain functions.\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        float precis = threshold * t;\n        if(abs(dist) < abs(precis)) {\n            return t >= tmin - threshold && t <= tmax + threshold;\n        }\n\n        t += fSign * dist * decay;\n        //Just some early exit\n        if(t > tmax * 2.) {\n            return false;\n        }\n        dist = SDF_FN(rayPos + t * rayDir, t, i);\n        decay *= i >= 200 ? 0.99 : 1.;\n    }\n    return false;\n}\n";
+};
+
+/***/ }),
+/* 505 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _ops = __webpack_require__(500);
+
+var _ops2 = _interopRequireDefault(_ops);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function (_ref) {
+    var MAX_ITER = _ref.MAX_ITER,
+        BAILOUT2 = _ref.BAILOUT2;
+    return '\nprecision highp float;\nprecision highp int;\n/* Pre-calculate a Mandelbrot set which will be used to help with random\n * sampling. This will make it possible to discard low-iteration escapes and\n * values that don\'t escape, giving higher chances of sampling interesting\n * locations.\n */\n\n' + (0, _ops2.default)() + '\n\n//Can\'t use uniforms for this, because glsl does loop unrolling.\n#define MAX_ITER ' + MAX_ITER + '.\n#define BAILOUT2 ' + BAILOUT2 + '.\nprecision highp float;\n\nuniform int usePrev;\nuniform sampler2D prev;\nuniform vec2 translate;\nuniform float scale;\nuniform float aspect;\nvarying vec2 vUv;\n\nvec2 coord() {\n    return (vUv * 2. - 1.) * vec2(aspect, 1.) * scale + translate;\n}\n\nvoid main() {\n    vec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n    if(zPrev.a != 0.) {\n        gl_FragColor = zPrev;\n        return;\n    }\n    vec2 c = coord();\n    vec2 z = zPrev.xy;\n\n    for(float i = 0.; i <= MAX_ITER; ++i) {\n        if(cabs2(z) >= BAILOUT2)\n        {\n            //gl_FragColor = vec4(cos(vec3(float(i)) * 0.07 + vec3(.15, .8, 2.1)) * 0.5 + 0.5, i);\n            gl_FragColor = vec4(c, zPrev.b + i, 1.);\n            return;\n        }\n        z = cmul(z, z) + c;\n    }\n    gl_FragColor = vec4(z, zPrev.b + MAX_ITER, 0.);\n}\n';
+};
+
+/***/ }),
+/* 506 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _ops = __webpack_require__(500);
+
+var _ops2 = _interopRequireDefault(_ops);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function (_ref) {
+    var MAX_CHUNK = _ref.MAX_CHUNK,
+        BAILOUT2 = _ref.BAILOUT2;
+    return '\n//Compute escapes in bulk to test for escapes.\nprecision highp float;\nprecision highp int;\n\n' + (0, _ops2.default)() + '\n\n//Can\'t use uniforms for this, because glsl does loop unrolling.\n#define MAX_CHUNK ' + MAX_CHUNK + '.\n#define BAILOUT2 ' + BAILOUT2 + '.\nprecision highp float;\n\nuniform int usePrev;\nuniform sampler2D prev;\n//Coordinate samples to compute Buddhabrot for our Monte Carlo process.\nuniform sampler2D samples;\nvarying vec2 vUv;\n\nvoid main() {\n    vec4 zPrev = usePrev == 1 ? texture2D(prev, vUv) : vec4(0.);\n    if(zPrev.r != 0.) {\n        gl_FragColor = zPrev;\n        return;\n    }\n    vec4 s = texture2D(samples, vUv);\n    vec2 c = s.xy;\n    vec2 z = zPrev.ba;\n\n    for(float i = 0.; i <= MAX_CHUNK; ++i) {\n        z = cmul(z, z) + c;\n\n        if(cabs2(z) >= BAILOUT2) {\n            gl_FragColor = vec4(1., zPrev.g + i, z);\n            return;\n        }\n    }\n    gl_FragColor = vec4(0., zPrev.g + MAX_CHUNK, z);\n}\n';
+};
+
+/***/ }),
+/* 507 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _ops = __webpack_require__(500);
+
+var _ops2 = _interopRequireDefault(_ops);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function (_ref) {
+    var MAX_ITER = _ref.MAX_ITER,
+        BAILOUT = _ref.BAILOUT;
+    return '\nprecision highp float;\nprecision highp int;\n//Compute a single step to get values.\n\n' + (0, _ops2.default)() + '\n\n//Can\'t use uniforms for this, because glsl does loop unrolling.\n#define MAX_ITER ' + MAX_ITER + '.\n#define BAILOUT2 ' + BAILOUT2 + '.\nprecision highp float;\n\nuniform int clear;\n\n//Coordinate samples to compute Buddhabrot for our Monte Carlo process.\nuniform sampler2D samples;\n\n//Previous z coordinates, and wether or not we escaped.\nuniform sampler2D prev;\n\nvarying vec2 vUv;\n\nvoid main() {\n    if(clear == 1) {\n        gl_FragColor = vec4(0.);\n        return;\n    }\n\n    vec4 s = texture2D(samples, vUv);\n    if(s.z == -1.) {\n        return;\n    }\n\n    vec4 p = texture2D(prev, vUv);\n    vec2 c = s.xy;\n    vec2 z = p.xy;\n    if(p.a == 1. || p.b > MAX_ITER || cabs2(z) >= BAILOUT2) {\n        gl_FragColor = vec4(p.xyz, 1.);\n        return;\n    }\n    gl_FragColor = vec4(cmul(z, z) + c, p.b + 1., 0.);\n}\n';
+};
+
+/***/ }),
+/* 508 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _ops = __webpack_require__(500);
+
+var _ops2 = _interopRequireDefault(_ops);
+
+var _intersect = __webpack_require__(501);
+
+var _intersect2 = _interopRequireDefault(_intersect);
+
+var _differential = __webpack_require__(502);
+
+var _differential2 = _interopRequireDefault(_differential);
+
+var _camera = __webpack_require__(503);
+
+var _camera2 = _interopRequireDefault(_camera);
+
+var _implicit_function = __webpack_require__(504);
+
+var _implicit_function2 = _interopRequireDefault(_implicit_function);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function (_ref) {
+    var maxSteps = _ref.maxSteps,
+        sdf = _ref.sdf,
+        distanceProgram = _ref.distanceProgram;
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n\nuniform vec3 bounds[2];\nvarying vec2 vUv;\n\n' + distanceProgram + '\n\n//Include this here since the shader needs to have the sdf defined before calling.\n' + (0, _implicit_function2.default)({ maxSteps: maxSteps, sdf: sdf }) + '\n\nvoid main() {\n    gl_FragColor = vec4(-1.);\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n\n    float bbmin, bbmax;\n    if(intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n        float t;\n        if(intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {\n            gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir, t)), t);\n        }\n    }\n}\n';
+};
 
 /***/ })
 /******/ ]);

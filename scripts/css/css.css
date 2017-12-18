@@ -37,9 +37,12 @@
 .panels {
   display: block; }
   .panels .panel {
-    display: none; }
+    background-color: #101010;
+    position: absolute;
+    width: 100%;
+    z-index: 0; }
     .panels .panel.active {
-      display: block; }
+      z-index: 10; }
 
 /**
  * The css property used for elevation. In most cases this should not be changed. It is exposed

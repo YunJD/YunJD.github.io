@@ -1,9 +1,14 @@
+import ops from 'stuff/gl/complex/shaders/ops.jsx';
+export default ({MAX_ITER, BAILOUT}) => `
+precision highp float;
+precision highp int;
 //Compute a single step to get values.
-#include stuff/gl/complex/shaders/ops.glsl;
+
+${ops()}
 
 //Can't use uniforms for this, because glsl does loop unrolling.
-#define MAX_ITER $MAX_ITER.
-#define BAILOUT2 $BAILOUT2.
+#define MAX_ITER ${MAX_ITER}.
+#define BAILOUT2 ${BAILOUT2}.
 precision highp float;
 
 uniform int clear;
@@ -36,3 +41,4 @@ void main() {
     }
     gl_FragColor = vec4(cmul(z, z) + c, p.b + 1., 0.);
 }
+`;

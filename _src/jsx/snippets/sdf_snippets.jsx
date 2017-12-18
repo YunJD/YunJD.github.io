@@ -1,4 +1,5 @@
-//The glsl loader will remove white-space and comments.
+//This is the initial program.
+
 export default `
 uniform float time;
 //Make sure to keep the function signatures the same of every function here!

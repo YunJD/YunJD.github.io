@@ -1,9 +1,14 @@
+import ops from 'stuff/gl/complex/shaders/ops.jsx';
+export default ({MAX_CHUNK, BAILOUT2}) => `
 //Compute escapes in bulk to test for escapes.
-#include stuff/gl/complex/shaders/ops.glsl;
+precision highp float;
+precision highp int;
+
+${ops()}
 
 //Can't use uniforms for this, because glsl does loop unrolling.
-#define MAX_CHUNK $MAX_CHUNK.
-#define BAILOUT2 $BAILOUT2.
+#define MAX_CHUNK ${MAX_CHUNK}.
+#define BAILOUT2 ${BAILOUT2}.
 precision highp float;
 
 uniform int usePrev;
@@ -32,3 +37,4 @@ void main() {
     }
     gl_FragColor = vec4(0., zPrev.g + MAX_CHUNK, z);
 }
+`;

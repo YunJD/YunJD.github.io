@@ -1,8 +1,8 @@
 import * as T from 'three';
 import stuff from 'stuff';
-import mandelbrotShader from 'shaders/mandelbrot.frag';
-import mandelbrotEscapeShader from 'shaders/sampleMandelbrotEscape.frag';
-import mandelbrotStepShader from 'shaders/mandelbrotStep.frag';
+import mandelbrotShader from 'shaders/mandelbrot.jsx';
+import mandelbrotEscapeShader from 'shaders/sampleMandelbrotEscape.jsx';
+import mandelbrotStepShader from 'shaders/mandelbrotStep.jsx';
 import MT from 'mersenne-twister';
 
 const BAILOUT = 2;

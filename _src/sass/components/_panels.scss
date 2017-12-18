@@ -1,8 +1,11 @@
 .panels {
     .panel {
-        display: none;
+        background-color: #101010;
+        position: absolute;
+        width: 100%;
+        z-index: 0;
         &.active {
-            display: block;
+            z-index: 10;
         }
     }
     display: block;
