@@ -196,7 +196,7 @@ export default function() {
             },
             ambient: {
                 type: 'v3',
-                value: new T.Vector3(0.3, 0.3, 0.3)
+                value: new T.Vector3(0.9, 0.9, 0.9)
             },
             background: {
                 type: 'v3',

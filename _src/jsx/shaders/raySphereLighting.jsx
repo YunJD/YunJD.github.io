@@ -8,8 +8,8 @@ varying vec2 vUv;
 PointLight lights[2];
 
 void main() {
-    lights[0] = PointLight(vec3(0.8, 2.7, 0.), vec3(500.));
-    lights[1] = PointLight(vec3(1., 1., 2.), vec3(30., 60., 100.));
+    lights[0] = PointLight(vec3(0.8, 2.7, 0.), vec3(100.));
+    lights[1] = PointLight(vec3(1., 1., 2.), 0.7 * vec3(30., 60., 100.));
 
     vec4 data = texture2D(surfaceData, vUv);
     if(data.w == -1.) {
