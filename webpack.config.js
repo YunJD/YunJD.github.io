@@ -13,9 +13,9 @@ module.exports = {
             { 
                 test: /\.(glsl|vert|frag)$/,
                 exclude: /node_modules/,
-                use: {
+                use: [{
                     loader: 'glsl-template-loader'
-                }
+                }]
             },
             {
                 test: /\.jsx?$/,

@@ -1,3 +1,4 @@
+import glsl from 'glsl-man';
 import {ChromePicker} from 'react-color';
 import {MDCTab, MDCTabFoundation, MDCTabBar, MDCTabBarFoundation} from '@material/tabs';
 import {MDCRipple, MDCRippleFoundation, util} from '@material/ripple';
@@ -6,7 +7,7 @@ import Slider from 'rmwc/Slider';
 import * as T from 'three';
 import stuff from 'stuff';
 import raySphereMarchingShader from 'shaders/raySphereMarching.frag';
-import raySphereLightingShader from 'shaders/raySphereLighting.frag';
+import raySphereLightingShader from 'shaders/raySphereLighting.jsx';
 import sdfSnippets from 'snippets/sdf_snippets.jsx';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -15,8 +16,14 @@ export default function() {
     let start = new Date();
     let aoParams = {
         sampleDistance: 1.,
-        nSamples: 10
+        nSamples: 5
     };
+    let lightingParams = {
+        maxSteps: 50,
+        sdf: 'distance'
+    };
+    Object.assign(lightingParams, aoParams);
+
     let tabBar = MDCTabBar.attachTo($('#code-tab-bar')[0]);
     //Blegh, there's no documentation on toolbar text links...what?
     tabBar.tabs[0].destroy();
@@ -86,6 +93,7 @@ export default function() {
     }
     function updateAO(settings) {
         Object.assign(aoParams, settings);
+        Object.assign(lightingParams, aoParams);
         updateProgram();
     }
     function updateBounds(which, dim, value) {
@@ -142,7 +150,7 @@ export default function() {
             },
             threshold: {
                 type: 'f',
-                value: 5e-5
+                value: 5e-4
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -156,22 +164,24 @@ export default function() {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: raySphereMarchingShader({
-            maxSteps: 1000,
+            maxSteps: 100,
             sdf: 'distance'
         }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue())
     }, $viewParent.width(), $viewParent.height());
 
-    let aoPass = new stuff.gl.ComputeShaderPass({
+    let lightingPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
             time: marchPass.material.uniforms.time,
             invProjMat: marchPass.material.uniforms.invProjMat,
             cameraMat: marchPass.material.uniforms.cameraMat,
+            far: marchPass.material.uniforms.far,
+            threshold: marchPass.material.uniforms.threshold,
             surfaceData: {
                 type: 't',
                 value: marchPass.texTarget.t.texture
             }
         },
-        fragmentShader: raySphereLightingShader(aoParams).replace("float distanceProgram;", editor.getValue())
+        fragmentShader: raySphereLightingShader(lightingParams).replace("float distanceProgram;", editor.getValue())
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     let viewerPass = new stuff.gl.ComputeShaderPass({
@@ -180,13 +190,13 @@ export default function() {
                 type: 't',
                 value: marchPass.texTarget.t.texture
             },
-            ao: {
+            lighting: {
                 type: 't',
-                value: aoPass.texTarget.t.texture
+                value: lightingPass.texTarget.t.texture
             },
             ambient: {
                 type: 'v3',
-                value: new T.Vector3(0.9, 0.9, 0.9)
+                value: new T.Vector3(0.3, 0.3, 0.3)
             },
             background: {
                 type: 'v3',
@@ -196,21 +206,20 @@ export default function() {
         fragmentShader: `
             varying vec2 vUv;
             uniform sampler2D surfaceData;
-            uniform sampler2D ao;
+            uniform sampler2D lighting;
             uniform vec3 ambient;
             uniform vec3 background;
 
             void main() {
                 gl_FragColor = vec4(background, 1.);
                 vec4 color = texture2D(surfaceData, vUv);
-                vec4 occlusion = texture2D(ao, vUv);
+                vec4 lightingData = texture2D(lighting, vUv);
                 if(color.a != -1.) {
                     if(color.a == -2.) {
                         gl_FragColor = vec4(color.xyz, 1.);
                     }
                     else {
-                        //Fake the direction of the ambient light
-                        gl_FragColor = vec4(vec3(occlusion.x * ambient), 1.);
+                        gl_FragColor = vec4(lightingData.w * ambient + lightingData.xyz, 1.);
                     }
                 }
             }
@@ -225,13 +234,13 @@ export default function() {
     function updateProgram() {
         editor.session.clearAnnotations();
         marchPass.material.fragmentShader = raySphereMarchingShader({
-            maxSteps: 1000,
+            maxSteps: 100,
             sdf: 'distance'
         }).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
         marchPass.material.needsUpdate = true;
 
-        aoPass.material.fragmentShader = raySphereLightingShader(aoParams).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
-        aoPass.material.needsUpdate = true;
+        lightingPass.material.fragmentShader = raySphereLightingShader(lightingParams).replace("float distanceProgram;", '//FIRSTLINE\n' + editor.getValue());
+        lightingPass.material.needsUpdate = true;
         needsUpdate = true;
     }
 
@@ -248,7 +257,7 @@ export default function() {
         marchPass.resize($viewParent.width(), $viewParent.height());
         marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
 
-        aoPass.resize($viewParent.width(), $viewParent.height());
+        lightingPass.resize($viewParent.width(), $viewParent.height());
 
         needsUpdate = true;
     }
@@ -305,7 +314,7 @@ export default function() {
                 editor.session.setAnnotations(annotations);
             }
         }
-        aoPass.execute();
+        lightingPass.execute();
         viewerPass.execute(true);
         requestAnimationFrame(draw);
     }

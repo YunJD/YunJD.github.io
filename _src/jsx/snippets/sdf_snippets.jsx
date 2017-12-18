@@ -7,7 +7,7 @@ uniform float time;
 float sdf(in vec3 p) {
     float sphereDist = (length(p) - 0.2);
     float displacement = sin(p.x * 50. + time * 0.001) * sin(p.z * 50. + time * 0.001) * sin(p.y * 50.);
-    float plane = p.y + 0.25;
+    float plane = p.y + 0.6;
     return min(
         sphereDist * 0.3 + displacement * 0.03,
         plane
