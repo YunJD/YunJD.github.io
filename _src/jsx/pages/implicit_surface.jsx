@@ -14,8 +14,8 @@ import ReactDOM from 'react-dom';
 export default function() {
     let start = new Date();
     let aoParams = {
-        sampleDistance: 0.5,
-        nSamples: 8
+        sampleDistance: 0.2,
+        nSamples: 7
     };
     let lightingParams = {
         maxSteps: 50,
@@ -161,11 +161,11 @@ export default function() {
             }
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
-        fragmentShader: raySphereMarchingShader({
+        fragmentShader: raySphereMarchingShader(Object.assign({
             maxSteps: 100,
             sdf: 'distance',
             distanceProgram: `//FIRSTLINE\n${editor.getValue()}`
-        })
+        }, aoParams))
     }, $viewParent.width(), $viewParent.height());
 
     let lightingPass = new stuff.gl.ComputeShaderPass({
@@ -238,11 +238,11 @@ export default function() {
         editor.session.clearAnnotations();
         let distanceProgram = `//FIRSTLINE\n${editor.getValue()}`;
 
-        marchPass.material.fragmentShader = raySphereMarchingShader({
+        marchPass.material.fragmentShader = raySphereMarchingShader(Object.assign({
             maxSteps: 100,
             sdf: 'distance',
             distanceProgram
-        });
+        }, aoParams));
         marchPass.material.needsUpdate = true;
 
         lightingPass.material.fragmentShader = raySphereLightingShader(Object.assign({
@@ -491,7 +491,7 @@ class Lighting extends React.Component {
             <div>
                 <p>Ambient Occlusion</p>
                 <div className="mdc-typography--caption">Number of samples ({this.props.aoParams.nSamples.toLocaleString()})</div>
-                <Slider discrete step="1" value={this.props.aoParams.nSamples} min={0} max={20} onChange={this.changeAOSamples}/>
+                <Slider discrete step="1" value={this.props.aoParams.nSamples} min={0} max={50} onChange={this.changeAOSamples}/>
                 <div className="mdc-typography--caption">Distance ({this.props.aoParams.sampleDistance.toFixed(2)})</div>
                 <Slider step={0.01} value={this.props.aoParams.sampleDistance} min={0.05} max={2} onChange={this.changeAODistance}/>
                 <p>Lighting</p>

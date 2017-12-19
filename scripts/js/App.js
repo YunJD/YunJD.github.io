@@ -59464,8 +59464,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 exports.default = function () {
     var start = new Date();
     var aoParams = {
-        sampleDistance: 0.5,
-        nSamples: 8
+        sampleDistance: 0.2,
+        nSamples: 7
     };
     var lightingParams = {
         maxSteps: 50,
@@ -59601,11 +59601,11 @@ exports.default = function () {
             }
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
-        fragmentShader: (0, _raySphereMarching2.default)({
+        fragmentShader: (0, _raySphereMarching2.default)(Object.assign({
             maxSteps: 100,
             sdf: 'distance',
             distanceProgram: '//FIRSTLINE\n' + editor.getValue()
-        })
+        }, aoParams))
     }, $viewParent.width(), $viewParent.height());
 
     var lightingPass = new _stuff2.default.gl.ComputeShaderPass({
@@ -59656,11 +59656,11 @@ exports.default = function () {
         editor.session.clearAnnotations();
         var distanceProgram = '//FIRSTLINE\n' + editor.getValue();
 
-        marchPass.material.fragmentShader = (0, _raySphereMarching2.default)({
+        marchPass.material.fragmentShader = (0, _raySphereMarching2.default)(Object.assign({
             maxSteps: 100,
             sdf: 'distance',
             distanceProgram: distanceProgram
-        });
+        }, aoParams));
         marchPass.material.needsUpdate = true;
 
         lightingPass.material.fragmentShader = (0, _raySphereLighting2.default)(Object.assign({
@@ -59994,7 +59994,7 @@ var Lighting = function (_React$Component) {
                     this.props.aoParams.nSamples.toLocaleString(),
                     ')'
                 ),
-                _react2.default.createElement(_Slider2.default, { discrete: true, step: '1', value: this.props.aoParams.nSamples, min: 0, max: 20, onChange: this.changeAOSamples }),
+                _react2.default.createElement(_Slider2.default, { discrete: true, step: '1', value: this.props.aoParams.nSamples, min: 0, max: 50, onChange: this.changeAOSamples }),
                 _react2.default.createElement(
                     'div',
                     { className: 'mdc-typography--caption' },
@@ -90588,7 +90588,7 @@ exports.default = function (_ref) {
         sampleDistance = _ref.sampleDistance,
         nSamples = _ref.nSamples,
         occlusionStrength = _ref.occlusionStrength;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-0.7, -1., -0.5)),\n        vec3(2.8, 2.8, 2.9)\n    );\n\n    PointLight pLight;\n    pLight = PointLight(vec3(1., 1., 0.8), 0.01 * vec3(10., 10., 80.));\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    float cameraCos = dot(rayDir, normal);\n    normal *= cameraCos < 0. ? 1. : -1.;\n    cameraCos = dot(-rayDir, normal);\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    //Normalization factor. More samples should not change the brightness!\n    float total = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones). The number of samples should not affect how dark it gets, and this strength param handles that nicely.\n        float strength = 1. / (1. + t);\n        total += strength;\n        occlusion += strength * abs(t - abs(distance(startPos + t * normal, t, i)));\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.83 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(directionLight)\n\n    gl_FragColor = vec4(color, 1. - clamp(occlusion / total, 0., 0.9));\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-0.7, -1., -0.5)),\n        vec3(2.8, 2.8, 2.9) * 0.8\n    );\n\n    PointLight pLight;\n    pLight = PointLight(vec3(1., 5., 2.8), vec3(100., 100., 100.));\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    float cameraCos = dot(rayDir, normal);\n    normal *= cameraCos < 0. ? 1. : -1.;\n    cameraCos = dot(-rayDir, normal);\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos + t * normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.83 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(directionLight)\n\n    gl_FragColor = vec4(color, 1. - clamp(occlusion, 0., 0.9));\n}\n';
 };
 
 /***/ }),
