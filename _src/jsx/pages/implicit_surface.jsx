@@ -18,7 +18,7 @@ export default function() {
         nSamples: 7
     };
     let lightingParams = {
-        maxSteps: 50,
+        maxSteps: 100,
         sdf: 'distance'
     };
 
@@ -144,11 +144,11 @@ export default function() {
             //Used to quit early. Kinda useless.
             far: {
                 type: 'f',
-                value: 1e6
+                value: 1e4
             },
             threshold: {
                 type: 'f',
-                value: 5e-4
+                value: 2e-3
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {

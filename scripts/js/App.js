@@ -57667,7 +57667,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function (_ref) {
     var maxSteps = _ref.maxSteps,
         sdf = _ref.sdf;
-    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nvec2 opUnion(vec2 a, vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.001);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos + t * rayDir, t, 0);\n    float decay = 1.;//March by less than the full sphere distance, helps with certain functions.\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        float precis = threshold * t;\n        if(abs(dist) < abs(precis)) {\n            return t >= tmin - threshold && t <= tmax + threshold;\n        }\n\n        t += fSign * dist * decay;\n        //Just some early exit\n        if(t > tmax * 2.) {\n            return false;\n        }\n        dist = SDF_FN(rayPos + t * rayDir, t, i);\n        decay *= i >= 200 ? 0.99 : 1.;\n    }\n    return false;\n}\n";
+    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nvec2 opUnion(vec2 a, vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.001);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos + t * rayDir, t, 0);\n    float decay = 1.;//March by less than the full sphere distance, helps with certain functions.\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        if(abs(dist) < abs(threshold)) {\n            return t >= tmin - threshold && t <= tmax + threshold;\n        }\n\n        t += fSign * dist * decay;\n        //Just some early exit\n        if(t > tmax * 2.) {\n            return false;\n        }\n        dist = SDF_FN(rayPos + t * rayDir, t, i);\n        decay *= i >= 200 ? 0.99 : 1.;\n    }\n    return abs(dist) < abs(t * threshold) && t >= tmin - threshold && t <= tmax + threshold;\n}\n";
 };
 
 /***/ }),
@@ -59468,7 +59468,7 @@ exports.default = function () {
         nSamples: 7
     };
     var lightingParams = {
-        maxSteps: 50,
+        maxSteps: 100,
         sdf: 'distance'
     };
 
@@ -59584,11 +59584,11 @@ exports.default = function () {
             //Used to quit early. Kinda useless.
             far: {
                 type: 'f',
-                value: 1e6
+                value: 1e4
             },
             threshold: {
                 type: 'f',
-                value: 5e-4
+                value: 2e-3
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -90588,7 +90588,7 @@ exports.default = function (_ref) {
         sampleDistance = _ref.sampleDistance,
         nSamples = _ref.nSamples,
         occlusionStrength = _ref.occlusionStrength;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-0.7, -1., -0.5)),\n        vec3(2.8, 2.8, 2.9) * 0.8\n    );\n\n    PointLight pLight;\n    pLight = PointLight(vec3(1., 5., 2.8), vec3(100., 100., 100.));\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    float cameraCos = dot(rayDir, normal);\n    normal *= cameraCos < 0. ? 1. : -1.;\n    cameraCos = dot(-rayDir, normal);\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos + t * normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.83 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(directionLight)\n\n    gl_FragColor = vec4(color, 1. - clamp(occlusion, 0., 0.9));\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-2., -1., -1.)),\n        vec3(2.8, 2.8, 2.9) * 0.8\n    );\n\n    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(100., 100., 100.));\n    PointLight pLight2 = PointLight(vec3(1., 3., -2.8), vec3(20., 20., 100.));\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    float cameraCos = dot(rayDir, normal);\n    normal *= cameraCos < 0. ? 1. : -1.;\n    cameraCos = dot(-rayDir, normal);\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos + t * normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.83 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(pLight2)\n    CONTRIBUTE_COLOR(directionLight)\n\n    gl_FragColor = vec4(color, 1. - clamp(occlusion, 0., 0.9));\n}\n';
 };
 
 /***/ }),

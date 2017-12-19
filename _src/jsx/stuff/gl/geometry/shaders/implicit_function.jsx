@@ -19,8 +19,7 @@ bool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out flo
     //Inside/outside
     float fSign = dist < 0. ? -1. : 1.;
     for(int i = 1; i <= MAX_STEPS; ++i) {
-        float precis = threshold * t;
-        if(abs(dist) < abs(precis)) {
+        if(abs(dist) < abs(threshold)) {
             return t >= tmin - threshold && t <= tmax + threshold;
         }
 
@@ -32,6 +31,6 @@ bool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out flo
         dist = SDF_FN(rayPos + t * rayDir, t, i);
         decay *= i >= 200 ? 0.99 : 1.;
     }
-    return false;
+    return abs(dist) < abs(t * threshold) && t >= tmin - threshold && t <= tmax + threshold;
 }
 `

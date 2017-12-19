@@ -28,12 +28,12 @@ varying vec2 vUv;
 
 void main() {
     DirectionLight directionLight = DirectionLight(
-        normalize(vec3(-0.7, -1., -0.5)),
+        normalize(vec3(-2., -1., -1.)),
         vec3(2.8, 2.8, 2.9) * 0.8
     );
 
-    PointLight pLight;
-    pLight = PointLight(vec3(1., 5., 2.8), vec3(100., 100., 100.));
+    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(100., 100., 100.));
+    PointLight pLight2 = PointLight(vec3(1., 3., -2.8), vec3(20., 20., 100.));
 
     vec4 data = texture2D(surfaceData, vUv);
     if(data.w == -1.) {
@@ -73,6 +73,7 @@ void main() {
     }
 
     CONTRIBUTE_COLOR(pLight)
+    CONTRIBUTE_COLOR(pLight2)
     CONTRIBUTE_COLOR(directionLight)
 
     gl_FragColor = vec4(color, 1. - clamp(occlusion, 0., 0.9));
