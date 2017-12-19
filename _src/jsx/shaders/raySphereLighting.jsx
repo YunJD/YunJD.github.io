@@ -26,11 +26,14 @@ uniform sampler2D surfaceData;
 
 varying vec2 vUv;
 
-PointLight lights[2];
-
 void main() {
-    lights[0] = PointLight(vec3(0.8, 2.7, 0.), vec3(100.));
-    lights[1] = PointLight(vec3(1., 1., 2.), 0.7 * vec3(30., 60., 100.));
+    DirectionLight directionLight = DirectionLight(
+        normalize(vec3(-0.7, -1., -0.5)),
+        vec3(2.8, 2.8, 2.9)
+    );
+
+    PointLight pLight;
+    pLight = PointLight(vec3(1., 1., 0.8), 0.01 * vec3(10., 10., 80.));
 
     vec4 data = texture2D(surfaceData, vUv);
     if(data.w == -1.) {
@@ -52,9 +55,9 @@ void main() {
     float total = 0.;
 
     for(int i = 0; i < N_SAMPLES; ++i) {
-        //Strength decreases with distance, square cubed law and such. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).
-        float strength = float(SAMPLE_DISTANCE) * pow((1. - float(i) / float(N_SAMPLES)), 2.);
-        total += t * strength;
+        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones). The number of samples should not affect how dark it gets, and this strength param handles that nicely.
+        float strength = 1. / (1. + t);
+        total += strength;
         occlusion += strength * abs(t - abs(distance(startPos + t * normal, t, i)));
         t += stepSize;
     }
@@ -62,13 +65,17 @@ void main() {
     vec3 color = vec3(0.);
     float tmax = 0.;
     float vv = 0.;
-    for(int i = 0; i < 2; ++i) {
-        vec4 lightDir = vec4(sampleDirectLight(lights[i], startPos.xyz, tmax), 0.);
-        if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {
-            //TODO: Materials, currently the 0.2 is the albedo for the diffuse surface
-            color += Le(lights[i], startPos.xyz) * max(0., dot(lightDir, normal)) * (0.8 / 3.14159265);
-        }
+
+    vec4 lightDir;
+
+    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);\
+    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {\
+        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.83 / 3.14159265);\
     }
+
+    CONTRIBUTE_COLOR(pLight)
+    CONTRIBUTE_COLOR(directionLight)
+
     gl_FragColor = vec4(color, 1. - clamp(occlusion / total, 0., 0.9));
 }
 `;

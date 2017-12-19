@@ -57667,7 +57667,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function (_ref) {
     var maxSteps = _ref.maxSteps,
         sdf = _ref.sdf;
-    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.001);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos + t * rayDir, t, 0);\n    float decay = 1.;//March by less than the full sphere distance, helps with certain functions.\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        float precis = threshold * t;\n        if(abs(dist) < abs(precis)) {\n            return t >= tmin - threshold && t <= tmax + threshold;\n        }\n\n        t += fSign * dist * decay;\n        //Just some early exit\n        if(t > tmax * 2.) {\n            return false;\n        }\n        dist = SDF_FN(rayPos + t * rayDir, t, i);\n        decay *= i >= 200 ? 0.99 : 1.;\n    }\n    return false;\n}\n";
+    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nvec2 opUnion(vec2 a, vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.001);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos + t * rayDir, t, 0);\n    float decay = 1.;//March by less than the full sphere distance, helps with certain functions.\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        float precis = threshold * t;\n        if(abs(dist) < abs(precis)) {\n            return t >= tmin - threshold && t <= tmax + threshold;\n        }\n\n        t += fSign * dist * decay;\n        //Just some early exit\n        if(t > tmax * 2.) {\n            return false;\n        }\n        dist = SDF_FN(rayPos + t * rayDir, t, i);\n        decay *= i >= 200 ? 0.99 : 1.;\n    }\n    return false;\n}\n";
 };
 
 /***/ }),
@@ -59464,8 +59464,8 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 exports.default = function () {
     var start = new Date();
     var aoParams = {
-        sampleDistance: 1.,
-        nSamples: 5
+        sampleDistance: 0.5,
+        nSamples: 8
     };
     var lightingParams = {
         maxSteps: 50,
@@ -59637,11 +59637,11 @@ exports.default = function () {
             },
             ambient: {
                 type: 'v3',
-                value: new T.Vector3(0.9, 0.9, 0.9)
+                value: new T.Vector3(0.4, 0.4, 0.4)
             },
             background: {
                 type: 'v3',
-                value: new T.Vector3(0.8, 0.8, 0.8)
+                value: new T.Vector3(0.95, 0.95, 0.95)
             }
         },
         fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 ambient;\n            uniform vec3 background;\n\n            void main() {\n                gl_FragColor = vec4(background, 1.);\n                vec4 color = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n                if(color.a != -1.) {\n                    if(color.a == -2.) {\n                        gl_FragColor = vec4(color.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = vec4(lightingData.w * ambient + lightingData.xyz, 1.);\n                    }\n                }\n            }\n        '
@@ -90588,7 +90588,7 @@ exports.default = function (_ref) {
         sampleDistance = _ref.sampleDistance,
         nSamples = _ref.nSamples,
         occlusionStrength = _ref.occlusionStrength;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\n\nvarying vec2 vUv;\n\nPointLight lights[2];\n\nvoid main() {\n    lights[0] = PointLight(vec3(0.8, 2.7, 0.), vec3(100.));\n    lights[1] = PointLight(vec3(1., 1., 2.), 0.7 * vec3(30., 60., 100.));\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    float cameraCos = dot(rayDir, normal);\n    normal *= cameraCos < 0. ? 1. : -1.;\n    cameraCos = dot(-rayDir, normal);\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    //Normalization factor. More samples should not change the brightness!\n    float total = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance, square cubed law and such. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = float(SAMPLE_DISTANCE) * pow((1. - float(i) / float(N_SAMPLES)), 2.);\n        total += t * strength;\n        occlusion += strength * abs(t - abs(distance(startPos + t * normal, t, i)));\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n    for(int i = 0; i < 2; ++i) {\n        vec4 lightDir = vec4(sampleDirectLight(lights[i], startPos.xyz, tmax), 0.);\n        if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {\n            //TODO: Materials, currently the 0.2 is the albedo for the diffuse surface\n            color += Le(lights[i], startPos.xyz) * max(0., dot(lightDir, normal)) * (0.8 / 3.14159265);\n        }\n    }\n    gl_FragColor = vec4(color, 1. - clamp(occlusion / total, 0., 0.9));\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-0.7, -1., -0.5)),\n        vec3(2.8, 2.8, 2.9)\n    );\n\n    PointLight pLight;\n    pLight = PointLight(vec3(1., 1., 0.8), 0.01 * vec3(10., 10., 80.));\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    float cameraCos = dot(rayDir, normal);\n    normal *= cameraCos < 0. ? 1. : -1.;\n    cameraCos = dot(-rayDir, normal);\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    //Normalization factor. More samples should not change the brightness!\n    float total = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones). The number of samples should not affect how dark it gets, and this strength param handles that nicely.\n        float strength = 1. / (1. + t);\n        total += strength;\n        occlusion += strength * abs(t - abs(distance(startPos + t * normal, t, i)));\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.83 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(directionLight)\n\n    gl_FragColor = vec4(color, 1. - clamp(occlusion / total, 0., 0.9));\n}\n';
 };
 
 /***/ }),
@@ -90603,7 +90603,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-    return "\nstruct PointLight {\n    vec3 position;\n    vec3 intensity;\n};\n\nvec3 sampleDirectLight(in PointLight light, in vec3 pos, out float tmax) {\n    vec3 lightdir = light.position - pos;\n    tmax = length(lightdir);\n    return lightdir / tmax;\n}\n\nvec3 Le(in PointLight light, in vec3 pos) {\n    vec3 r = light.position - pos;\n    return light.intensity / (4. * 3.14159265 * dot(r, r));\n}\n";
+    return "\nstruct PointLight {\n    vec3 position;\n    vec3 intensity;\n};\n\nvec3 sampleDirectLight(in PointLight light, in vec3 pos, out float tmax) {\n    vec3 lightdir = light.position - pos;\n    tmax = length(lightdir);\n    return lightdir / tmax;\n}\n\nvec3 Le(in PointLight light, in vec3 pos) {\n    vec3 r = light.position - pos;\n    return light.intensity / (4. * 3.14159265 * dot(r, r));\n}\n\nstruct DirectionLight {\n    vec3 direction;\n    vec3 intensity;\n};\n\nvec3 sampleDirectLight(in DirectionLight light, in vec3 pos, out float tmax) {\n    tmax = 1e6;\n    return -light.direction;\n}\n\nvec3 Le(in DirectionLight light, in vec3 pos) {\n    return light.intensity;\n}\n";
 };
 
 /***/ }),

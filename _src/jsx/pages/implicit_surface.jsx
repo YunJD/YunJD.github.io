@@ -14,8 +14,8 @@ import ReactDOM from 'react-dom';
 export default function() {
     let start = new Date();
     let aoParams = {
-        sampleDistance: 1.,
-        nSamples: 5
+        sampleDistance: 0.5,
+        nSamples: 8
     };
     let lightingParams = {
         maxSteps: 50,
@@ -197,11 +197,11 @@ export default function() {
             },
             ambient: {
                 type: 'v3',
-                value: new T.Vector3(0.9, 0.9, 0.9)
+                value: new T.Vector3(0.4, 0.4, 0.4)
             },
             background: {
                 type: 'v3',
-                value: new T.Vector3(0.8, 0.8, 0.8)
+                value: new T.Vector3(0.95, 0.95, 0.95)
             }
         },
         fragmentShader: `
