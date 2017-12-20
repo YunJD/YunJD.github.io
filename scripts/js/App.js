@@ -3054,7 +3054,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-    return "\n//Bunch of complex ops\nvec2 cmul(in vec2 a, in vec2 b) {\n    return vec2(\n        a.x * b.x - a.y * b.y,\n        a.x * b.y + a.y * b.x\n    );\n}\n\nvec2 cdiv(in vec2 a, in vec2 b) {\n    return vec2(a.x * b.x + a.y * b.y, a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y);\n}\n\nfloat cabs2(in vec2 a) {\n    return a.x * a.x + a.y * a.y;\n}\n\nfloat cabs(in vec2 a) {\n    return sqrt(cabs2(a));\n}\n\n//Quaternions\nvec4 qmul(in vec4 q1, in vec4 q2) {\n    vec4 r;\n    r.x = q1.x * q2.x - dot(q1.yzw, q2.yzw);\n    r.yzw = q1.x * q2.yzw + q2.x * q1.yzw + cross(q1.yzw, q2.yzw);\n    return r;\n}\n";
+    return "\n//Bunch of complex ops\nvec2 cmul(in vec2 a, in vec2 b) {\n    return vec2(\n        a.x * b.x - a.y * b.y,\n        a.x * b.y + a.y * b.x\n    );\n}\n\nvec2 cdiv(in vec2 a, in vec2 b) {\n    return vec2(a.x * b.x + a.y * b.y, a.y * b.x - a.x * b.y) / (b.x * b.x + b.y * b.y);\n}\n\nfloat cabs2(in vec2 a) {\n    return a.x * a.x + a.y * a.y;\n}\n\nfloat cabs(in vec2 a) {\n    return sqrt(cabs2(a));\n}\n\n//Quaternions\nvec4 qmul(in vec4 q1, in vec4 q2) {\n    vec4 r;\n    r.x = q1.x * q2.x - dot(q1.yzw, q2.yzw);\n    r.yzw = q1.x * q2.yzw + q2.x * q1.yzw + cross(q1.yzw, q2.yzw);\n    return r;\n}\n\nvoid qpow2(inout vec4 q) {\n    q.x = q.x * q.x - dot(q.zyw, q.zyw);\n    q.yzw = 2. * q.x * q.yzw;\n}\n";
 };
 
 /***/ }),
@@ -57635,7 +57635,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-    return "\n#define NUM_GRAD3 numDiff(vec3(FN(gradP + gradD.yxx), FN(gradP + gradD.xyx), FN(gradP + gradD.xxy)), vec3(FN(gradP - gradD.yxx), FN(gradP - gradD.xyx), FN(gradP - gradD.xxy)), gradD.y)\n\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n    return (deltaPositive - deltaNeg) / (2. * delta);\n}\n\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n";
+    return "\n//Not really sure of a better way to do this. A macro is used because:\n//  A: This way, a new gradient function does not need to be defined for every new function.\n//  B: How else can callbacks be performed in GLSL?\n//I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's\n//recommended that this function be replaced by an analytical gradient implementation.\n#define NUM_GRAD3(fn, p, delta)     numDiff(        vec3(            fn(vec3(p.x + delta, p.y, p.z)),            fn(vec3(p.x, p.y + delta, p.z)),            fn(vec3(p.x, p.y, p.z + delta))        ),        vec3(            fn(vec3(p.x - delta, p.y, p.z)),            fn(vec3(p.x, p.y - delta, p.z)),            fn(vec3(p.x, p.y, p.z - delta))        ),        delta    )\n\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n    return (deltaPositive - deltaNeg) / (2. * delta);\n}\n\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n";
 };
 
 /***/ }),
@@ -57667,7 +57667,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function (_ref) {
     var maxSteps = _ref.maxSteps,
         sdf = _ref.sdf;
-    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nvec2 opUnion(vec2 a, vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.001);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos + t * rayDir, t, 0);\n    float decay = 1.;//March by less than the full sphere distance, helps with certain functions.\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        if(abs(dist) < abs(threshold)) {\n            return t >= tmin - threshold && t <= tmax + threshold;\n        }\n\n        t += fSign * dist * decay;\n        //Just some early exit\n        if(t > tmax * 2.) {\n            return false;\n        }\n        dist = SDF_FN(rayPos + t * rayDir, t, i);\n        decay *= i >= 200 ? 0.99 : 1.;\n    }\n    return abs(dist) < abs(t * threshold) && t >= tmin - threshold && t <= tmax + threshold;\n}\n";
+    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nvec2 opUnion(vec2 a, vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.2);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos, rayDir, t, -1);\n\n    //Inside/outside\n    float fSign = dist <= -0.2 ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        float precis = t * threshold;\n        if(abs(dist) < abs(precis)) {\n            return t >= tmin && t < tmax;\n        }\n\n        t += dist;\n        //Just some early exit\n        if(t > tmax + threshold) {\n            return false;\n        }\n        dist = SDF_FN(rayPos, rayDir, t, i);\n    }\n    return false;\n}\n";
 };
 
 /***/ }),
@@ -59462,13 +59462,17 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 exports.default = function () {
+    var envMap = new T.TextureLoader().load("/images/ibl/ice-lake-env.png");
+    envMap.magFilter = T.LinearFilter;
+    envMap.minFilter = T.LinearFilter;
+
     var start = new Date();
     var aoParams = {
         sampleDistance: 0.2,
         nSamples: 7
     };
     var lightingParams = {
-        maxSteps: 100,
+        maxSteps: 200,
         sdf: 'distance'
     };
 
@@ -59515,7 +59519,7 @@ exports.default = function () {
     var $viewParent = $('#view-container');
 
     var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
-    var camR = 1,
+    var camR = 5,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
     var origin = new T.Vector3(0., 0., 0.);
@@ -59579,7 +59583,7 @@ exports.default = function () {
             },
             bounds: {
                 type: 'v4v',
-                value: [new T.Vector3(-5, -5, -5), new T.Vector3(5, 5, 5)]
+                value: [new T.Vector3(-3, -3, -3), new T.Vector3(3, 3, 3)]
             },
             //Used to quit early. Kinda useless.
             far: {
@@ -59602,7 +59606,7 @@ exports.default = function () {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 100,
+            maxSteps: 200,
             sdf: 'distance',
             distanceProgram: '//FIRSTLINE\n' + editor.getValue()
         }, aoParams))
@@ -59618,6 +59622,10 @@ exports.default = function () {
             surfaceData: {
                 type: 't',
                 value: marchPass.texTarget.t.texture
+            },
+            envMap: {
+                type: 't',
+                value: envMap
             }
         },
         fragmentShader: (0, _raySphereLighting2.default)(Object.assign({
@@ -59635,16 +59643,12 @@ exports.default = function () {
                 type: 't',
                 value: lightingPass.texTarget.t.texture
             },
-            ambient: {
-                type: 'v3',
-                value: new T.Vector3(0.4, 0.4, 0.4)
-            },
             background: {
                 type: 'v3',
                 value: new T.Vector3(0.95, 0.95, 0.95)
             }
         },
-        fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 ambient;\n            uniform vec3 background;\n\n            void main() {\n                gl_FragColor = vec4(background, 1.);\n                vec4 color = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n                if(color.a != -1.) {\n                    if(color.a == -2.) {\n                        gl_FragColor = vec4(color.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = vec4(lightingData.w * ambient + lightingData.xyz, 1.);\n                    }\n                }\n            }\n        '
+        fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform sampler2D envMap;\n            uniform vec3 background;\n\n            void main() {\n                gl_FragColor = vec4(background, 1.);\n                vec4 surface = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n\n                if(surface.a != -1.) {\n                    if(surface.a == -2.) {\n                        gl_FragColor = vec4(surface.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = lightingData;\n                    }\n                }\n            }\n        '
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     var $view = $(viewerPass.renderer.domElement);
@@ -59654,6 +59658,7 @@ exports.default = function () {
 
     function updateProgram() {
         editor.session.clearAnnotations();
+        diagnostics = undefined;
         var distanceProgram = '//FIRSTLINE\n' + editor.getValue();
 
         marchPass.material.fragmentShader = (0, _raySphereMarching2.default)(Object.assign({
@@ -59687,89 +59692,92 @@ exports.default = function () {
         needsUpdate = true;
     }
 
+    var diagnostics = void 0;
     function draw() {
-        //Easy way to take advantage of container transitions.
-        if ($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
-            resize();
-        }
-        marchPass.material.uniforms.time.value = new Date() - start;
-        marchPass.execute();
+        if (!diagnostics) {
+            //Easy way to take advantage of container transitions.
+            if ($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
+                resize();
+            }
+            marchPass.material.uniforms.time.value = new Date() - start;
+            marchPass.execute();
 
-        //TODO: Move this into stuff.js
-        var diagnostics = marchPass.material.program.diagnostics;
-        if (diagnostics) {
-            var log = diagnostics.fragmentShader.log;
-            if (log.indexOf('ERROR') != -1) {
-                var prefixLines = diagnostics.fragmentShader.prefix.split('\n');
-                var lines = marchPass.material.fragmentShader.split('\n');
+            //TODO: Move this into stuff.js
+            diagnostics = marchPass.material.program.diagnostics;
+            if (diagnostics) {
+                var log = diagnostics.fragmentShader.log;
+                if (log.indexOf('ERROR') != -1) {
+                    var prefixLines = diagnostics.fragmentShader.prefix.split('\n');
+                    var lines = marchPass.material.fragmentShader.split('\n');
 
-                //Find the start of the distance program.
-                var i = void 0;
-                for (i = 0; i < lines.length; ++i) {
-                    if (lines[i] == '//FIRSTLINE') {
-                        break;
-                    }
-                }
-                i += prefixLines.length;
-
-                var annotations = [];
-                //Parse the error.
-                var _iteratorNormalCompletion = true;
-                var _didIteratorError = false;
-                var _iteratorError = undefined;
-
-                try {
-                    for (var _iterator = log.split('\n')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                        var error = _step.value;
-
-                        if (!error || error.indexOf('ERROR') == -1) {
+                    //Find the start of the distance program.
+                    var i = void 0;
+                    for (i = 0; i < lines.length; ++i) {
+                        if (lines[i] == '//FIRSTLINE') {
                             break;
                         }
+                    }
+                    i += prefixLines.length;
 
-                        var _error$substring$spli = error.substring(7).split(':'),
-                            _error$substring$spli2 = _slicedToArray(_error$substring$spli, 4),
-                            column = _error$substring$spli2[0],
-                            row = _error$substring$spli2[1],
-                            code = _error$substring$spli2[2],
-                            text = _error$substring$spli2[3];
+                    var annotations = [];
+                    //Parse the error.
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
 
-                        column = parseInt(column);
-                        row = parseInt(row);
-                        row -= i + 1;
-                        annotations.push({
-                            row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column: column,
-                            text: code + ':' + text,
-                            type: "error"
-                        });
-                        if (row < 0 || row >= editor.session.getLength()) {
+                    try {
+                        for (var _iterator = log.split('\n')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var error = _step.value;
+
+                            if (!error || error.indexOf('ERROR') == -1) {
+                                break;
+                            }
+
+                            var _error$substring$spli = error.substring(7).split(':'),
+                                _error$substring$spli2 = _slicedToArray(_error$substring$spli, 4),
+                                column = _error$substring$spli2[0],
+                                row = _error$substring$spli2[1],
+                                code = _error$substring$spli2[2],
+                                text = _error$substring$spli2[3];
+
+                            column = parseInt(column);
+                            row = parseInt(row);
+                            row -= i + 1;
                             annotations.push({
-                                row: editor.session.getLength() - 1,
-                                column: 0,
-                                text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
+                                row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column: column,
+                                text: code + ':' + text,
                                 type: "error"
                             });
+                            if (row < 0 || row >= editor.session.getLength()) {
+                                annotations.push({
+                                    row: editor.session.getLength() - 1,
+                                    column: 0,
+                                    text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
+                                    type: "error"
+                                });
+                            }
                         }
-                    }
-                } catch (err) {
-                    _didIteratorError = true;
-                    _iteratorError = err;
-                } finally {
-                    try {
-                        if (!_iteratorNormalCompletion && _iterator.return) {
-                            _iterator.return();
-                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
                     } finally {
-                        if (_didIteratorError) {
-                            throw _iteratorError;
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
                         }
                     }
-                }
 
-                editor.session.setAnnotations(annotations);
+                    editor.session.setAnnotations(annotations);
+                }
             }
+            lightingPass.execute();
+            viewerPass.execute(true);
         }
-        lightingPass.execute();
-        viewerPass.execute(true);
         requestAnimationFrame(draw);
     }
     requestAnimationFrame(draw);
@@ -59974,9 +59982,6 @@ var Lighting = function (_React$Component) {
     _createClass(Lighting, [{
         key: 'render',
         value: function render() {
-            var ambientColor = this.props.lightingParams.ambient.value;
-            ambientColor = { r: ambientColor.x * 255, g: ambientColor.y * 255, b: ambientColor.z * 255 };
-
             var bgColor = this.props.lightingParams.background.value;
             bgColor = { r: bgColor.x * 255, g: bgColor.y * 255, b: bgColor.z * 255 };
             return _react2.default.createElement(
@@ -60007,16 +60012,6 @@ var Lighting = function (_React$Component) {
                     'p',
                     null,
                     'Lighting'
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { style: { display: 'inline-block', marginRight: 10 } },
-                    _react2.default.createElement(
-                        'div',
-                        { className: 'mdc-typography--caption' },
-                        'Ambient'
-                    ),
-                    _react2.default.createElement(_reactColor.ChromePicker, { color: ambientColor, onChange: this.changeLighting.bind(null, 'ambient') })
                 ),
                 _react2.default.createElement(
                     'div',
@@ -90535,13 +90530,17 @@ var _implicit_function = __webpack_require__(171);
 
 var _implicit_function2 = _interopRequireDefault(_implicit_function);
 
+var _fractal_sdf = __webpack_require__(461);
+
+var _fractal_sdf2 = _interopRequireDefault(_fractal_sdf);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function (_ref) {
     var maxSteps = _ref.maxSteps,
         sdf = _ref.sdf,
         distanceProgram = _ref.distanceProgram;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n\nuniform vec3 bounds[2];\nvarying vec2 vUv;\n\n' + distanceProgram + '\n\n//Include this here since the shader needs to have the sdf defined before calling.\n' + (0, _implicit_function2.default)({ maxSteps: maxSteps, sdf: sdf }) + '\n\nvoid main() {\n    gl_FragColor = vec4(-1.);\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n\n    float bbmin, bbmax;\n    if(intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n        float t;\n        if(intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {\n            gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir, t)), t);\n        }\n    }\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\nuniform vec3 bounds[2];\nvarying vec2 vUv;\n\n' + distanceProgram + '\n\n//Include this here since the shader needs to have the sdf defined before calling.\n' + (0, _implicit_function2.default)({ maxSteps: maxSteps, sdf: sdf }) + '\n\nvoid main() {\n    gl_FragColor = vec4(-1.);\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n\n    float bbmin, bbmax;\n    if(intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n        float t;\n        if(intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {\n            gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir)), t);\n        }\n    }\n}\n';
 };
 
 /***/ }),
@@ -90579,6 +90578,10 @@ var _implicit_function = __webpack_require__(171);
 
 var _implicit_function2 = _interopRequireDefault(_implicit_function);
 
+var _fractal_sdf = __webpack_require__(461);
+
+var _fractal_sdf2 = _interopRequireDefault(_fractal_sdf);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function (_ref) {
@@ -90588,7 +90591,7 @@ exports.default = function (_ref) {
         sampleDistance = _ref.sampleDistance,
         nSamples = _ref.nSamples,
         occlusionStrength = _ref.occlusionStrength;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-2., -1., -1.)),\n        vec3(2.8, 2.8, 2.9) * 0.8\n    );\n\n    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(100., 100., 100.));\n    PointLight pLight2 = PointLight(vec3(1., 3., -2.8), vec3(20., 20., 100.));\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    float cameraCos = dot(rayDir, normal);\n    normal *= cameraCos < 0. ? 1. : -1.;\n    cameraCos = dot(-rayDir, normal);\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos + t * normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.83 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(pLight2)\n    CONTRIBUTE_COLOR(directionLight)\n\n    gl_FragColor = vec4(color, 1. - clamp(occlusion, 0., 0.9));\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\nuniform sampler2D envMap;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-2., -1., -1.)),\n        vec3(255., 254., 246.) / 255.\n    );\n\n    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 70.);\n    PointLight pLight2 = PointLight(vec3(0., 5., 0.), vec3(1., 1., 1.) * 300.);\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    normal *= dot(rayDir, normal) < 0. ? 1. : -1.;\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos, normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.83 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(pLight2)\n    CONTRIBUTE_COLOR(directionLight)\n\n    float theta = acos(clamp(normal.y, -1., 1.));\n    float phi = atan(normal.z, normal.x);\n    phi = phi < 0. ? phi + 2. * 3.1415926535 : phi;\n\n    vec4 amb = texture2D(envMap, vec2(\n        phi / (2. * 3.1415926535),\n        1. - theta / (3.1415926535)\n    ));\n\n    gl_FragColor = vec4(amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);\n}\n';
 };
 
 /***/ }),
@@ -90614,11 +90617,26 @@ exports.default = function () {
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+   value: true
 });
 //This is the initial program.
 
-exports.default = "\nuniform float time;\n//Make sure to keep the function signatures the same of every function here!\n\n//Edit this to see different shapes.\nfloat sdf(in vec3 p) {\n    float sphereDist = (length(p) - 0.2);\n    float displacement = sin(p.x * 50. + time * 0.001) * sin(p.z * 50. + time * 0.001) * sin(p.y * 50.);\n    float plane = p.y + 0.6;\n    return min(\n        sphereDist * 0.3 + displacement * 0.03,\n        plane\n    );\n}\n\n//Not really sure of a better way to do this. A macro is used because:\n//  A: This way, a new gradient function does not need to be defined for every new FN.\n//  B: How else can callbacks be performed in GLSL?\n//I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's\n//recommended that this function be replaced by an analytical gradient implementation.\n#define FN sdf\nvec3 gradient(in vec4 p, float t) {\n    //I couldn't make the functional macro definition work. I a dumb dumb.\n    vec2 gradD = vec2(0., 5e-4);\n    vec3 gradP = p.xyz;\n\n    //Numerical gradient macro.\n    return NUM_GRAD3;\n}\n#undef FN\n\nfloat distance(in vec4 p, float t, int i) {\n    //p: the point calculated by rp + t * rd\n    //rp: Ray start position.\n    //rd: Ray direction.\n    return sdf(p.xyz);\n}\n\n".trim();
+exports.default = "\nuniform float time;\n//Make sure to keep the function signatures the same of every function here!\n\nvec3 gradient(in vec4 p) {\n\tfloat mTime = time * 0.0005;\n    return julia4DGrad(vec4(p.xyz, 0.), vec4(0.5, 0.52, 0.55, 0.5)\n        * vec4(-cos(mTime), cos(0.5 * mTime), cos(0.08 * mTime), cos(2. * mTime))).xyz;\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n\tfloat mTime = time * 0.0005;\n\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(3., pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return julia4D(vec4(pos.xyz, 0.) + max(t, tmin) * dir, vec4(0.5, 0.52, 0.55, 0.5)\n        * vec4(-cos(mTime), cos(0.5 * mTime), cos(0.08 * mTime), cos(2. * mTime)));\n}\n".trim();
+
+/***/ }),
+/* 461 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function () {
+    return "\nfloat julia4D(in vec4 p, in vec4 c) {\n    vec4 z = p;\n\n    float mz2 = dot(z, z);\n    float md2 = 1.;\n\n    for(int i = 0; i < 11; ++i) {\n        md2 *= 4. * mz2;\n        z = vec4(z.x * z.x - dot(z.yzw, z.yzw), 2.0 * z.x * z.yzw) + c;\n        mz2 = dot(z, z);\n\n        if(mz2 > 4.) {\n            break;\n        }\n    }\n\n    return 0.25 * sqrt(mz2 / md2) * log(mz2);\n}\n\nvec4 julia4DGrad(in vec4 p, in vec4 c) {\n    vec4 z = p;\n    vec4 dzr = vec4(1., 0., 0., 0.);\n    vec4 dzi = vec4(0., 1., 0., 0.);\n    vec4 dzj = vec4(0., 0., 1., 0.);\n    vec4 dzk = vec4(0., 0., 0., 1.);\n\n    for(int i = 0; i < 11; ++i) {\n        vec4 mz = vec4(z.x, -z.y, -z.z, -z.w);\n        dzr = vec4(dot(mz, dzr), z.x * dzr.yzw + dzr.x * z.yzw);\n        dzi = vec4(dot(mz, dzi), z.x * dzi.yzw + dzi.x * z.yzw);\n        dzj = vec4(dot(mz, dzj), z.x * dzj.yzw + dzj.x * z.yzw);\n        dzk = vec4(dot(mz, dzk), z.x * dzk.yzw + dzk.x * z.yzw);\n\n        z = vec4( dot(z, mz), 2.0 * z.x * z.yzw ) + c;\n\n        if(dot(z, z) > 4.) {\n            break;\n        }\n    }\n    return vec4(\n        dot(z, dzr),\n        dot(z, dzi),\n        dot(z, dzj),\n        dot(z, dzk) //In case we slice differently\n    );\n}\n";
+};
 
 /***/ })
 /******/ ]);

@@ -12,13 +12,17 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 export default function() {
+    let envMap = new T.TextureLoader().load( "/images/ibl/ice-lake-env.png" );
+    envMap.magFilter = T.LinearFilter;
+    envMap.minFilter = T.LinearFilter;
+
     let start = new Date();
     let aoParams = {
         sampleDistance: 0.2,
         nSamples: 7
     };
     let lightingParams = {
-        maxSteps: 100,
+        maxSteps: 200,
         sdf: 'distance'
     };
 
@@ -66,7 +70,7 @@ export default function() {
     let $viewParent = $('#view-container');
 
     let camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
-    let camR = 1,
+    let camR = 5,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
     let origin = new T.Vector3(0., 0., 0.);
@@ -137,8 +141,8 @@ export default function() {
             bounds: {
                 type: 'v4v',
                 value: [
-                    new T.Vector3(-5, -5, -5),
-                    new T.Vector3(5, 5, 5)
+                    new T.Vector3(-3, -3, -3),
+                    new T.Vector3(3, 3, 3)
                 ]
             },
             //Used to quit early. Kinda useless.
@@ -162,7 +166,7 @@ export default function() {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: raySphereMarchingShader(Object.assign({
-            maxSteps: 100,
+            maxSteps: 200,
             sdf: 'distance',
             distanceProgram: `//FIRSTLINE\n${editor.getValue()}`
         }, aoParams))
@@ -178,6 +182,10 @@ export default function() {
             surfaceData: {
                 type: 't',
                 value: marchPass.texTarget.t.texture
+            },
+            envMap: {
+                type: 't',
+                value: envMap
             }
         },
         fragmentShader: raySphereLightingShader(Object.assign({
@@ -195,10 +203,6 @@ export default function() {
                 type: 't',
                 value: lightingPass.texTarget.t.texture
             },
-            ambient: {
-                type: 'v3',
-                value: new T.Vector3(0.4, 0.4, 0.4)
-            },
             background: {
                 type: 'v3',
                 value: new T.Vector3(0.95, 0.95, 0.95)
@@ -210,19 +214,20 @@ export default function() {
             varying vec2 vUv;
             uniform sampler2D surfaceData;
             uniform sampler2D lighting;
-            uniform vec3 ambient;
+            uniform sampler2D envMap;
             uniform vec3 background;
 
             void main() {
                 gl_FragColor = vec4(background, 1.);
-                vec4 color = texture2D(surfaceData, vUv);
+                vec4 surface = texture2D(surfaceData, vUv);
                 vec4 lightingData = texture2D(lighting, vUv);
-                if(color.a != -1.) {
-                    if(color.a == -2.) {
-                        gl_FragColor = vec4(color.xyz, 1.);
+
+                if(surface.a != -1.) {
+                    if(surface.a == -2.) {
+                        gl_FragColor = vec4(surface.xyz, 1.);
                     }
                     else {
-                        gl_FragColor = vec4(lightingData.w * ambient + lightingData.xyz, 1.);
+                        gl_FragColor = lightingData;
                     }
                 }
             }
@@ -236,6 +241,7 @@ export default function() {
 
     function updateProgram() {
         editor.session.clearAnnotations();
+        diagnostics = undefined;
         let distanceProgram = `//FIRSTLINE\n${editor.getValue()}`;
 
         marchPass.material.fragmentShader = raySphereMarchingShader(Object.assign({
@@ -270,60 +276,63 @@ export default function() {
         needsUpdate = true;
     }
 
+    let diagnostics;
     function draw() {
-        //Easy way to take advantage of container transitions.
-        if($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
-            resize();
-        }
-        marchPass.material.uniforms.time.value = new Date() - start;
-        marchPass.execute();
+        if(!diagnostics) {
+            //Easy way to take advantage of container transitions.
+            if($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
+                resize();
+            }
+            marchPass.material.uniforms.time.value = new Date() - start;
+            marchPass.execute();
 
-        //TODO: Move this into stuff.js
-        let diagnostics = marchPass.material.program.diagnostics;
-        if(diagnostics) {
-            let log = diagnostics.fragmentShader.log;
-            if(log.indexOf('ERROR') != -1) {
-                let prefixLines = diagnostics.fragmentShader.prefix.split('\n');
-                let lines = marchPass.material.fragmentShader.split('\n');
+            //TODO: Move this into stuff.js
+            diagnostics = marchPass.material.program.diagnostics;
+            if(diagnostics) {
+                let log = diagnostics.fragmentShader.log;
+                if(log.indexOf('ERROR') != -1) {
+                    let prefixLines = diagnostics.fragmentShader.prefix.split('\n');
+                    let lines = marchPass.material.fragmentShader.split('\n');
 
-                //Find the start of the distance program.
-                let i;
-                for(i = 0; i < lines.length; ++i) {
-                    if(lines[i] == '//FIRSTLINE') {
-                        break;
+                    //Find the start of the distance program.
+                    let i;
+                    for(i = 0; i < lines.length; ++i) {
+                        if(lines[i] == '//FIRSTLINE') {
+                            break;
+                        }
                     }
-                }
-                i += prefixLines.length;
+                    i += prefixLines.length;
 
-                let annotations = [];
-                //Parse the error.
-                for(let error of log.split('\n')) {
-                    if(!error || error.indexOf('ERROR') == -1) {
-                        break;
-                    }
-                    let [column, row, code, text] = error.substring(7).split(':');
-                    column = parseInt(column);
-                    row = parseInt(row);
-                    row -= i + 1;
-                    annotations.push({
-                        row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column,
-                        text: code + ':' + text,
-                        type: "error"
-                    });
-                    if(row < 0 || row >= editor.session.getLength()) {
+                    let annotations = [];
+                    //Parse the error.
+                    for(let error of log.split('\n')) {
+                        if(!error || error.indexOf('ERROR') == -1) {
+                            break;
+                        }
+                        let [column, row, code, text] = error.substring(7).split(':');
+                        column = parseInt(column);
+                        row = parseInt(row);
+                        row -= i + 1;
                         annotations.push({
-                            row: editor.session.getLength() - 1, 
-                            column: 0,
-                            text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
+                            row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column,
+                            text: code + ':' + text,
                             type: "error"
                         });
+                        if(row < 0 || row >= editor.session.getLength()) {
+                            annotations.push({
+                                row: editor.session.getLength() - 1, 
+                                column: 0,
+                                text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
+                                type: "error"
+                            });
+                        }
                     }
+                    editor.session.setAnnotations(annotations);
                 }
-                editor.session.setAnnotations(annotations);
             }
+            lightingPass.execute();
+            viewerPass.execute(true);
         }
-        lightingPass.execute();
-        viewerPass.execute(true);
         requestAnimationFrame(draw);
     }
     requestAnimationFrame(draw);
@@ -482,9 +491,6 @@ class Lighting extends React.Component {
         }.bind(this);
     }
     render() {
-        let ambientColor = this.props.lightingParams.ambient.value;
-        ambientColor = { r: ambientColor.x * 255, g: ambientColor.y * 255, b: ambientColor.z * 255 };
-
         let bgColor = this.props.lightingParams.background.value;
         bgColor = { r: bgColor.x * 255, g: bgColor.y * 255, b: bgColor.z * 255 };
         return (
@@ -495,10 +501,6 @@ class Lighting extends React.Component {
                 <div className="mdc-typography--caption">Distance ({this.props.aoParams.sampleDistance.toFixed(2)})</div>
                 <Slider step={0.01} value={this.props.aoParams.sampleDistance} min={0.05} max={2} onChange={this.changeAODistance}/>
                 <p>Lighting</p>
-                <div style={{ display: 'inline-block', marginRight: 10 }}>
-                    <div className="mdc-typography--caption">Ambient</div>
-                    <ChromePicker color={ambientColor} onChange={this.changeLighting.bind(null, 'ambient')}/>
-                </div>
                 <div style={{ display: 'inline-block', marginRight: 10 }}>
                     <div className="mdc-typography--caption">Background</div>
                     <ChromePicker color={bgColor} onChange={this.changeLighting.bind(null, 'background')}/>

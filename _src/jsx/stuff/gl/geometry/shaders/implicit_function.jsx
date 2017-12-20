@@ -10,27 +10,26 @@ vec2 opUnion(vec2 a, vec2 b) {
 }
 
 bool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {
-    t = max(tmin, 0.001);
+    t = max(tmin, 0.2);
     tmax = min(tmax, far);
 
-    float dist = SDF_FN(rayPos + t * rayDir, t, 0);
-    float decay = 1.;//March by less than the full sphere distance, helps with certain functions.
+    float dist = SDF_FN(rayPos, rayDir, t, -1);
 
     //Inside/outside
-    float fSign = dist < 0. ? -1. : 1.;
+    float fSign = dist <= -0.2 ? -1. : 1.;
     for(int i = 1; i <= MAX_STEPS; ++i) {
-        if(abs(dist) < abs(threshold)) {
-            return t >= tmin - threshold && t <= tmax + threshold;
+        float precis = t * threshold;
+        if(abs(dist) < abs(precis)) {
+            return t >= tmin && t < tmax;
         }
 
-        t += fSign * dist * decay;
+        t += dist;
         //Just some early exit
-        if(t > tmax * 2.) {
+        if(t > tmax + threshold) {
             return false;
         }
-        dist = SDF_FN(rayPos + t * rayDir, t, i);
-        decay *= i >= 200 ? 0.99 : 1.;
+        dist = SDF_FN(rayPos, rayDir, t, i);
     }
-    return abs(dist) < abs(t * threshold) && t >= tmin - threshold && t <= tmax + threshold;
+    return false;
 }
 `

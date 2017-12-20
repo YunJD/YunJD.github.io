@@ -4,6 +4,7 @@ import differential from 'stuff/gl/geometry/shaders/differential.jsx';
 import camera from 'stuff/gl/camera/shaders/camera.jsx';
 import lights from 'stuff/gl/lights/shaders/lights.jsx';
 import implicitFunction from 'stuff/gl/geometry/shaders/implicit_function.jsx';
+import fractalSdf from 'stuff/gl/geometry/shaders/fractal_sdf.jsx';
 
 export default ({maxSteps, sdf, distanceProgram, sampleDistance, nSamples, occlusionStrength}) => `
 precision highp float;
@@ -13,6 +14,7 @@ ${intersect()}
 ${differential()}
 ${camera()}
 ${lights()}
+${fractalSdf()}
 
 #define SAMPLE_DISTANCE ${sampleDistance}
 #define N_SAMPLES ${nSamples}
@@ -23,17 +25,18 @@ ${distanceProgram}
 ${implicitFunction({sdf, maxSteps})}
 
 uniform sampler2D surfaceData;
+uniform sampler2D envMap;
 
 varying vec2 vUv;
 
 void main() {
     DirectionLight directionLight = DirectionLight(
         normalize(vec3(-2., -1., -1.)),
-        vec3(2.8, 2.8, 2.9) * 0.8
+        vec3(255., 254., 246.) / 255.
     );
 
-    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(100., 100., 100.));
-    PointLight pLight2 = PointLight(vec3(1., 3., -2.8), vec3(20., 20., 100.));
+    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 70.);
+    PointLight pLight2 = PointLight(vec3(0., 5., 0.), vec3(1., 1., 1.) * 300.);
 
     vec4 data = texture2D(surfaceData, vUv);
     if(data.w == -1.) {
@@ -44,9 +47,7 @@ void main() {
     vec4 rayDir = getCameraRay(vUv);
     vec4 startPos = rayPos + data.w * rayDir;
     vec4 normal = vec4(data.xyz, 0.);
-    float cameraCos = dot(rayDir, normal);
-    normal *= cameraCos < 0. ? 1. : -1.;
-    cameraCos = dot(-rayDir, normal);
+    normal *= dot(rayDir, normal) < 0. ? 1. : -1.;
 
     float occlusion = 0.;
     float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);
@@ -57,7 +58,7 @@ void main() {
         //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).
         float strength = 1. / (1. + t);
         occTotal += strength;
-        occlusion += strength * max(abs(t - abs(distance(startPos + t * normal, t, i))) - 1e-2, 0.);
+        occlusion += strength * max(abs(t - abs(distance(startPos, normal, t, i))) - 1e-2, 0.);
         t += stepSize;
     }
 
@@ -76,6 +77,15 @@ void main() {
     CONTRIBUTE_COLOR(pLight2)
     CONTRIBUTE_COLOR(directionLight)
 
-    gl_FragColor = vec4(color, 1. - clamp(occlusion, 0., 0.9));
+    float theta = acos(clamp(normal.y, -1., 1.));
+    float phi = atan(normal.z, normal.x);
+    phi = phi < 0. ? phi + 2. * 3.1415926535 : phi;
+
+    vec4 amb = texture2D(envMap, vec2(
+        phi / (2. * 3.1415926535),
+        1. - theta / (3.1415926535)
+    ));
+
+    gl_FragColor = vec4(amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);
 }
 `;

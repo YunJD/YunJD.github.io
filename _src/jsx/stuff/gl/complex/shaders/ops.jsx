@@ -26,4 +26,9 @@ vec4 qmul(in vec4 q1, in vec4 q2) {
     r.yzw = q1.x * q2.yzw + q2.x * q1.yzw + cross(q1.yzw, q2.yzw);
     return r;
 }
+
+void qpow2(inout vec4 q) {
+    q.x = q.x * q.x - dot(q.zyw, q.zyw);
+    q.yzw = 2. * q.x * q.yzw;
+}
 `;

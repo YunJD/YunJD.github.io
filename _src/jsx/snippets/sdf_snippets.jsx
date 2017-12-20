@@ -4,38 +4,20 @@ export default `
 uniform float time;
 //Make sure to keep the function signatures the same of every function here!
 
-//Edit this to see different shapes.
-float sdf(in vec3 p) {
-    float sphereDist = (length(p) - 0.2);
-    float displacement = sin(p.x * 50. + time * 0.001) * sin(p.z * 50. + time * 0.001) * sin(p.y * 50.);
-    float plane = p.y + 0.6;
-    return min(
-        sphereDist * 0.3 + displacement * 0.03,
-        plane
-    );
+vec3 gradient(in vec4 p) {
+	float mTime = time * 0.0005;
+    return julia4DGrad(vec4(p.xyz, 0.), vec4(0.5, 0.52, 0.55, 0.5)
+        * vec4(-cos(mTime), cos(0.5 * mTime), cos(0.08 * mTime), cos(2. * mTime))).xyz;
 }
 
-//Not really sure of a better way to do this. A macro is used because:
-//  A: This way, a new gradient function does not need to be defined for every new FN.
-//  B: How else can callbacks be performed in GLSL?
-//I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's
-//recommended that this function be replaced by an analytical gradient implementation.
-#define FN sdf
-vec3 gradient(in vec4 p, float t) {
-    //I couldn't make the functional macro definition work. I a dumb dumb.
-    vec2 gradD = vec2(0., 5e-4);
-    vec3 gradP = p.xyz;
+float distance(in vec4 pos, in vec4 dir, float t, int i) {
+	float mTime = time * 0.0005;
 
-    //Numerical gradient macro.
-    return NUM_GRAD3;
+	float tmin, tmax;
+    float distJulia = 0.;
+	if(!intersectSphere(3., pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
+
+    return julia4D(vec4(pos.xyz, 0.) + max(t, tmin) * dir, vec4(0.5, 0.52, 0.55, 0.5)
+        * vec4(-cos(mTime), cos(0.5 * mTime), cos(0.08 * mTime), cos(2. * mTime)));
 }
-#undef FN
-
-float distance(in vec4 p, float t, int i) {
-    //p: the point calculated by rp + t * rd
-    //rp: Ray start position.
-    //rd: Ray direction.
-    return sdf(p.xyz);
-}
-
 `.trim()
