@@ -3,7 +3,7 @@
     code.hljs {
         padding: 20px 10px;
     }
-    max-width: 1200px;
+    max-width: 900px;
     margin-left: auto;
     margin-right: auto;
     padding-left: 10px;
@@ -14,20 +14,24 @@
 
     h1 {
         @include mdc-typography('display1');
-        margin-top: 3rem;
+        font-weight: 800;
+        margin-top: 4rem;
     }
     h2 {
-        @include mdc-typography('headline');
-        margin-top: 2.5rem;
+        @include mdc-typography('display3');
+        margin-top: 4rem;
+        font-weight: 100;
     }
     h3 {
-        @include mdc-typography('title');
-        margin-top: 2rem;
+        @include mdc-typography('headline');
+        margin-top: 2.5rem;
+        font-weight: 100;
         text-transform: uppercase;
     }
 
     h4 {
         @include mdc-typography('subheading2');
+        text-transform: uppercase;
     }
 
     h5 {
@@ -39,14 +43,20 @@
     }
     p {
         @include mdc-typography('body2');
+        font-size: 15px;
+        font-weight: 400;
     }
     .shortcuts-table {
         td {
             padding-bottom: 8px;
+            font-weight: 400;
             &:first-child {
                 width: 150px;
                 text-transform: uppercase;
             }
         }
+    }
+    code {
+        font-size: 1rem;
     }
 }

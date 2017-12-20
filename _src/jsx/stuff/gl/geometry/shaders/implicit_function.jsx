@@ -5,7 +5,7 @@ export default ({maxSteps, sdf}) => `
 uniform float far;
 uniform float threshold;
 
-vec2 opUnion(vec2 a, vec2 b) {
+vec2 opUnion(in vec2 a, in vec2 b) {
     return a.x <= b.x ? a : b;
 }
 
