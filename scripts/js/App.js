@@ -60058,15 +60058,6 @@ var Settings = function (_React$Component2) {
                 'div',
                 null,
                 _react2.default.createElement(
-                    'div',
-                    { className: 'mdc-typography--caption' },
-                    _react2.default.createElement(
-                        'em',
-                        null,
-                        'Waiting on official support for ranged sliders, so two sliders for now :/'
-                    )
-                ),
-                _react2.default.createElement(
                     'p',
                     null,
                     'Camera'
@@ -60083,6 +60074,15 @@ var Settings = function (_React$Component2) {
                     'p',
                     null,
                     'Scene'
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    _react2.default.createElement(
+                        'em',
+                        null,
+                        'Waiting on official support for ranged sliders, so two sliders for now :/'
+                    )
                 ),
                 _react2.default.createElement(
                     'div',

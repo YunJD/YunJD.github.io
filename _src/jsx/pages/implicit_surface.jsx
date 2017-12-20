@@ -527,12 +527,12 @@ class Settings extends React.Component {
     render() {
         return (
             <div>
-                <div className="mdc-typography--caption"><em>Waiting on official support for ranged sliders, so two sliders for now :/</em></div>
                 <p>Camera</p>
                 <div className="mdc-typography--caption">FOV ({this.props.camera.fov.toLocaleString()})</div>
                 <Slider discrete step="1" value={this.props.camera.fov} min={30} max={120} onChange={this.changeFov}/>
 
                 <p>Scene</p>
+                <div className="mdc-typography--caption"><em>Waiting on official support for ranged sliders, so two sliders for now :/</em></div>
                 <div className="mdc-typography--caption">Bounding Box</div>
                 <p>x: <strong>{this.props.boundingBox[0].x.toFixed(2)}, {this.props.boundingBox[1].x.toFixed(2)}</strong></p>
                 <div dir="rtl">
