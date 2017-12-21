@@ -3,6 +3,7 @@ import {MDCTab, MDCTabFoundation, MDCTabBar, MDCTabBarFoundation} from '@materia
 import {MDCRipple, MDCRippleFoundation, util} from '@material/ripple';
 import TextField from 'rmwc/TextField';
 import Slider from 'rmwc/Slider';
+import IconToggle from 'rmwc/IconToggle';
 import * as T from 'three';
 import stuff from 'stuff';
 import raySphereMarchingShader from 'shaders/raySphereMarching.jsx';
@@ -12,11 +13,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 export default function() {
-    let envMap = new T.TextureLoader().load( "/images/ibl/ice-lake-env.png" );
+    let needsUpdate = true;
+
+    let envMap = new T.TextureLoader().load( "/images/ibl/gloucester-env.png" );
     envMap.magFilter = T.LinearFilter;
     envMap.minFilter = T.LinearFilter;
 
-    let start = new Date();
     let aoParams = {
         sampleDistance: 0.2,
         nSamples: 7
@@ -132,6 +134,10 @@ export default function() {
         }
         updateCamera();
     }
+    function updateTime(value) {
+        marchPass.material.uniforms.time.value = value;
+        needsUpdate = true;
+    }
     let marchPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
             time: {
@@ -171,7 +177,6 @@ export default function() {
             distanceProgram: `//FIRSTLINE\n${editor.getValue()}`
         }, aoParams))
     }, $viewParent.width(), $viewParent.height());
-    console.log(camera.fov, marchPass.material.uniforms.invProjMat);
 
     let lightingPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
@@ -219,6 +224,14 @@ export default function() {
             uniform vec3 background;
 
             void main() {
+                //float theta = (1. - vUv.y) * 3.1415926535;
+                //float phi = vUv.x * 2. * 3.1415926535;
+                //gl_FragColor = abs(vec4(
+                //    cos(phi) * sin(theta),
+                //    cos(theta),
+                //    sin(phi) * sin(theta),
+                //1.));
+                //return;
                 gl_FragColor = vec4(background, 1.);
                 vec4 surface = texture2D(surfaceData, vUv);
                 vec4 lightingData = texture2D(lighting, vUv);
@@ -234,11 +247,12 @@ export default function() {
             }
         `
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
+    //}, 360, 180);
 
-    let $view = $(viewerPass.renderer.domElement);
+    let $view = $(marchPass.renderer.domElement);
     $viewParent.append($view);
+    //$viewParent.append(viewerPass.renderer.domElement);
 
-    let needsUpdate = true;
 
     function updateProgram() {
         editor.session.clearAnnotations();
@@ -284,55 +298,56 @@ export default function() {
             if($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
                 resize();
             }
-            marchPass.material.uniforms.time.value = new Date() - start;
-            marchPass.execute();
+            if(needsUpdate) {
+                marchPass.execute();
+                lightingPass.execute();
 
-            //TODO: Move this into stuff.js
-            diagnostics = marchPass.material.program.diagnostics;
-            if(diagnostics) {
-                let log = diagnostics.fragmentShader.log;
-                if(log.indexOf('ERROR') != -1) {
-                    let prefixLines = diagnostics.fragmentShader.prefix.split('\n');
-                    let lines = marchPass.material.fragmentShader.split('\n');
+                //TODO: Move this into stuff.js
+                diagnostics = marchPass.material.program.diagnostics || lightingPass.diagnostics;
+                if(diagnostics) {
+                    let log = diagnostics.fragmentShader.log;
+                    if(log.indexOf('ERROR') != -1) {
+                        let prefixLines = diagnostics.fragmentShader.prefix.split('\n');
+                        let lines = marchPass.material.fragmentShader.split('\n');
 
-                    //Find the start of the distance program.
-                    let i;
-                    for(i = 0; i < lines.length; ++i) {
-                        if(lines[i] == '//FIRSTLINE') {
-                            break;
+                        //Find the start of the distance program.
+                        let i;
+                        for(i = 0; i < lines.length; ++i) {
+                            if(lines[i] == '//FIRSTLINE') {
+                                break;
+                            }
                         }
-                    }
-                    i += prefixLines.length;
+                        i += prefixLines.length;
 
-                    let annotations = [];
-                    //Parse the error.
-                    for(let error of log.split('\n')) {
-                        if(!error || error.indexOf('ERROR') == -1) {
-                            break;
-                        }
-                        let [column, row, code, text] = error.substring(7).split(':');
-                        column = parseInt(column);
-                        row = parseInt(row);
-                        row -= i + 1;
-                        annotations.push({
-                            row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column,
-                            text: code + ':' + text,
-                            type: "error"
-                        });
-                        if(row < 0 || row >= editor.session.getLength()) {
+                        let annotations = [];
+                        //Parse the error.
+                        for(let error of log.split('\n')) {
+                            if(!error || error.indexOf('ERROR') == -1) {
+                                break;
+                            }
+                            let [column, row, code, text] = error.substring(7).split(':');
+                            column = parseInt(column);
+                            row = parseInt(row);
+                            row -= i + 1;
                             annotations.push({
-                                row: editor.session.getLength() - 1, 
-                                column: 0,
-                                text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
+                                row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column,
+                                text: code + ':' + text,
                                 type: "error"
                             });
+                            if(row < 0 || row >= editor.session.getLength()) {
+                                annotations.push({
+                                    row: editor.session.getLength() - 1, 
+                                    column: 0,
+                                    text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
+                                    type: "error"
+                                });
+                            }
                         }
+                        editor.session.setAnnotations(annotations);
                     }
-                    editor.session.setAnnotations(annotations);
                 }
+                viewerPass.execute(true);
             }
-            lightingPass.execute();
-            viewerPass.execute(true);
         }
         requestAnimationFrame(draw);
     }
@@ -453,6 +468,11 @@ export default function() {
         }
     });
 
+    ReactDOM.render(<PlayerControl 
+         onUpdateTime={updateTime}
+         time={marchPass.material.uniforms.time} />,
+        $("#player-control")[0]
+    );
     ReactDOM.render(<Settings 
          boundingBox={marchPass.material.uniforms.bounds.value}
          camera={camera} 
@@ -511,6 +531,43 @@ class Lighting extends React.Component {
     }
 }
 
+class PlayerControl extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            start: new Date(),
+            isPaused: false,
+            delta: 0
+        }
+        this.elapse = function() {
+            if(!this.state.isPaused) {
+                this.props.onUpdateTime(
+                    this.state.delta + (new Date() - this.state.start) / 1000
+                );
+                this.forceUpdate();
+            }
+            requestAnimationFrame(this.elapse);
+        }.bind(this);
+        this.playpause = function() {
+            if(this.state.isPaused) {
+                this.setState({ isPaused: false, start: new Date(), delta: this.props.time.value });
+            }
+            else {
+                this.setState({isPaused: true});
+            }
+        }.bind(this);
+        requestAnimationFrame(this.elapse);
+    }
+
+    render() {
+        return (
+            <div>
+                <IconToggle value={!this.state.isPaused} on={{label: 'pause', content: 'pause'}} off={{label: 'play', content: 'play_arrow'}} onChange={this.playpause}/>
+            </div>
+        );
+    }
+}
+
 class Settings extends React.Component {
     constructor(props) {
         super(props);
@@ -523,7 +580,6 @@ class Settings extends React.Component {
             this.props.onChangeBounds(bound, dimension, bound == 0 ? -e.target.value : e.target.value);
             this.forceUpdate();
         }.bind(this);
-        let self = this;
     }
     render() {
         return (

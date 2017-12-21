@@ -44,6 +44,7 @@ header: |
             width: 100%;
             height: 100vh;
             transition: height 0.5s;
+            position: relative;
         }
 
         .view-container.shrunk {
@@ -53,9 +54,16 @@ header: |
             width: 100%;
             min-height: 20px;
         }
+        #player-control {
+            position: absolute;
+            bottom: 24px;
+            left: 20px;
+            width: calc(100% - 108px);
+        }
     </style>
 ---
-<div id="view-container" class="view-container" style="touch-action: none;"></div>
+<div id="view-container" class="view-container" style="touch-action: none;"><div id="player-control"></div></div>
+
 <div id="bottom-sheet" class="bottom-sheet">
     <header class="mdc-toolbar">
         <div class="mdc-toolbar__row">

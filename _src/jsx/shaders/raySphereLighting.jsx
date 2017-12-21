@@ -70,7 +70,7 @@ void main() {
 
     #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);\
     if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {\
-        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.83 / 3.14159265);\
+        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.9 / 3.14159265);\
     }
 
     CONTRIBUTE_COLOR(pLight)
@@ -86,6 +86,6 @@ void main() {
         1. - theta / (3.1415926535)
     ));
 
-    gl_FragColor = vec4(amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);
+    gl_FragColor = vec4(0.9 * amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);
 }
 `;
