@@ -22,7 +22,7 @@ export default function() {
         nSamples: 7
     };
     let lightingParams = {
-        maxSteps: 200,
+        maxSteps: 450,
         sdf: 'distance'
     };
 
@@ -69,7 +69,7 @@ export default function() {
 
     let $viewParent = $('#view-container');
 
-    let camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
+    let camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 1., 1000); //By using near as 1., it does not at all affect the fov.
     let camR = 5,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
@@ -152,7 +152,7 @@ export default function() {
             },
             threshold: {
                 type: 'f',
-                value: 2e-3
+                value: 5e-4
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -166,11 +166,12 @@ export default function() {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: raySphereMarchingShader(Object.assign({
-            maxSteps: 200,
+            maxSteps: 450,
             sdf: 'distance',
             distanceProgram: `//FIRSTLINE\n${editor.getValue()}`
         }, aoParams))
     }, $viewParent.width(), $viewParent.height());
+    console.log(camera.fov, marchPass.material.uniforms.invProjMat);
 
     let lightingPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
@@ -245,7 +246,7 @@ export default function() {
         let distanceProgram = `//FIRSTLINE\n${editor.getValue()}`;
 
         marchPass.material.fragmentShader = raySphereMarchingShader(Object.assign({
-            maxSteps: 100,
+            maxSteps: 450,
             sdf: 'distance',
             distanceProgram
         }, aoParams));

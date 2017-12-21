@@ -57635,7 +57635,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-    return "\n//Not really sure of a better way to do this. A macro is used because:\n//  A: This way, a new gradient function does not need to be defined for every new function.\n//  B: How else can callbacks be performed in GLSL?\n//I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's\n//recommended that this function be replaced by an analytical gradient implementation.\n#define NUM_GRAD3(fn, p, delta)     numDiff(        vec3(            fn(vec3(p.x + delta, p.y, p.z)),            fn(vec3(p.x, p.y + delta, p.z)),            fn(vec3(p.x, p.y, p.z + delta))        ),        vec3(            fn(vec3(p.x - delta, p.y, p.z)),            fn(vec3(p.x, p.y - delta, p.z)),            fn(vec3(p.x, p.y, p.z - delta))        ),        delta    )\n\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n    return (deltaPositive - deltaNeg) / (2. * delta);\n}\n\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative) / (2. * delta);\n}\n";
+    return "\n//Not really sure of a better way to do this. A macro is used because:\n//  A: This way, a new gradient function does not need to be defined for every new function.\n//  B: How else can callbacks be performed in GLSL?\n//I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's\n//recommended that this function be replaced by an analytical gradient implementation.\n#define NUM_GRAD3(fn, p, delta)         (vec3(            fn(vec3(p.x + delta, p.y, p.z)),            fn(vec3(p.x, p.y + delta, p.z)),            fn(vec3(p.x, p.y, p.z + delta))        )        - vec3(            fn(vec3(p.x - delta, p.y, p.z)),            fn(vec3(p.x, p.y - delta, p.z)),            fn(vec3(p.x, p.y, p.z - delta))        ))\n\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n    return (deltaPositive - deltaNeg);\n}\n\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative);\n}\n\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative);\n}\n\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative);\n}\n";
 };
 
 /***/ }),
@@ -57667,7 +57667,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function (_ref) {
     var maxSteps = _ref.maxSteps,
         sdf = _ref.sdf;
-    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nvec2 opUnion(in vec2 a, in vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.2);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos, rayDir, t, -1);\n\n    //Inside/outside\n    float fSign = dist <= -0.2 ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        float precis = t * threshold;\n        if(abs(dist) < abs(precis)) {\n            return t >= tmin && t < tmax;\n        }\n\n        t += dist;\n        //Just some early exit\n        if(t > tmax + threshold) {\n            return false;\n        }\n        dist = SDF_FN(rayPos, rayDir, t, i);\n    }\n    return false;\n}\n";
+    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nvec2 opUnion(in vec2 a, in vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos, rayDir, t, 0);\n\n    //Inside/outside\n    float fSign = dist <= 0. ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        if(abs(dist) < threshold) {\n            return t >= tmin && t < tmax;\n        }\n\n        t += fSign * dist;\n        //Just some early exit\n        if(t > tmax + threshold) {\n            return false;\n        }\n        dist = SDF_FN(rayPos, rayDir, t, i);\n    }\n    return false;\n}\n";
 };
 
 /***/ }),
@@ -59472,7 +59472,7 @@ exports.default = function () {
         nSamples: 7
     };
     var lightingParams = {
-        maxSteps: 200,
+        maxSteps: 450,
         sdf: 'distance'
     };
 
@@ -59518,7 +59518,7 @@ exports.default = function () {
 
     var $viewParent = $('#view-container');
 
-    var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 0.1, 1000);
+    var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 1., 1000); //By using near as 1., it does not at all affect the fov.
     var camR = 5,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
@@ -59592,7 +59592,7 @@ exports.default = function () {
             },
             threshold: {
                 type: 'f',
-                value: 2e-3
+                value: 5e-4
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -59606,11 +59606,12 @@ exports.default = function () {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 200,
+            maxSteps: 450,
             sdf: 'distance',
             distanceProgram: '//FIRSTLINE\n' + editor.getValue()
         }, aoParams))
     }, $viewParent.width(), $viewParent.height());
+    console.log(camera.fov, marchPass.material.uniforms.invProjMat);
 
     var lightingPass = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
@@ -59662,7 +59663,7 @@ exports.default = function () {
         var distanceProgram = '//FIRSTLINE\n' + editor.getValue();
 
         marchPass.material.fragmentShader = (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 100,
+            maxSteps: 450,
             sdf: 'distance',
             distanceProgram: distanceProgram
         }, aoParams));
@@ -90540,7 +90541,7 @@ exports.default = function (_ref) {
     var maxSteps = _ref.maxSteps,
         sdf = _ref.sdf,
         distanceProgram = _ref.distanceProgram;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\nuniform vec3 bounds[2];\nvarying vec2 vUv;\n\n' + distanceProgram + '\n\n//Include this here since the shader needs to have the sdf defined before calling.\n' + (0, _implicit_function2.default)({ maxSteps: maxSteps, sdf: sdf }) + '\n\nvoid main() {\n    gl_FragColor = vec4(-1.);\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n\n    float bbmin, bbmax;\n    if(intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n        float t;\n        if(intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {\n            gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir)), t);\n        }\n    }\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\nuniform vec3 bounds[2];\nvarying vec2 vUv;\n\n' + distanceProgram + '\n\n//Include this here since the shader needs to have the sdf defined before calling.\n' + (0, _implicit_function2.default)({ maxSteps: maxSteps, sdf: sdf }) + '\n\nvoid main() {\n    gl_FragColor = vec4(-1.);\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n\n    float bbmin, bbmax;\n    if(intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n        float t;\n        if(intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {\n            gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir, t, getCameraRay(vec2(1., 0.)).x)), t);\n        }\n    }\n}\n';
 };
 
 /***/ }),
@@ -90617,11 +90618,11 @@ exports.default = function () {
 
 
 Object.defineProperty(exports, "__esModule", {
-   value: true
+    value: true
 });
 //This is the initial program.
 
-exports.default = "\nuniform float time;\n//Make sure to keep the function signatures the same of every function here!\n\nvec3 gradient(in vec4 p) {\n\tfloat mTime = time * 0.0005;\n    return julia4DGrad(vec4(p.xyz, 0.), vec4(0.5, 0.52, 0.55, 0.5)\n        * vec4(-cos(mTime), cos(0.5 * mTime), cos(0.08 * mTime), cos(2. * mTime))).xyz;\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n\tfloat mTime = time * 0.0005;\n\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(3., pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return julia4D(vec4(pos.xyz, 0.) + max(t, tmin) * dir, vec4(0.5, 0.52, 0.55, 0.5)\n        * vec4(-cos(mTime), cos(0.5 * mTime), cos(0.08 * mTime), cos(2. * mTime)));\n}\n".trim();
+exports.default = "\nuniform float time;\n//Make sure to keep the function signatures the same of every function here!\n\nfloat juliaSdf(in vec3 p) {\n    float mTime = time * 0.0005;\n    return julia4D(vec4(p, 0.), vec4(0.5, 0.52, 0.55, 0.5)\n        * vec4(-cos(mTime), cos(0.5 * mTime), cos(0.08 * mTime), cos(2. * mTime)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    float delta = clamp(\n        0.5 * 0.002 * t * fovScale, 1e-4, 0.2\n    );\n    return NUM_GRAD3(juliaSdf, p, delta);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n\tfloat mTime = time * 0.0005;\n\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(3., pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return juliaSdf((pos + max(t, tmin) * dir).xyz);\n}\n".trim();
 
 /***/ }),
 /* 461 */
@@ -90635,7 +90636,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-    return "\nfloat julia4D(in vec4 p, in vec4 c) {\n    vec4 z = p;\n\n    float mz2 = dot(z, z);\n    float md2 = 1.;\n\n    for(int i = 0; i < 11; ++i) {\n        md2 *= 4. * mz2;\n        z = vec4(z.x * z.x - dot(z.yzw, z.yzw), 2.0 * z.x * z.yzw) + c;\n        mz2 = dot(z, z);\n\n        if(mz2 > 4.) {\n            break;\n        }\n    }\n\n    return 0.25 * sqrt(mz2 / md2) * log(mz2);\n}\n\nvec4 julia4DGrad(in vec4 p, in vec4 c) {\n    vec4 z = p;\n    vec4 dzr = vec4(1., 0., 0., 0.);\n    vec4 dzi = vec4(0., 1., 0., 0.);\n    vec4 dzj = vec4(0., 0., 1., 0.);\n    vec4 dzk = vec4(0., 0., 0., 1.);\n\n    for(int i = 0; i < 11; ++i) {\n        vec4 mz = vec4(z.x, -z.y, -z.z, -z.w);\n        dzr = vec4(dot(mz, dzr), z.x * dzr.yzw + dzr.x * z.yzw);\n        dzi = vec4(dot(mz, dzi), z.x * dzi.yzw + dzi.x * z.yzw);\n        dzj = vec4(dot(mz, dzj), z.x * dzj.yzw + dzj.x * z.yzw);\n        dzk = vec4(dot(mz, dzk), z.x * dzk.yzw + dzk.x * z.yzw);\n\n        z = vec4( dot(z, mz), 2.0 * z.x * z.yzw ) + c;\n\n        if(dot(z, z) > 4.) {\n            break;\n        }\n    }\n    return vec4(\n        dot(z, dzr),\n        dot(z, dzi),\n        dot(z, dzj),\n        dot(z, dzk) //In case we slice differently\n    );\n}\n";
+    return "\n#define JULIA_STEPS 11\nfloat julia4D(in vec4 p, in vec4 c) {\n    vec4 z = p;\n    vec4 grad = vec4(1., 0., 0., 0.);\n\n    float mz2 = dot(z, z);\n    float md2 = 1.;\n\n    for(int i = 0; i < JULIA_STEPS; ++i) {\n        md2 *= 4. * mz2;\n        z = vec4(z.x * z.x - dot(z.yzw, z.yzw), 2.0 * z.x * z.yzw) + c;\n        mz2 = dot(z, z);\n\n        if(mz2 > 4.) {\n            break;\n        }\n    }\n\n    return 0.25 * sqrt(mz2 / md2) * log(mz2);\n}\n";
 };
 
 /***/ })

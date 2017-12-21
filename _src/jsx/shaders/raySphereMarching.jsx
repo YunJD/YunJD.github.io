@@ -32,7 +32,7 @@ void main() {
     if(intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {
         float t;
         if(intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {
-            gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir)), t);
+            gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir, t, getCameraRay(vec2(1., 0.)).x)), t);
         }
     }
 }

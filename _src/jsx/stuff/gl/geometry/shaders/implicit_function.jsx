@@ -10,20 +10,19 @@ vec2 opUnion(in vec2 a, in vec2 b) {
 }
 
 bool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {
-    t = max(tmin, 0.2);
+    t = max(tmin, 0.);
     tmax = min(tmax, far);
 
-    float dist = SDF_FN(rayPos, rayDir, t, -1);
+    float dist = SDF_FN(rayPos, rayDir, t, 0);
 
     //Inside/outside
-    float fSign = dist <= -0.2 ? -1. : 1.;
+    float fSign = dist <= 0. ? -1. : 1.;
     for(int i = 1; i <= MAX_STEPS; ++i) {
-        float precis = t * threshold;
-        if(abs(dist) < abs(precis)) {
+        if(abs(dist) < threshold) {
             return t >= tmin && t < tmax;
         }
 
-        t += dist;
+        t += fSign * dist;
         //Just some early exit
         if(t > tmax + threshold) {
             return false;

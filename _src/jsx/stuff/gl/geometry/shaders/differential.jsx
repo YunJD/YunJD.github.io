@@ -5,33 +5,30 @@ export default () => `
 //I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's
 //recommended that this function be replaced by an analytical gradient implementation.
 #define NUM_GRAD3(fn, p, delta) \
-    numDiff(\
-        vec3(\
+        (vec3(\
             fn(vec3(p.x + delta, p.y, p.z)),\
             fn(vec3(p.x, p.y + delta, p.z)),\
             fn(vec3(p.x, p.y, p.z + delta))\
-        ),\
-        vec3(\
+        )\
+        - vec3(\
             fn(vec3(p.x - delta, p.y, p.z)),\
             fn(vec3(p.x, p.y - delta, p.z)),\
             fn(vec3(p.x, p.y, p.z - delta))\
-        ),\
-        delta\
-    )
+        ))
 
 float numDiff(float deltaPositive, float deltaNeg, float delta) {
-    return (deltaPositive - deltaNeg) / (2. * delta);
+    return (deltaPositive - deltaNeg);
 }
 
 vec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {
-    return (deltaPositive - deltaNegative) / (2. * delta);
+    return (deltaPositive - deltaNegative);
 }
 
 vec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {
-    return (deltaPositive - deltaNegative) / (2. * delta);
+    return (deltaPositive - deltaNegative);
 }
 
 vec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {
-    return (deltaPositive - deltaNegative) / (2. * delta);
+    return (deltaPositive - deltaNegative);
 }
 `;
