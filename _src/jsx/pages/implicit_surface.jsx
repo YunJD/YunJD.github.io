@@ -15,16 +15,12 @@ import ReactDOM from 'react-dom';
 export default function() {
     let needsUpdate = true;
 
-    let envMap = new T.TextureLoader().load( "/images/ibl/gloucester-env.png" );
-    envMap.magFilter = T.LinearFilter;
-    envMap.minFilter = T.LinearFilter;
-
     let aoParams = {
         sampleDistance: 0.2,
         nSamples: 7
     };
     let lightingParams = {
-        maxSteps: 450,
+        maxSteps: 200,
         sdf: 'distance'
     };
 
@@ -154,11 +150,11 @@ export default function() {
             //Used to quit early. Kinda useless.
             far: {
                 type: 'f',
-                value: 1e4
+                value: 1e5
             },
             threshold: {
                 type: 'f',
-                value: 5e-4
+                value: 1e-4
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -172,12 +168,13 @@ export default function() {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: raySphereMarchingShader(Object.assign({
-            maxSteps: 450,
+            maxSteps: 200,
             sdf: 'distance',
             distanceProgram: `//FIRSTLINE\n${editor.getValue()}`
         }, aoParams))
     }, $viewParent.width(), $viewParent.height());
 
+    let envTextureLoader = new T.TextureLoader();
     let lightingPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
             time: marchPass.material.uniforms.time,
@@ -191,13 +188,25 @@ export default function() {
             },
             envMap: {
                 type: 't',
-                value: envMap
+                value: envTextureLoader.load("/images/ibl/arches-env.png"),
+                label: 'Gloucester Church'
             }
         },
         fragmentShader: raySphereLightingShader(Object.assign({
             distanceProgram: editor.getValue()
         }, lightingParams, aoParams))
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
+
+    lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
+    lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
+    function updateEnvMap(img, label) {
+        lightingPass.material.uniforms.envMap.value.dispose()
+        lightingPass.material.uniforms.envMap.value = envTextureLoader.load(`/images/ibl/${img}`);
+        lightingPass.material.uniforms.envMap.label = label;
+        lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
+        lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
+        needsUpdate = true;
+    }
 
     let viewerPass = new stuff.gl.ComputeShaderPass({
         uniforms: {
@@ -260,7 +269,7 @@ export default function() {
         let distanceProgram = `//FIRSTLINE\n${editor.getValue()}`;
 
         marchPass.material.fragmentShader = raySphereMarchingShader(Object.assign({
-            maxSteps: 450,
+            maxSteps: 200,
             sdf: 'distance',
             distanceProgram
         }, aoParams));
@@ -484,6 +493,7 @@ export default function() {
          aoParams={aoParams}
          lightingParams={viewerPass.material.uniforms}
          onUpdateLighting={updateLighting}
+         onChangeEnvMap={updateEnvMap}
          onUpdateAO={updateAO}/>,
     $("#lighting-container")[0]);
 }
@@ -522,6 +532,63 @@ class Lighting extends React.Component {
                 <div className="mdc-typography--caption">Distance ({this.props.aoParams.sampleDistance.toFixed(2)})</div>
                 <Slider step={0.01} value={this.props.aoParams.sampleDistance} min={0.05} max={2} onChange={this.changeAODistance}/>
                 <p>Lighting</p>
+                <div className="mdc-typography--caption">Environment Map</div>
+                <div className="mdc-grid-list environment-map-grid-list">
+                    <ul className="mdc-grid-list__tiles mdc-grid-list--tile-aspect-4x3">
+                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('arches-env.png', 'Arches')}>
+                            <div className="mdc-grid-tile__primary">
+                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/arches-thumb.jpg') center"}}></span>
+                            </div>
+                            <span className="mdc-grid-tile__secondary">Arches</span>
+                        </li>
+                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('footprint-court-env.png', 'Footprint Court')}>
+                            <div className="mdc-grid-tile__primary">
+                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/footprint-court-thumb.jpg') center"}}></span>
+                            </div>
+                            <span className="mdc-grid-tile__secondary">Footprint Court</span>
+                        </li>
+                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('gloucester-env.png', 'Gloucester Church')}>
+                            <div className="mdc-grid-tile__primary">
+                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/gloucester.jpg') center"}}></span>
+                            </div>
+                            <span className="mdc-grid-tile__secondary">Gloucester Church</span>
+                        </li>
+                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('greenhouse-1-env.png', 'Greenhouse')}>
+                            <div className="mdc-grid-tile__primary">
+                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/greenhouse-1-thumb.jpg') center"}}></span>
+                            </div>
+                            <span className="mdc-grid-tile__secondary">Greenhouse</span>
+                        </li>
+                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('ice-lake-env.png', 'Ice Lake')}>
+                            <div className="mdc-grid-tile__primary">
+                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/ice-lake-thumb.jpg') center"}}></span>
+                            </div>
+                            <span className="mdc-grid-tile__secondary">Ice Lake</span>
+                        </li>
+                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('sunrise-1-env.png', 'Sunrise')}>
+                            <div className="mdc-grid-tile__primary">
+                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/sunrise-1-thumb.jpg') center"}}></span>
+                            </div>
+                            <span className="mdc-grid-tile__secondary">Sunrise</span>
+                        </li>
+                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('washington-hotel-env.png', 'Washington Hotel')}>
+                            <div className="mdc-grid-tile__primary">
+                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/washington-hotel-thumb.jpg') center"}}></span>
+                            </div>
+                            <span className="mdc-grid-tile__secondary">
+                                <span className="mdc-grid-tile__title">
+                                    Washington Hotel Overlook
+                                </span>
+                            </span>
+                        </li>
+                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('norm-env.png', 'Surface Normal')}>
+                            <div className="mdc-grid-tile__primary">
+                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/norm-env.png') center"}}></span>
+                            </div>
+                            <span className="mdc-grid-tile__secondary">Surface Normal</span>
+                        </li>
+                    </ul>
+                </div>
                 <div style={{ display: 'inline-block', marginRight: 10 }}>
                     <div className="mdc-typography--caption">Background</div>
                     <ChromePicker color={bgColor} onChange={this.changeLighting.bind(null, 'background')}/>

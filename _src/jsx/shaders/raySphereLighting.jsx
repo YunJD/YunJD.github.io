@@ -36,7 +36,7 @@ void main() {
     );
 
     PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 70.);
-    PointLight pLight2 = PointLight(vec3(0., 5., 0.), vec3(1., 1., 1.) * 300.);
+    PointLight pLight2 = PointLight(vec3(-2., 1., 3.), vec3(1., 1., 1.) * 300.);
 
     vec4 data = texture2D(surfaceData, vUv);
     if(data.w == -1.) {
@@ -79,11 +79,11 @@ void main() {
 
     float theta = acos(clamp(normal.y, -1., 1.));
     float phi = atan(normal.z, normal.x);
-    phi = phi < 0. ? phi + 2. * 3.1415926535 : phi;
+    phi = phi < 0. ? phi + 2. * 3.1415926536 : phi;
 
     vec4 amb = texture2D(envMap, vec2(
-        phi / (2. * 3.1415926535),
-        1. - theta / (3.1415926535)
+        phi / (2. * 3.1415926536),
+        1. - theta / 3.1415926536
     ));
 
     gl_FragColor = vec4(0.9 * amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);

@@ -57811,7 +57811,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function (_ref) {
     var maxSteps = _ref.maxSteps,
         sdf = _ref.sdf;
-    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nvec2 opUnion(in vec2 a, in vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos, rayDir, t, 0);\n\n    //Inside/outside\n    float fSign = dist <= 0. ? -1. : 1.;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        if(abs(dist) < threshold) {\n            return t >= tmin && t < tmax;\n        }\n\n        t += fSign * dist;\n        //Just some early exit\n        if(t > tmax + threshold) {\n            return false;\n        }\n        dist = SDF_FN(rayPos, rayDir, t, i);\n    }\n    return false;\n}\n";
+    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nvec2 opUnion(in vec2 a, in vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos, rayDir, t, 0);\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    float prevSign = fSign;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        if(abs(dist) < threshold) {\n            return t >= tmin && t < tmax;\n        }\n\n        t += fSign * dist;\n\n        //Just some early exit\n        if(t > 2. * tmax + threshold) {\n            return false;\n        }\n        dist = SDF_FN(rayPos, rayDir, t, i);\n    }\n    return false;\n}\n";
 };
 
 /***/ }),
@@ -57826,7 +57826,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-    return "\n#define JULIA_STEPS 11\nfloat julia4D(in vec4 p, in vec4 c) {\n    vec4 z = p;\n    vec4 grad = vec4(1., 0., 0., 0.);\n\n    float mz2 = dot(z, z);\n    float md2 = 1.;\n\n    for(int i = 0; i < JULIA_STEPS; ++i) {\n        md2 *= 4. * mz2;\n        z = vec4(z.x * z.x - dot(z.yzw, z.yzw), 2.0 * z.x * z.yzw) + c;\n        mz2 = dot(z, z);\n\n        if(mz2 > 4.) {\n            break;\n        }\n    }\n\n    return 0.25 * sqrt(mz2 / md2) * log(mz2);\n}\n";
+    return "\n#define JULIA_STEPS 16\nfloat julia4D(in vec4 p, in vec4 c) {\n    vec4 z = p;\n    vec4 grad = vec4(1., 0., 0., 0.);\n\n    float mz2 = dot(z, z);\n    float md2 = 1.;\n\n    for(int i = 0; i < JULIA_STEPS; ++i) {\n        md2 *= 4. * mz2;\n        z = vec4(z.x * z.x - dot(z.yzw, z.yzw), 2.0 * z.x * z.yzw) + c;\n        mz2 = dot(z, z);\n\n        if(mz2 > 4.) {\n            break;\n        }\n    }\n\n    return 0.25 * sqrt(mz2 / md2) * log(mz2);\n}\n";
 };
 
 /***/ }),
@@ -59623,16 +59623,12 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 exports.default = function () {
     var needsUpdate = true;
 
-    var envMap = new T.TextureLoader().load("/images/ibl/gloucester-env.png");
-    envMap.magFilter = T.LinearFilter;
-    envMap.minFilter = T.LinearFilter;
-
     var aoParams = {
         sampleDistance: 0.2,
         nSamples: 7
     };
     var lightingParams = {
-        maxSteps: 450,
+        maxSteps: 200,
         sdf: 'distance'
     };
 
@@ -59752,11 +59748,11 @@ exports.default = function () {
             //Used to quit early. Kinda useless.
             far: {
                 type: 'f',
-                value: 1e4
+                value: 1e5
             },
             threshold: {
                 type: 'f',
-                value: 5e-4
+                value: 1e-4
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -59770,12 +59766,13 @@ exports.default = function () {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 450,
+            maxSteps: 200,
             sdf: 'distance',
             distanceProgram: '//FIRSTLINE\n' + editor.getValue()
         }, aoParams))
     }, $viewParent.width(), $viewParent.height());
 
+    var envTextureLoader = new T.TextureLoader();
     var lightingPass = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
             time: marchPass.material.uniforms.time,
@@ -59789,13 +59786,25 @@ exports.default = function () {
             },
             envMap: {
                 type: 't',
-                value: envMap
+                value: envTextureLoader.load("/images/ibl/arches-env.png"),
+                label: 'Gloucester Church'
             }
         },
         fragmentShader: (0, _raySphereLighting2.default)(Object.assign({
             distanceProgram: editor.getValue()
         }, lightingParams, aoParams))
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
+
+    lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
+    lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
+    function updateEnvMap(img, label) {
+        lightingPass.material.uniforms.envMap.value.dispose();
+        lightingPass.material.uniforms.envMap.value = envTextureLoader.load('/images/ibl/' + img);
+        lightingPass.material.uniforms.envMap.label = label;
+        lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
+        lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
+        needsUpdate = true;
+    }
 
     var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
         uniforms: {
@@ -59827,7 +59836,7 @@ exports.default = function () {
         var distanceProgram = '//FIRSTLINE\n' + editor.getValue();
 
         marchPass.material.fragmentShader = (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 450,
+            maxSteps: 200,
             sdf: 'distance',
             distanceProgram: distanceProgram
         }, aoParams));
@@ -60067,6 +60076,7 @@ exports.default = function () {
         aoParams: aoParams,
         lightingParams: viewerPass.material.uniforms,
         onUpdateLighting: updateLighting,
+        onChangeEnvMap: updateEnvMap,
         onUpdateAO: updateAO }), $("#lighting-container")[0]);
 };
 
@@ -60155,6 +60165,8 @@ var Lighting = function (_React$Component) {
     _createClass(Lighting, [{
         key: 'render',
         value: function render() {
+            var _this2 = this;
+
             var bgColor = this.props.lightingParams.background.value;
             bgColor = { r: bgColor.x * 255, g: bgColor.y * 255, b: bgColor.z * 255 };
             return _react2.default.createElement(
@@ -60188,6 +60200,151 @@ var Lighting = function (_React$Component) {
                 ),
                 _react2.default.createElement(
                     'div',
+                    { className: 'mdc-typography--caption' },
+                    'Environment Map'
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-grid-list environment-map-grid-list' },
+                    _react2.default.createElement(
+                        'ul',
+                        { className: 'mdc-grid-list__tiles mdc-grid-list--tile-aspect-4x3' },
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('arches-env.png', 'Arches');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/arches-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Arches'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('footprint-court-env.png', 'Footprint Court');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/footprint-court-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Footprint Court'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('gloucester-env.png', 'Gloucester Church');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/gloucester.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Gloucester Church'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('greenhouse-1-env.png', 'Greenhouse');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/greenhouse-1-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Greenhouse'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('ice-lake-env.png', 'Ice Lake');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/ice-lake-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Ice Lake'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('sunrise-1-env.png', 'Sunrise');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/sunrise-1-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Sunrise'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('washington-hotel-env.png', 'Washington Hotel');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/washington-hotel-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                _react2.default.createElement(
+                                    'span',
+                                    { className: 'mdc-grid-tile__title' },
+                                    'Washington Hotel Overlook'
+                                )
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('norm-env.png', 'Surface Normal');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/norm-env.png') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Surface Normal'
+                            )
+                        )
+                    )
+                ),
+                _react2.default.createElement(
+                    'div',
                     { style: { display: 'inline-block', marginRight: 10 } },
                     _react2.default.createElement(
                         'div',
@@ -60209,29 +60366,29 @@ var PlayerControl = function (_React$Component2) {
     function PlayerControl(props) {
         _classCallCheck(this, PlayerControl);
 
-        var _this2 = _possibleConstructorReturn(this, (PlayerControl.__proto__ || Object.getPrototypeOf(PlayerControl)).call(this, props));
+        var _this3 = _possibleConstructorReturn(this, (PlayerControl.__proto__ || Object.getPrototypeOf(PlayerControl)).call(this, props));
 
-        _this2.state = {
+        _this3.state = {
             start: new Date(),
             isPaused: false,
             delta: 0
         };
-        _this2.elapse = function () {
+        _this3.elapse = function () {
             if (!this.state.isPaused) {
                 this.props.onUpdateTime(this.state.delta + (new Date() - this.state.start) / 1000);
                 this.forceUpdate();
             }
             requestAnimationFrame(this.elapse);
-        }.bind(_this2);
-        _this2.playpause = function () {
+        }.bind(_this3);
+        _this3.playpause = function () {
             if (this.state.isPaused) {
                 this.setState({ isPaused: false, start: new Date(), delta: this.props.time.value });
             } else {
                 this.setState({ isPaused: true });
             }
-        }.bind(_this2);
-        requestAnimationFrame(_this2.elapse);
-        return _this2;
+        }.bind(_this3);
+        requestAnimationFrame(_this3.elapse);
+        return _this3;
     }
 
     _createClass(PlayerControl, [{
@@ -60254,18 +60411,18 @@ var Settings = function (_React$Component3) {
     function Settings(props) {
         _classCallCheck(this, Settings);
 
-        var _this3 = _possibleConstructorReturn(this, (Settings.__proto__ || Object.getPrototypeOf(Settings)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (Settings.__proto__ || Object.getPrototypeOf(Settings)).call(this, props));
 
-        _this3.changeFov = function (e) {
+        _this4.changeFov = function (e) {
             this.props.onChangeFov(e.target.value);
             this.forceUpdate();
-        }.bind(_this3);
-        _this3.changeBounds = function (bound, dimension, e) {
+        }.bind(_this4);
+        _this4.changeBounds = function (bound, dimension, e) {
             //Reverse
             this.props.onChangeBounds(bound, dimension, bound == 0 ? -e.target.value : e.target.value);
             this.forceUpdate();
-        }.bind(_this3);
-        return _this3;
+        }.bind(_this4);
+        return _this4;
     }
 
     _createClass(Settings, [{
@@ -93140,7 +93297,7 @@ exports.default = function (_ref) {
         sampleDistance = _ref.sampleDistance,
         nSamples = _ref.nSamples,
         occlusionStrength = _ref.occlusionStrength;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\nuniform sampler2D envMap;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-2., -1., -1.)),\n        vec3(255., 254., 246.) / 255.\n    );\n\n    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 70.);\n    PointLight pLight2 = PointLight(vec3(0., 5., 0.), vec3(1., 1., 1.) * 300.);\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    normal *= dot(rayDir, normal) < 0. ? 1. : -1.;\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos, normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.9 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(pLight2)\n    CONTRIBUTE_COLOR(directionLight)\n\n    float theta = acos(clamp(normal.y, -1., 1.));\n    float phi = atan(normal.z, normal.x);\n    phi = phi < 0. ? phi + 2. * 3.1415926535 : phi;\n\n    vec4 amb = texture2D(envMap, vec2(\n        phi / (2. * 3.1415926535),\n        1. - theta / (3.1415926535)\n    ));\n\n    gl_FragColor = vec4(0.9 * amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\nuniform sampler2D envMap;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-2., -1., -1.)),\n        vec3(255., 254., 246.) / 255.\n    );\n\n    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 70.);\n    PointLight pLight2 = PointLight(vec3(-2., 1., 3.), vec3(1., 1., 1.) * 300.);\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    normal *= dot(rayDir, normal) < 0. ? 1. : -1.;\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos, normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.9 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(pLight2)\n    CONTRIBUTE_COLOR(directionLight)\n\n    float theta = acos(clamp(normal.y, -1., 1.));\n    float phi = atan(normal.z, normal.x);\n    phi = phi < 0. ? phi + 2. * 3.1415926536 : phi;\n\n    vec4 amb = texture2D(envMap, vec2(\n        phi / (2. * 3.1415926536),\n        1. - theta / 3.1415926536\n    ));\n\n    gl_FragColor = vec4(0.9 * amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);\n}\n';
 };
 
 /***/ }),
@@ -93170,7 +93327,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 //This is the initial program.
 
-exports.default = "\nuniform float time;\n//Make sure to keep the function signatures the same of every function here!\n\nfloat juliaSdf(in vec3 p) {\n    return julia4D(vec4(p, 0.), vec4(0.5, 0.52, 0.55, 0.5)\n        * vec4(-cos(time), cos(0.5 * time), cos(0.08 * time), cos(2. * time)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    float delta = clamp(\n        0.5 * 0.002 * t * fovScale, 1e-4, 0.2\n    );\n    return NUM_GRAD3(juliaSdf, p, delta);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(3., pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return juliaSdf((pos + max(t, tmin) * dir).xyz);\n}\n".trim();
+exports.default = "\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat juliaSdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(juliaSdf, p, clamp(t * 2e-3, 1e-3, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.05, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return juliaSdf((pos + max(t, tmin) * dir).xyz);\n}\n".trim();
 
 /***/ })
 /******/ ]);
