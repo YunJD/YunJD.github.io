@@ -20,7 +20,7 @@ export default function() {
         nSamples: 7
     };
     let lightingParams = {
-        maxSteps: 200,
+        maxSteps: 150,
         sdf: 'distance'
     };
 
@@ -53,7 +53,7 @@ export default function() {
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(sdfSnippets, 1);
+    editor.setValue(sdfSnippets.mandelbulb(), 1);
     editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -154,7 +154,7 @@ export default function() {
             },
             threshold: {
                 type: 'f',
-                value: 1e-4
+                value: 5e-4
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -168,7 +168,7 @@ export default function() {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: raySphereMarchingShader(Object.assign({
-            maxSteps: 200,
+            maxSteps: 150,
             sdf: 'distance',
             distanceProgram: `//FIRSTLINE\n${editor.getValue()}`
         }, aoParams))
@@ -269,7 +269,7 @@ export default function() {
         let distanceProgram = `//FIRSTLINE\n${editor.getValue()}`;
 
         marchPass.material.fragmentShader = raySphereMarchingShader(Object.assign({
-            maxSteps: 200,
+            maxSteps: 150,
             sdf: 'distance',
             distanceProgram
         }, aoParams));

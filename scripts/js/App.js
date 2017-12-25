@@ -57826,7 +57826,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-    return "\n#define JULIA_STEPS 16\nfloat julia4D(in vec4 p, in vec4 c) {\n    vec4 z = p;\n    vec4 grad = vec4(1., 0., 0., 0.);\n\n    float mz2 = dot(z, z);\n    float md2 = 1.;\n\n    for(int i = 0; i < JULIA_STEPS; ++i) {\n        md2 *= 4. * mz2;\n        z = vec4(z.x * z.x - dot(z.yzw, z.yzw), 2.0 * z.x * z.yzw) + c;\n        mz2 = dot(z, z);\n\n        if(mz2 > 4.) {\n            break;\n        }\n    }\n\n    return 0.25 * sqrt(mz2 / md2) * log(mz2);\n}\n";
+    return "\n#define ITERATIONS 7\nfloat julia4D(in vec4 p, in vec4 c) {\n    vec4 z = p;\n    vec4 grad = vec4(1., 0., 0., 0.);\n\n    float mz2 = dot(z, z);\n    float md2 = 1.;\n\n    for(int i = 0; i < ITERATIONS; ++i) {\n        if(mz2 > 4.) { break; }\n        md2 *= 4. * mz2;\n        z = vec4(z.x * z.x - dot(z.yzw, z.yzw), 2.0 * z.x * z.yzw) + c;\n        mz2 = dot(z, z);\n    }\n\n    return 0.25 * sqrt(mz2 / md2) * log(mz2);\n}\n\nfloat mandelbulb(in vec4 p, float power, float phaseShift) {\n    vec3 pos = p.xzy;\n    vec3 z = pos;\n\n    float dr = 1.;\n    float r = 0.;\n\n    for(int i = 0; i < ITERATIONS; ++i) {\n        r = length(z);\n        if(r > 2.) break;\n\n        //Convert to polar coordinates\n        float theta = acos(z.z / r) - phaseShift;\n        float phi = atan(z.y, z.x);\n        dr = power * pow(r, power - 1.) * dr + 1.;\n\n        float zr = pow(r, power);\n        theta *= power;\n        phi *= power;\n\n        //Convert back to cartesian coordinates\n        float sinTheta = sin(theta);\n        z = zr * vec3(\n            sinTheta * cos(phi), sinTheta * sin(phi), cos(theta)\n        ) + pos;\n    }\n    return 0.5 * log(r) * r / dr;\n}\n";
 };
 
 /***/ }),
@@ -59628,7 +59628,7 @@ exports.default = function () {
         nSamples: 7
     };
     var lightingParams = {
-        maxSteps: 200,
+        maxSteps: 150,
         sdf: 'distance'
     };
 
@@ -59660,7 +59660,7 @@ exports.default = function () {
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(_sdf_snippets2.default, 1);
+    editor.setValue(_sdf_snippets2.default.mandelbulb(), 1);
     editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -59752,7 +59752,7 @@ exports.default = function () {
             },
             threshold: {
                 type: 'f',
-                value: 1e-4
+                value: 5e-4
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -59766,7 +59766,7 @@ exports.default = function () {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 200,
+            maxSteps: 150,
             sdf: 'distance',
             distanceProgram: '//FIRSTLINE\n' + editor.getValue()
         }, aoParams))
@@ -59836,7 +59836,7 @@ exports.default = function () {
         var distanceProgram = '//FIRSTLINE\n' + editor.getValue();
 
         marchPass.material.fragmentShader = (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 200,
+            maxSteps: 150,
             sdf: 'distance',
             distanceProgram: distanceProgram
         }, aoParams));
@@ -93326,8 +93326,15 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 //This is the initial program.
+exports.default = {
+    julia: function julia() {
+        return "\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-3, 1e-3, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n".trim();
+    },
 
-exports.default = "\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat juliaSdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(juliaSdf, p, clamp(t * 2e-3, 1e-3, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.05, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return juliaSdf((pos + max(t, tmin) * dir).xyz);\n}\n".trim();
+    mandelbulb: function mandelbulb() {
+        return "\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    return mandelbulb(vec4(p, 0.), 8., time * 0.3);\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-4, 1e-4, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n".trim();
+    }
+};
 
 /***/ })
 /******/ ]);
