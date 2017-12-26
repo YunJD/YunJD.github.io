@@ -154,7 +154,7 @@ export default function() {
             },
             threshold: {
                 type: 'f',
-                value: 5e-4
+                value: 3e-4
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {
@@ -476,7 +476,20 @@ export default function() {
             }
         }
     });
+    $("#show-gallery").on('click', function() {
+        $("#gallery").addClass('visible');
+    });
+    $("#close-gallery").on('click', function() {
+        $("#gallery").removeClass('visible');
+    });
 
+    ReactDOM.render(<GalleryTiles snippets={sdfSnippets} onSelect={function(key) {
+        editor.setValue(sdfSnippets[key](), 1);
+        updateProgram();
+        $("#gallery").removeClass('visible');
+    }}/>,
+        $("#gallery-tiles")[0]
+    ); 
     ReactDOM.render(<PlayerControl 
          onUpdateTime={updateTime}
          time={marchPass.material.uniforms.time} />,
@@ -679,3 +692,22 @@ class Settings extends React.Component {
         );
     }
 }
+let GalleryTiles = (props) => (
+    <div className="mdc-grid-list environment-map-grid-list">
+        <ul className="mdc-grid-list__tiles">
+            {(function() {
+                let tiles = [];
+                for(let key in props.snippets) {
+                    tiles.push(
+                        <li key={key} className="mdc-grid-tile" onClick={props.onSelect.bind(null, key)}>
+                            <div className="mdc-grid-tile__primary">
+                                <span className="mdc-grid-tile__primary-content" style={{background: `url('/images/thumbnails/${key}.png') center`}}></span>
+                            </div>
+                        </li>
+                    );
+                }
+                return tiles;
+            })()}
+        </ul>
+    </div>
+);

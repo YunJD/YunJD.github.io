@@ -13,9 +13,9 @@ title: Distance Field Experiment Help / Reference
 
 ### Distance Fields
 
-Here are a few amazing sites for reference:
+Here are a few excellent sites for reference:
 
-- [Modeling with distance functions](http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm).  
+- [Modeling with distance functions](http://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm)
 - [Distance Estimated 3D Fractals](http://blog.hvidtfeldts.net/index.php/2011/06/distance-estimated-3d-fractals-part-i/)
 
 

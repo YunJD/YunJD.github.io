@@ -1,5 +1,5 @@
 export default () => `
-#define ITERATIONS 7
+#define ITERATIONS 16
 float julia4D(in vec4 p, in vec4 c) {
     vec4 z = p;
     vec4 grad = vec4(1., 0., 0., 0.);

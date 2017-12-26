@@ -7,8 +7,6 @@ header: |
         .environment-map-grid-list li {
             cursor: pointer;
         }
-        header {
-        }
         .content-container {
             overflow-x: hidden;
             overflow-y: auto;
@@ -23,9 +21,6 @@ header: |
         #settings .settings-container {
             overflow-y: auto;
             overflow-x: hidden;
-        }
-        #bounding-box-settings .mdc-text-field:nth-child(3) {
-            margin-right: 20px;
         }
         .bottom-sheet header {
             height: 64px !important;
@@ -63,8 +58,40 @@ header: |
             left: 20px;
             width: calc(100% - 108px);
         }
+        #gallery {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            background-color: white;
+            z-index: 100;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+        #gallery.visible {
+            display: block;
+        }
     </style>
 ---
+<div id="gallery">
+    <header>
+        <div class="mdc-toolbar__row">
+            <section class="mdc-toolbar__section mdc-toolbar__section--shrink-to-fit mdc-toolbar__section--align-start">
+                <a id="close-gallery" class="material-icons mdc-toolbar__menu-icon mdc-theme--text-primary-on-light" href="#">arrow_back</a>
+                <span class="mdc-toolbar__title" style="text-transform: uppercase">Gallery</span>
+            </section>
+        </div>
+    </header>
+    <p class="mdc-typography--body1" style="margin-left: 10px">Gallery of geometries.  Play around with the lighting settings for color effects.</p>
+    <div id="gallery-tiles"></div>
+</div>
+<header style="position: absolute">
+    <div class="mdc-toolbar__row">
+        <section class="mdc-toolbar__section mdc-toolbar__section--shrink-to-fit mdc-toolbar__section--align-start">
+            <span class="mdc-toolbar__title"><span class="mdc-button" id="show-gallery">Gallery</span></span>
+        </section>
+    </div>
+</header>
 <div id="view-container" class="view-container" style="touch-action: none;"><div id="player-control"></div></div>
 
 <div id="bottom-sheet" class="bottom-sheet">

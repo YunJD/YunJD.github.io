@@ -19,7 +19,7 @@ bool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out flo
     float fSign = dist < 0. ? -1. : 1.;
     float prevSign = fSign;
     for(int i = 1; i <= MAX_STEPS; ++i) {
-        if(abs(dist) < threshold) {
+        if(abs(dist) < abs(threshold * t)) {
             return t >= tmin && t < tmax;
         }
 
