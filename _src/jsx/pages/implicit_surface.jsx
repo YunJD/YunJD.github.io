@@ -154,7 +154,7 @@ export default function() {
             },
             threshold: {
                 type: 'f',
-                value: 3e-4
+                value: 1e-3
             },
             //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
             invProjMat: {

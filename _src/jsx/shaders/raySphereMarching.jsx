@@ -1,14 +1,16 @@
-import ops from 'stuff/gl/complex/shaders/ops.jsx';
+import complexOps from 'stuff/gl/complex/shaders/ops.jsx';
 import intersect from 'stuff/gl/geometry/shaders/intersect.jsx';
 import differential from 'stuff/gl/geometry/shaders/differential.jsx';
 import camera from 'stuff/gl/camera/shaders/camera.jsx';
+import sdfOps from 'stuff/gl/geometry/shaders/sdf_ops.jsx';
 import implicitFunction from 'stuff/gl/geometry/shaders/implicit_function.jsx';
 import fractalSdf from 'stuff/gl/geometry/shaders/fractal_sdf.jsx';
 
 export default ({maxSteps, sdf, distanceProgram}) => `
 precision highp float;
 precision highp int;
-${ops()}
+${complexOps()}
+${sdfOps()}
 ${intersect()}
 ${differential()}
 ${camera()}
