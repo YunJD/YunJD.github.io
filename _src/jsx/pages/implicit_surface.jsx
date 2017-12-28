@@ -53,7 +53,7 @@ export default function() {
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(sdfSnippets.mandelbulb(), 1);
+    editor.setValue(sdfSnippets.mandelbulb.code, 1);
     editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -188,8 +188,7 @@ export default function() {
             },
             envMap: {
                 type: 't',
-                value: envTextureLoader.load("/images/ibl/arches-env.png"),
-                label: 'Gloucester Church'
+                value: envTextureLoader.load("/images/ibl/arches-env.png")
             }
         },
         fragmentShader: raySphereLightingShader(Object.assign({
@@ -202,7 +201,6 @@ export default function() {
     function updateEnvMap(img, label) {
         lightingPass.material.uniforms.envMap.value.dispose()
         lightingPass.material.uniforms.envMap.value = envTextureLoader.load(`/images/ibl/${img}`);
-        lightingPass.material.uniforms.envMap.label = label;
         lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
         lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
         needsUpdate = true;
@@ -229,7 +227,6 @@ export default function() {
             varying vec2 vUv;
             uniform sampler2D surfaceData;
             uniform sampler2D lighting;
-            uniform sampler2D envMap;
             uniform vec3 background;
 
             void main() {
@@ -484,8 +481,19 @@ export default function() {
     });
 
     ReactDOM.render(<GalleryTiles snippets={sdfSnippets} onSelect={function(key) {
-        editor.setValue(sdfSnippets[key](), 1);
+        let snippet = sdfSnippets[key];
+
+        editor.setValue(snippet.code, 1);
+
+        updateAO(snippet.aoParams || {
+            sampleDistance: 0.2,
+            nSamples: 7
+        });
+
+        updateEnvMap(snippet.envMap || 'arches-env.png');
+
         updateProgram();
+
         $("#gallery").removeClass('visible');
     }}/>,
         $("#gallery-tiles")[0]

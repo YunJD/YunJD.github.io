@@ -1,6 +1,5 @@
 //This is the initial program.
-export default {
-'julia': () => `
+let julia = () => `
 uniform float time;
 
 //Make sure to keep the function signatures the same.
@@ -22,10 +21,9 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 
     return sdf((pos + max(t, tmin) * dir).xyz);
 }
-`.trim(),
+`.trim();
 
-
-'julia-smooth-normal': () => `
+let juliaSmoothNormal = () => `
 uniform float time;
 
 //Make sure to keep the function signatures the same.
@@ -47,10 +45,9 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 
     return sdf((pos + max(t, tmin) * dir).xyz);
 }
-`.trim(),
+`.trim();
 
-
-'mandelbulb': () => `
+let mandelbulb =  () => `
 uniform float time;
 
 //Make sure to keep the function signatures the same.
@@ -70,5 +67,21 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 
     return sdf((pos + max(t, tmin) * dir).xyz);
 }
-`.trim()
+`.trim();
+
+export default {
+    //These keys match up with the thumbnails for the gallery.
+    'julia': {
+        code: julia()
+    },
+    'julia-smooth-normal': {
+        code: juliaSmoothNormal(),
+        aoParams: {
+            nSamples: 0
+        },
+        envMap: 'norm-env.png'
+    },
+    'mandelbulb': {
+        code: mandelbulb()
+    }
 };

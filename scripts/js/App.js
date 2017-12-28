@@ -59660,7 +59660,7 @@ exports.default = function () {
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(_sdf_snippets2.default.mandelbulb(), 1);
+    editor.setValue(_sdf_snippets2.default.mandelbulb.code, 1);
     editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -59786,8 +59786,7 @@ exports.default = function () {
             },
             envMap: {
                 type: 't',
-                value: envTextureLoader.load("/images/ibl/arches-env.png"),
-                label: 'Gloucester Church'
+                value: envTextureLoader.load("/images/ibl/arches-env.png")
             }
         },
         fragmentShader: (0, _raySphereLighting2.default)(Object.assign({
@@ -59800,7 +59799,6 @@ exports.default = function () {
     function updateEnvMap(img, label) {
         lightingPass.material.uniforms.envMap.value.dispose();
         lightingPass.material.uniforms.envMap.value = envTextureLoader.load('/images/ibl/' + img);
-        lightingPass.material.uniforms.envMap.label = label;
         lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
         lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
         needsUpdate = true;
@@ -59821,7 +59819,7 @@ exports.default = function () {
                 value: new T.Vector3(0.95, 0.95, 0.95)
             }
         },
-        fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform sampler2D envMap;\n            uniform vec3 background;\n\n            void main() {\n                //float theta = (1. - vUv.y) * 3.1415926535;\n                //float phi = vUv.x * 2. * 3.1415926535;\n                //gl_FragColor = abs(vec4(\n                //    cos(phi) * sin(theta),\n                //    cos(theta),\n                //    sin(phi) * sin(theta),\n                //1.));\n                //return;\n                gl_FragColor = vec4(background, 1.);\n                vec4 surface = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n\n                if(surface.a != -1.) {\n                    if(surface.a == -2.) {\n                        gl_FragColor = vec4(surface.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = lightingData;\n                    }\n                }\n            }\n        '
+        fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 background;\n\n            void main() {\n                //float theta = (1. - vUv.y) * 3.1415926535;\n                //float phi = vUv.x * 2. * 3.1415926535;\n                //gl_FragColor = abs(vec4(\n                //    cos(phi) * sin(theta),\n                //    cos(theta),\n                //    sin(phi) * sin(theta),\n                //1.));\n                //return;\n                gl_FragColor = vec4(background, 1.);\n                vec4 surface = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n\n                if(surface.a != -1.) {\n                    if(surface.a == -2.) {\n                        gl_FragColor = vec4(surface.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = lightingData;\n                    }\n                }\n            }\n        '
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
     //}, 360, 180);
 
@@ -60070,8 +60068,19 @@ exports.default = function () {
     });
 
     _reactDom2.default.render(_react2.default.createElement(GalleryTiles, { snippets: _sdf_snippets2.default, onSelect: function onSelect(key) {
-            editor.setValue(_sdf_snippets2.default[key](), 1);
+            var snippet = _sdf_snippets2.default[key];
+
+            editor.setValue(snippet.code, 1);
+
+            updateAO(snippet.aoParams || {
+                sampleDistance: 0.2,
+                nSamples: 7
+            });
+
+            updateEnvMap(snippet.envMap || 'arches-env.png');
+
             updateProgram();
+
             $("#gallery").removeClass('visible');
         } }), $("#gallery-tiles")[0]);
     _reactDom2.default.render(_react2.default.createElement(PlayerControl, {
@@ -93363,17 +93372,32 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 //This is the initial program.
+var julia = function julia() {
+    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-3, 1e-3, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+};
+
+var juliaSmoothNormal = function juliaSmoothNormal() {
+    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, 3.);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+};
+
+var mandelbulb = function mandelbulb() {
+    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    return mandelbulb(vec4(p, 0.), 8., time * 0.3);\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-4, 1e-5, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+};
+
 exports.default = {
-    'julia': function julia() {
-        return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-3, 1e-3, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+    //These keys match up with the thumbnails for the gallery.
+    'julia': {
+        code: julia()
     },
-
-    'julia-smooth-normal': function juliaSmoothNormal() {
-        return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, 3.);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+    'julia-smooth-normal': {
+        code: juliaSmoothNormal(),
+        aoParams: {
+            nSamples: 0
+        },
+        envMap: 'norm-env.png'
     },
-
-    'mandelbulb': function mandelbulb() {
-        return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    return mandelbulb(vec4(p, 0.), 8., time * 0.3);\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-4, 1e-5, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+    'mandelbulb': {
+        code: mandelbulb()
     }
 };
 
