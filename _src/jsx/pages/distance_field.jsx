@@ -430,7 +430,7 @@ export default function() {
             );
             let delta = scale - oldScale; //Positive means fingers moved apart, negative means fingers moved together.
             //Define 1 change 'unit' as the fingers moving half the minimum screen extent. Tweak after experimentation.
-            zoom(Math.log(camR / 0.5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
+            zoom(T.Math.clamp(camR * 0.25, 0.05, 1.1) * Math.log(camR + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
         }
     });
     $view.on('mousewheel', function(e) {
@@ -444,6 +444,9 @@ export default function() {
         $(this).addClass('mdc-fab--exited');
         $viewParent.addClass('shrunk');
         $('#bottom-sheet').addClass('visible');
+        if($activePanel.attr('id') == 'code') {
+            editor.focus();
+        }
         //500ms delay while we wait for the bottom sheet to show up.
         fabSwitchTimeout = setTimeout(() => {
             $("#fab-update").removeClass("mdc-fab--exited");
