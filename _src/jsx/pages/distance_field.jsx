@@ -19,7 +19,7 @@ export default function() {
         sampleDistance: 0.2,
         nSamples: 7
     };
-    let lightingParams = {
+    let rayMarcherParams = {
         maxSteps: 150,
         sdf: 'distance'
     };
@@ -41,6 +41,9 @@ export default function() {
 
         $activePanel.removeClass('active');
         $activePanel = $($(this).attr('href')).addClass('active');
+        if($activePanel.attr('id') == 'code') {
+            editor.focus();
+        }
         $("#editor").height($("#editor").parent().height());
         editor.resize();
 
@@ -67,7 +70,7 @@ export default function() {
 
     let $viewParent = $('#view-container');
 
-    let camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 1., 1000); //By using near as 1., it does not at all affect the fov.
+    let camera = new T.PerspectiveCamera(50, $viewParent.width() / $viewParent.height(), 1., 1000); //By using near as 1., it does not at all affect the fov.
     let camR = 5,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
@@ -88,9 +91,11 @@ export default function() {
         marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
         needsUpdate = true;
     }
-    function updateLighting(type, colorVec) {
+    function updateBackground(type, colorVec) {
         viewerPass.material.uniforms[type].value.copy(colorVec);
         needsUpdate = true;
+    }
+    function updateStepLimit(n) {
     }
     function updateAO(settings) {
         Object.assign(aoParams, settings);
@@ -143,8 +148,8 @@ export default function() {
             bounds: {
                 type: 'v4v',
                 value: [
-                    new T.Vector3(-3, -3, -3),
-                    new T.Vector3(3, 3, 3)
+                    new T.Vector3(-5, -5, -5),
+                    new T.Vector3(5, 5, 5)
                 ]
             },
             //Used to quit early. Kinda useless.
@@ -168,10 +173,8 @@ export default function() {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: raySphereMarchingShader(Object.assign({
-            maxSteps: 150,
-            sdf: 'distance',
             distanceProgram: `//FIRSTLINE\n${editor.getValue()}`
-        }, aoParams))
+        }, rayMarcherParams, aoParams))
     }, $viewParent.width(), $viewParent.height());
 
     let envTextureLoader = new T.TextureLoader();
@@ -193,7 +196,7 @@ export default function() {
         },
         fragmentShader: raySphereLightingShader(Object.assign({
             distanceProgram: editor.getValue()
-        }, lightingParams, aoParams))
+        }, rayMarcherParams, aoParams))
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
@@ -266,15 +269,13 @@ export default function() {
         let distanceProgram = `//FIRSTLINE\n${editor.getValue()}`;
 
         marchPass.material.fragmentShader = raySphereMarchingShader(Object.assign({
-            maxSteps: 150,
-            sdf: 'distance',
             distanceProgram
-        }, aoParams));
+        }, rayMarcherParams, aoParams));
         marchPass.material.needsUpdate = true;
 
         lightingPass.material.fragmentShader = raySphereLightingShader(Object.assign({
             distanceProgram
-        }, lightingParams, aoParams));
+        }, rayMarcherParams, aoParams));
         lightingPass.material.needsUpdate = true;
         needsUpdate = true;
     }
@@ -433,8 +434,8 @@ export default function() {
         }
     });
     $view.on('mousewheel', function(e) {
-        //Zoom slower as we paroach camR = 0;
-        zoom(Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
+        //Zoom slower as we approach camR = 0;
+        zoom(T.Math.clamp(camR * 0.25, 0.05, 1.1) * Math.log(camR + 1) * (-e.originalEvent.wheelDelta / 120));
     });
 
     let fabSwitchTimeout;
@@ -504,8 +505,18 @@ export default function() {
         $("#player-control")[0]
     );
     ReactDOM.render(<Settings 
+         camera={camera}
+         marcherParams={rayMarcherParams}
          boundingBox={marchPass.material.uniforms.bounds.value}
-         camera={camera} 
+         threshold={marchPass.material.uniforms.threshold}
+         onChangeMaxSteps={function(steps) {
+             rayMarcherParams.maxSteps = steps;
+             updateProgram();
+         }}
+         onChangeThreshold={function(threshold) {
+             marchPass.material.uniforms.threshold.value = threshold;
+             needsUpdate = true;
+         }}
          onChangeBounds={updateBounds}
          onChangeFov={updateCameraFov}/>,
     $("#settings-container")[0]);
@@ -513,7 +524,7 @@ export default function() {
     ReactDOM.render(<Lighting
          aoParams={aoParams}
          lightingParams={viewerPass.material.uniforms}
-         onUpdateLighting={updateLighting}
+         onUpdateBackground={updateBackground}
          onChangeEnvMap={updateEnvMap}
          onUpdateAO={updateAO}/>,
     $("#lighting-container")[0]);
@@ -535,7 +546,7 @@ class Lighting extends React.Component {
             this.forceUpdate();
         }.bind(this);
         this.changeLighting = function(which, color, e) {
-            this.props.onUpdateLighting(which, new T.Vector3(
+            this.props.onUpdateBackground(which, new T.Vector3(
                 color.rgb.r / 255,
                 color.rgb.g / 255,
                 color.rgb.b / 255
@@ -663,39 +674,60 @@ class Settings extends React.Component {
             this.props.onChangeFov(e.target.value);
             this.forceUpdate();
         }.bind(this);
+
         this.changeBounds = function(bound, dimension, e) {
             //Reverse
             this.props.onChangeBounds(bound, dimension, bound == 0 ? -e.target.value : e.target.value);
+            this.forceUpdate();
+        }.bind(this);
+
+        this.changeMaxSteps = function(e) {
+            this.props.onChangeMaxSteps(e.target.value);
+            this.forceUpdate();
+        }.bind(this);
+
+        this.changeThreshold = function(e) {
+            this.props.onChangeThreshold(e.target.value);
             this.forceUpdate();
         }.bind(this);
     }
     render() {
         return (
             <div>
+                <p>Ray Marcher</p>
+                <div className="mdc-typography--caption">Threshold ({this.props.threshold.value})</div>
+                <Slider step={1e-6} value={this.props.threshold.value} min={1e-6} max={1e-2} onChange={this.changeThreshold}/>
+
+                <div className="mdc-typography--caption">Max steps ({this.props.marcherParams.maxSteps.toLocaleString()})</div>
+                <Slider step="1" value={this.props.marcherParams.maxSteps} min={2} max={2000} onChange={this.changeMaxSteps}/>
+
                 <p>Camera</p>
                 <div className="mdc-typography--caption">FOV ({this.props.camera.fov.toLocaleString()})</div>
-                <Slider discrete step="1" value={this.props.camera.fov} min={30} max={120} onChange={this.changeFov}/>
+                <Slider discrete step="1" value={this.props.camera.fov} min={5} max={120} onChange={this.changeFov}/>
 
                 <p>Scene</p>
                 <div className="mdc-typography--caption"><em>Waiting on official support for ranged sliders, so two sliders for now :/</em></div>
+
                 <div className="mdc-typography--caption">Bounding Box</div>
                 <p>x: <strong>{this.props.boundingBox[0].x.toFixed(2)}, {this.props.boundingBox[1].x.toFixed(2)}</strong></p>
                 <div dir="rtl">
-                    <Slider step="0.01" value={-this.props.boundingBox[0].x} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'x')}/>
+                    <Slider step="0.05" value={-this.props.boundingBox[0].x} min={-50} max={50} onChange={this.changeBounds.bind(null, 0, 'x')}/>
                 </div>
-                <Slider step="0.01" value={this.props.boundingBox[1].x} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'x')}/>
+                <Slider step="0.05" value={this.props.boundingBox[1].x} min={-50} max={50} onChange={this.changeBounds.bind(null, 1, 'x')}/>
+
 
                 <p>y: <strong>{this.props.boundingBox[0].y.toFixed(2)}, {this.props.boundingBox[1].y.toFixed(2)}</strong></p>
                 <div dir="rtl">
-                    <Slider step="0.01" value={-this.props.boundingBox[0].y} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'y')}/>
+                    <Slider step="0.05" value={-this.props.boundingBox[0].y} min={-50} max={50} onChange={this.changeBounds.bind(null, 0, 'y')}/>
                 </div>
-                <Slider step="0.01" value={this.props.boundingBox[1].y} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'y')}/>
+                <Slider step="0.05" value={this.props.boundingBox[1].y} min={-50} max={50} onChange={this.changeBounds.bind(null, 1, 'y')}/>
+
 
                 <p>z: <strong>{this.props.boundingBox[0].z.toFixed(2)}, {this.props.boundingBox[1].z.toFixed(2)}</strong></p>
                 <div dir="rtl">
-                    <Slider step="0.01" value={-this.props.boundingBox[0].z} min={-20} max={20} onChange={this.changeBounds.bind(null, 0, 'z')}/>
+                    <Slider step="0.05" value={-this.props.boundingBox[0].z} min={-50} max={50} onChange={this.changeBounds.bind(null, 0, 'z')}/>
                 </div>
-                <Slider step="0.01" value={this.props.boundingBox[1].z} min={-20} max={20} onChange={this.changeBounds.bind(null, 1, 'z')}/>
+                <Slider step="0.05" value={this.props.boundingBox[1].z} min={-50} max={50} onChange={this.changeBounds.bind(null, 1, 'z')}/>
             </div>
         );
     }

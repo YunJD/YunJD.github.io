@@ -92464,7 +92464,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = function (_ref) {
     var maxSteps = _ref.maxSteps,
         sdf = _ref.sdf;
-    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos, rayDir, t, 0);\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    float prevSign = fSign;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        if(abs(dist) < abs(threshold * t)) {\n            return t >= tmin && t < tmax;\n        }\n\n        t += fSign * dist;\n\n        //Just some early exit\n        if(t > 2. * tmax + threshold) {\n            return false;\n        }\n        dist = SDF_FN(rayPos, rayDir, t, i);\n    }\n    return false;\n}\n";
+    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos, rayDir, t, 0);\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    float prevSign = fSign;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        if(abs(dist) < abs(min(threshold * t, 0.003))) {\n            return t >= tmin && t < tmax;\n        }\n\n        t += fSign * dist;\n\n        //Just some early exit\n        if(t > 2. * tmax + threshold) {\n            return false;\n        }\n        dist = SDF_FN(rayPos, rayDir, t, i);\n    }\n    return false;\n}\n";
 };
 
 /***/ }),
@@ -92489,7 +92489,7 @@ exports.default = function () {
         sampleDistance: 0.2,
         nSamples: 7
     };
-    var lightingParams = {
+    var rayMarcherParams = {
         maxSteps: 150,
         sdf: 'distance'
     };
@@ -92511,6 +92511,9 @@ exports.default = function () {
 
         $activePanel.removeClass('active');
         $activePanel = $($(this).attr('href')).addClass('active');
+        if ($activePanel.attr('id') == 'code') {
+            editor.focus();
+        }
         $("#editor").height($("#editor").parent().height());
         editor.resize();
     });
@@ -92536,7 +92539,7 @@ exports.default = function () {
 
     var $viewParent = $('#view-container');
 
-    var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 1., 1000); //By using near as 1., it does not at all affect the fov.
+    var camera = new T.PerspectiveCamera(50, $viewParent.width() / $viewParent.height(), 1., 1000); //By using near as 1., it does not at all affect the fov.
     var camR = 5,
         camPhi = Math.PI * 0.5,
         camTheta = Math.PI * 0.5;
@@ -92553,10 +92556,11 @@ exports.default = function () {
         marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
         needsUpdate = true;
     }
-    function updateLighting(type, colorVec) {
+    function updateBackground(type, colorVec) {
         viewerPass.material.uniforms[type].value.copy(colorVec);
         needsUpdate = true;
     }
+    function updateStepLimit(n) {}
     function updateAO(settings) {
         Object.assign(aoParams, settings);
         updateProgram();
@@ -92605,7 +92609,7 @@ exports.default = function () {
             },
             bounds: {
                 type: 'v4v',
-                value: [new T.Vector3(-3, -3, -3), new T.Vector3(3, 3, 3)]
+                value: [new T.Vector3(-5, -5, -5), new T.Vector3(5, 5, 5)]
             },
             //Used to quit early. Kinda useless.
             far: {
@@ -92628,10 +92632,8 @@ exports.default = function () {
         },
         //Use this FIRSTLINE comment to figure out where the distanceProgram starts
         fragmentShader: (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 150,
-            sdf: 'distance',
             distanceProgram: '//FIRSTLINE\n' + editor.getValue()
-        }, aoParams))
+        }, rayMarcherParams, aoParams))
     }, $viewParent.width(), $viewParent.height());
 
     var envTextureLoader = new T.TextureLoader();
@@ -92653,7 +92655,7 @@ exports.default = function () {
         },
         fragmentShader: (0, _raySphereLighting2.default)(Object.assign({
             distanceProgram: editor.getValue()
-        }, lightingParams, aoParams))
+        }, rayMarcherParams, aoParams))
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
 
     lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
@@ -92696,15 +92698,13 @@ exports.default = function () {
         var distanceProgram = '//FIRSTLINE\n' + editor.getValue();
 
         marchPass.material.fragmentShader = (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 150,
-            sdf: 'distance',
             distanceProgram: distanceProgram
-        }, aoParams));
+        }, rayMarcherParams, aoParams));
         marchPass.material.needsUpdate = true;
 
         lightingPass.material.fragmentShader = (0, _raySphereLighting2.default)(Object.assign({
             distanceProgram: distanceProgram
-        }, lightingParams, aoParams));
+        }, rayMarcherParams, aoParams));
         lightingPass.material.needsUpdate = true;
         needsUpdate = true;
     }
@@ -92882,8 +92882,8 @@ exports.default = function () {
         }
     });
     $view.on('mousewheel', function (e) {
-        //Zoom slower as we paroach camR = 0;
-        zoom(Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
+        //Zoom slower as we approach camR = 0;
+        zoom(T.Math.clamp(camR * 0.25, 0.05, 1.1) * Math.log(camR + 1) * (-e.originalEvent.wheelDelta / 120));
     });
 
     var fabSwitchTimeout = void 0;
@@ -92949,15 +92949,25 @@ exports.default = function () {
         onUpdateTime: updateTime,
         time: marchPass.material.uniforms.time }), $("#player-control")[0]);
     _reactDom2.default.render(_react2.default.createElement(Settings, {
-        boundingBox: marchPass.material.uniforms.bounds.value,
         camera: camera,
+        marcherParams: rayMarcherParams,
+        boundingBox: marchPass.material.uniforms.bounds.value,
+        threshold: marchPass.material.uniforms.threshold,
+        onChangeMaxSteps: function onChangeMaxSteps(steps) {
+            rayMarcherParams.maxSteps = steps;
+            updateProgram();
+        },
+        onChangeThreshold: function onChangeThreshold(threshold) {
+            marchPass.material.uniforms.threshold.value = threshold;
+            needsUpdate = true;
+        },
         onChangeBounds: updateBounds,
         onChangeFov: updateCameraFov }), $("#settings-container")[0]);
 
     _reactDom2.default.render(_react2.default.createElement(Lighting, {
         aoParams: aoParams,
         lightingParams: viewerPass.material.uniforms,
-        onUpdateLighting: updateLighting,
+        onUpdateBackground: updateBackground,
         onChangeEnvMap: updateEnvMap,
         onUpdateAO: updateAO }), $("#lighting-container")[0]);
 };
@@ -93039,7 +93049,7 @@ var Lighting = function (_React$Component) {
             this.forceUpdate();
         }.bind(_this);
         _this.changeLighting = function (which, color, e) {
-            this.props.onUpdateLighting(which, new T.Vector3(color.rgb.r / 255, color.rgb.g / 255, color.rgb.b / 255));
+            this.props.onUpdateBackground(which, new T.Vector3(color.rgb.r / 255, color.rgb.g / 255, color.rgb.b / 255));
         }.bind(_this);
         return _this;
     }
@@ -93299,9 +93309,20 @@ var Settings = function (_React$Component3) {
             this.props.onChangeFov(e.target.value);
             this.forceUpdate();
         }.bind(_this4);
+
         _this4.changeBounds = function (bound, dimension, e) {
             //Reverse
             this.props.onChangeBounds(bound, dimension, bound == 0 ? -e.target.value : e.target.value);
+            this.forceUpdate();
+        }.bind(_this4);
+
+        _this4.changeMaxSteps = function (e) {
+            this.props.onChangeMaxSteps(e.target.value);
+            this.forceUpdate();
+        }.bind(_this4);
+
+        _this4.changeThreshold = function (e) {
+            this.props.onChangeThreshold(e.target.value);
             this.forceUpdate();
         }.bind(_this4);
         return _this4;
@@ -93316,6 +93337,27 @@ var Settings = function (_React$Component3) {
                 _react2.default.createElement(
                     'p',
                     null,
+                    'Ray Marcher'
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    'Threshold (',
+                    this.props.threshold.value,
+                    ')'
+                ),
+                _react2.default.createElement(_Slider2.default, { step: 1e-6, value: this.props.threshold.value, min: 1e-6, max: 1e-2, onChange: this.changeThreshold }),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    'Max steps (',
+                    this.props.marcherParams.maxSteps.toLocaleString(),
+                    ')'
+                ),
+                _react2.default.createElement(_Slider2.default, { step: '1', value: this.props.marcherParams.maxSteps, min: 2, max: 2000, onChange: this.changeMaxSteps }),
+                _react2.default.createElement(
+                    'p',
+                    null,
                     'Camera'
                 ),
                 _react2.default.createElement(
@@ -93325,7 +93367,7 @@ var Settings = function (_React$Component3) {
                     this.props.camera.fov.toLocaleString(),
                     ')'
                 ),
-                _react2.default.createElement(_Slider2.default, { discrete: true, step: '1', value: this.props.camera.fov, min: 30, max: 120, onChange: this.changeFov }),
+                _react2.default.createElement(_Slider2.default, { discrete: true, step: '1', value: this.props.camera.fov, min: 5, max: 120, onChange: this.changeFov }),
                 _react2.default.createElement(
                     'p',
                     null,
@@ -93360,9 +93402,9 @@ var Settings = function (_React$Component3) {
                 _react2.default.createElement(
                     'div',
                     { dir: 'rtl' },
-                    _react2.default.createElement(_Slider2.default, { step: '0.01', value: -this.props.boundingBox[0].x, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'x') })
+                    _react2.default.createElement(_Slider2.default, { step: '0.05', value: -this.props.boundingBox[0].x, min: -50, max: 50, onChange: this.changeBounds.bind(null, 0, 'x') })
                 ),
-                _react2.default.createElement(_Slider2.default, { step: '0.01', value: this.props.boundingBox[1].x, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'x') }),
+                _react2.default.createElement(_Slider2.default, { step: '0.05', value: this.props.boundingBox[1].x, min: -50, max: 50, onChange: this.changeBounds.bind(null, 1, 'x') }),
                 _react2.default.createElement(
                     'p',
                     null,
@@ -93378,9 +93420,9 @@ var Settings = function (_React$Component3) {
                 _react2.default.createElement(
                     'div',
                     { dir: 'rtl' },
-                    _react2.default.createElement(_Slider2.default, { step: '0.01', value: -this.props.boundingBox[0].y, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'y') })
+                    _react2.default.createElement(_Slider2.default, { step: '0.05', value: -this.props.boundingBox[0].y, min: -50, max: 50, onChange: this.changeBounds.bind(null, 0, 'y') })
                 ),
-                _react2.default.createElement(_Slider2.default, { step: '0.01', value: this.props.boundingBox[1].y, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'y') }),
+                _react2.default.createElement(_Slider2.default, { step: '0.05', value: this.props.boundingBox[1].y, min: -50, max: 50, onChange: this.changeBounds.bind(null, 1, 'y') }),
                 _react2.default.createElement(
                     'p',
                     null,
@@ -93396,9 +93438,9 @@ var Settings = function (_React$Component3) {
                 _react2.default.createElement(
                     'div',
                     { dir: 'rtl' },
-                    _react2.default.createElement(_Slider2.default, { step: '0.01', value: -this.props.boundingBox[0].z, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'z') })
+                    _react2.default.createElement(_Slider2.default, { step: '0.05', value: -this.props.boundingBox[0].z, min: -50, max: 50, onChange: this.changeBounds.bind(null, 0, 'z') })
                 ),
-                _react2.default.createElement(_Slider2.default, { step: '0.01', value: this.props.boundingBox[1].z, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'z') })
+                _react2.default.createElement(_Slider2.default, { step: '0.05', value: this.props.boundingBox[1].z, min: -50, max: 50, onChange: this.changeBounds.bind(null, 1, 'z') })
             );
         }
     }]);
