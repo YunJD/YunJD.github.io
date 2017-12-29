@@ -4,7 +4,7 @@ import differential from 'stuff/gl/geometry/shaders/differential.jsx';
 import camera from 'stuff/gl/camera/shaders/camera.jsx';
 import lights from 'stuff/gl/lights/shaders/lights.jsx';
 import sdfOps from 'stuff/gl/geometry/shaders/sdf_ops.jsx';
-import implicitFunction from 'stuff/gl/geometry/shaders/implicit_function.jsx';
+import sdfMarcher from 'stuff/gl/geometry/shaders/sdf_marcher.jsx';
 import fractalSdf from 'stuff/gl/geometry/shaders/fractal_sdf.jsx';
 
 export default ({maxSteps, sdf, distanceProgram, sampleDistance, nSamples, occlusionStrength}) => `
@@ -24,7 +24,7 @@ ${fractalSdf()}
 
 ${distanceProgram}
 
-${implicitFunction({sdf, maxSteps})}
+${sdfMarcher({sdf, maxSteps})}
 
 uniform sampler2D surfaceData;
 uniform sampler2D envMap;
@@ -37,8 +37,8 @@ void main() {
         3.5 * vec3(255., 254., 246.) / 255.
     );
 
-    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 70.);
-    PointLight pLight2 = PointLight(vec3(-2., 1., 3.), vec3(1., 1., 1.) * 100.);
+    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 40.);
+    PointLight pLight2 = PointLight(vec3(-2., 1., 3.), vec3(1., 1., 1.) * 60.);
 
     vec4 data = texture2D(surfaceData, vUv);
     if(data.w == -1.) {

@@ -1,4 +1,3 @@
-//This is the initial program.
 let heart = () => `
 uniform float time;
 
@@ -41,7 +40,10 @@ vec3 gradient(in vec4 p, float t, float fovScale) {
 float distance(in vec4 pos, in vec4 dir, float t, int i) {
     return sdf((pos + t * dir).xyz);
 }
-`.trimt();
+`.trim();
+
+
+
 
 let julia = () => `
 uniform float time;
@@ -67,6 +69,9 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 }
 `.trim();
 
+
+
+
 let juliaSmoothNormal = () => `
 uniform float time;
 
@@ -91,7 +96,10 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 }
 `.trim();
 
-let mandelbulb =  () => `
+
+
+
+let mandelbulb = () => `
 uniform float time;
 
 //Make sure to keep the function signatures the same.
@@ -113,6 +121,9 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 }
 `.trim();
 
+
+
+
 export default {
     //These keys match up with the thumbnails for the gallery.
     'julia': {
@@ -127,5 +138,8 @@ export default {
     },
     'mandelbulb': {
         code: mandelbulb()
+    },
+    'heart': {
+        code: heart()
     }
 };

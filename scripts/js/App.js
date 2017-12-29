@@ -57798,23 +57798,7 @@ exports.default = function () {
 };
 
 /***/ }),
-/* 172 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-exports.default = function (_ref) {
-    var maxSteps = _ref.maxSteps,
-        sdf = _ref.sdf;
-    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos, rayDir, t, 0);\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    float prevSign = fSign;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        if(abs(dist) < abs(threshold * t)) {\n            return t >= tmin && t < tmax;\n        }\n\n        t += fSign * dist;\n\n        //Just some early exit\n        if(t > 2. * tmax + threshold) {\n            return false;\n        }\n        dist = SDF_FN(rayPos, rayDir, t, i);\n    }\n    return false;\n}\n";
-};
-
-/***/ }),
+/* 172 */,
 /* 173 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -57895,12 +57879,12 @@ Object.defineProperty(exports, 'BuddhabrotPage', {
   }
 });
 
-var _implicit_surface = __webpack_require__(190);
+var _distance_field = __webpack_require__(466);
 
-Object.defineProperty(exports, 'ImplicitSurfacePage', {
+Object.defineProperty(exports, 'DistanceFieldPage', {
   enumerable: true,
   get: function get() {
-    return _interopRequireDefault(_implicit_surface).default;
+    return _interopRequireDefault(_distance_field).default;
   }
 });
 
@@ -59606,971 +59590,7 @@ module.exports = MersenneTwister;
 
 
 /***/ }),
-/* 190 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-exports.default = function () {
-    var needsUpdate = true;
-
-    var aoParams = {
-        sampleDistance: 0.2,
-        nSamples: 7
-    };
-    var lightingParams = {
-        maxSteps: 150,
-        sdf: 'distance'
-    };
-
-    var tabBar = _tabs.MDCTabBar.attachTo($('#code-tab-bar')[0]);
-    //Blegh, there's no documentation on toolbar text links...what?
-    tabBar.tabs[0].destroy();
-    _ripple.MDCRipple.attachTo($("#code-tab-bar").children()[0]);
-
-    var fabTop = $("#fab-tune").offset().top;
-    var fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
-    var fabEvenSpacing = fabTop - fabBottom;
-
-    var $activePanel = $("#lighting");
-    $('#code-tab-bar').find('.mdc-tab').on('click', function (e) {
-        if ($(this).attr('href').indexOf('#') == -1) {
-            return;
-        }
-
-        $activePanel.removeClass('active');
-        $activePanel = $($(this).attr('href')).addClass('active');
-        $("#editor").height($("#editor").parent().height());
-        editor.resize();
-    });
-
-    var editor = ace.edit('editor');
-    editor.$blockScrolling = Infinity;
-    editor.setShowPrintMargin(false);
-    editor.setOption('highlightActiveLine', false);
-    editor.renderer.setScrollMargin(16, 16);
-    editor.setTheme('ace/theme/dracula');
-    editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(_sdf_snippets2.default.mandelbulb.code, 1);
-    editor.gotoLine(1);
-    editor.commands.addCommand({
-        name: 'updateprogram',
-        bindKey: {
-            win: 'Ctrl-Enter', mac: 'Command-Enter'
-        },
-        exec: function exec() {
-            updateProgram();
-        }
-    });
-
-    var $viewParent = $('#view-container');
-
-    var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 1., 1000); //By using near as 1., it does not at all affect the fov.
-    var camR = 5,
-        camPhi = Math.PI * 0.5,
-        camTheta = Math.PI * 0.5;
-    var origin = new T.Vector3(0., 0., 0.);
-
-    updateCamera();
-
-    function setCameraPosition() {
-        camera.position.set(camR * Math.cos(camPhi) * Math.sin(camTheta), camR * Math.cos(camTheta), camR * Math.sin(camPhi) * Math.sin(camTheta));
-    }
-    function updateCameraFov(fov) {
-        camera.fov = fov;
-        camera.updateProjectionMatrix();
-        marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
-        needsUpdate = true;
-    }
-    function updateLighting(type, colorVec) {
-        viewerPass.material.uniforms[type].value.copy(colorVec);
-        needsUpdate = true;
-    }
-    function updateAO(settings) {
-        Object.assign(aoParams, settings);
-        updateProgram();
-    }
-    function updateBounds(which, dim, value) {
-        var bounds = marchPass.material.uniforms.bounds.value;
-        if (which == 0) {
-            bounds[0][dim] = Math.min(value, bounds[1][dim] - 0.01);
-        } else {
-            bounds[1][dim] = Math.max(value, bounds[0][dim] + 0.01);
-        }
-        needsUpdate = true;
-    }
-    function updateCamera() {
-        setCameraPosition();
-        camera.lookAt(origin);
-        camera.updateMatrix();
-        needsUpdate = true;
-    }
-    function zoom(amount) {
-        camR = T.Math.clamp(camR + amount, 0.01, 50);
-        updateCamera();
-    }
-    function rotateTheta(amount) {
-        camTheta = T.Math.clamp(camTheta + amount, 1e-2, Math.PI - 1e-2);
-        updateCamera();
-    }
-    function rotatePhi(amount) {
-        camPhi += amount;
-        if (camPhi > 2 * Math.PI) {
-            camPhi -= 2 * Math.PI;
-        } else if (camPhi < 0.) {
-            camPhi += 2 * Math.PI;
-        }
-        updateCamera();
-    }
-    function updateTime(value) {
-        marchPass.material.uniforms.time.value = value;
-        needsUpdate = true;
-    }
-    var marchPass = new _stuff2.default.gl.ComputeShaderPass({
-        uniforms: {
-            time: {
-                type: 'f',
-                value: 0.
-            },
-            bounds: {
-                type: 'v4v',
-                value: [new T.Vector3(-3, -3, -3), new T.Vector3(3, 3, 3)]
-            },
-            //Used to quit early. Kinda useless.
-            far: {
-                type: 'f',
-                value: 1e5
-            },
-            threshold: {
-                type: 'f',
-                value: 1e-3
-            },
-            //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
-            invProjMat: {
-                type: 'm4',
-                value: new T.Matrix4().getInverse(camera.projectionMatrix)
-            },
-            cameraMat: {
-                type: 'm4',
-                value: camera.matrix
-            }
-        },
-        //Use this FIRSTLINE comment to figure out where the distanceProgram starts
-        fragmentShader: (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 150,
-            sdf: 'distance',
-            distanceProgram: '//FIRSTLINE\n' + editor.getValue()
-        }, aoParams))
-    }, $viewParent.width(), $viewParent.height());
-
-    var envTextureLoader = new T.TextureLoader();
-    var lightingPass = new _stuff2.default.gl.ComputeShaderPass({
-        uniforms: {
-            time: marchPass.material.uniforms.time,
-            invProjMat: marchPass.material.uniforms.invProjMat,
-            cameraMat: marchPass.material.uniforms.cameraMat,
-            far: marchPass.material.uniforms.far,
-            threshold: marchPass.material.uniforms.threshold,
-            surfaceData: {
-                type: 't',
-                value: marchPass.texTarget.t.texture
-            },
-            envMap: {
-                type: 't',
-                value: envTextureLoader.load("/images/ibl/arches-env.png")
-            }
-        },
-        fragmentShader: (0, _raySphereLighting2.default)(Object.assign({
-            distanceProgram: editor.getValue()
-        }, lightingParams, aoParams))
-    }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
-
-    lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
-    lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
-    function updateEnvMap(img, label) {
-        lightingPass.material.uniforms.envMap.value.dispose();
-        lightingPass.material.uniforms.envMap.value = envTextureLoader.load('/images/ibl/' + img);
-        lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
-        lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
-        needsUpdate = true;
-    }
-
-    var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
-        uniforms: {
-            surfaceData: {
-                type: 't',
-                value: marchPass.texTarget.t.texture
-            },
-            lighting: {
-                type: 't',
-                value: lightingPass.texTarget.t.texture
-            },
-            background: {
-                type: 'v3',
-                value: new T.Vector3(0.95, 0.95, 0.95)
-            }
-        },
-        fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 background;\n\n            void main() {\n                //float theta = (1. - vUv.y) * 3.1415926535;\n                //float phi = vUv.x * 2. * 3.1415926535;\n                //gl_FragColor = abs(vec4(\n                //    cos(phi) * sin(theta),\n                //    cos(theta),\n                //    sin(phi) * sin(theta),\n                //1.));\n                //return;\n                gl_FragColor = vec4(background, 1.);\n                vec4 surface = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n\n                if(surface.a != -1.) {\n                    if(surface.a == -2.) {\n                        gl_FragColor = vec4(surface.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = lightingData;\n                    }\n                }\n            }\n        '
-    }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
-    //}, 360, 180);
-
-    var $view = $(marchPass.renderer.domElement);
-    $viewParent.append($view);
-    //$viewParent.append(viewerPass.renderer.domElement);
-
-
-    function updateProgram() {
-        editor.session.clearAnnotations();
-        diagnostics = undefined;
-        var distanceProgram = '//FIRSTLINE\n' + editor.getValue();
-
-        marchPass.material.fragmentShader = (0, _raySphereMarching2.default)(Object.assign({
-            maxSteps: 150,
-            sdf: 'distance',
-            distanceProgram: distanceProgram
-        }, aoParams));
-        marchPass.material.needsUpdate = true;
-
-        lightingPass.material.fragmentShader = (0, _raySphereLighting2.default)(Object.assign({
-            distanceProgram: distanceProgram
-        }, lightingParams, aoParams));
-        lightingPass.material.needsUpdate = true;
-        needsUpdate = true;
-    }
-
-    function resize() {
-        $("#editor").height($("#editor").parent().height());
-        editor.resize();
-
-        camera.aspect = $viewParent.width() / $viewParent.height();
-        camera.updateProjectionMatrix();
-
-        viewerPass.resize($viewParent.width(), $viewParent.height());
-
-        marchPass.resize($viewParent.width(), $viewParent.height());
-        marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
-
-        lightingPass.resize($viewParent.width(), $viewParent.height());
-
-        needsUpdate = true;
-    }
-
-    var diagnostics = void 0;
-    function draw() {
-        if (!diagnostics) {
-            //Easy way to take advantage of container transitions.
-            if ($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
-                resize();
-            }
-            if (needsUpdate) {
-                marchPass.execute();
-                lightingPass.execute();
-
-                //TODO: Move this into stuff.js
-                diagnostics = marchPass.material.program.diagnostics || lightingPass.diagnostics;
-                if (diagnostics) {
-                    var log = diagnostics.fragmentShader.log;
-                    if (log.indexOf('ERROR') != -1) {
-                        var prefixLines = diagnostics.fragmentShader.prefix.split('\n');
-                        var lines = marchPass.material.fragmentShader.split('\n');
-
-                        //Find the start of the distance program.
-                        var i = void 0;
-                        for (i = 0; i < lines.length; ++i) {
-                            if (lines[i] == '//FIRSTLINE') {
-                                break;
-                            }
-                        }
-                        i += prefixLines.length;
-
-                        var annotations = [];
-                        //Parse the error.
-                        var _iteratorNormalCompletion = true;
-                        var _didIteratorError = false;
-                        var _iteratorError = undefined;
-
-                        try {
-                            for (var _iterator = log.split('\n')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                                var error = _step.value;
-
-                                if (!error || error.indexOf('ERROR') == -1) {
-                                    break;
-                                }
-
-                                var _error$substring$spli = error.substring(7).split(':'),
-                                    _error$substring$spli2 = _slicedToArray(_error$substring$spli, 4),
-                                    column = _error$substring$spli2[0],
-                                    row = _error$substring$spli2[1],
-                                    code = _error$substring$spli2[2],
-                                    text = _error$substring$spli2[3];
-
-                                column = parseInt(column);
-                                row = parseInt(row);
-                                row -= i + 1;
-                                annotations.push({
-                                    row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column: column,
-                                    text: code + ':' + text,
-                                    type: "error"
-                                });
-                                if (row < 0 || row >= editor.session.getLength()) {
-                                    annotations.push({
-                                        row: editor.session.getLength() - 1,
-                                        column: 0,
-                                        text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
-                                        type: "error"
-                                    });
-                                }
-                            }
-                        } catch (err) {
-                            _didIteratorError = true;
-                            _iteratorError = err;
-                        } finally {
-                            try {
-                                if (!_iteratorNormalCompletion && _iterator.return) {
-                                    _iterator.return();
-                                }
-                            } finally {
-                                if (_didIteratorError) {
-                                    throw _iteratorError;
-                                }
-                            }
-                        }
-
-                        editor.session.setAnnotations(annotations);
-                    }
-                }
-                viewerPass.execute(true);
-            }
-        }
-        requestAnimationFrame(draw);
-    }
-    requestAnimationFrame(draw);
-
-    var dragging = false;
-    var mousePos = void 0;
-    var pinchPos = void 0;
-    $(window).on('blur', function (e) {
-        dragging = false;
-    });
-
-    $view.on('mousedown', function (e) {
-        if (e.which == 1) {
-            dragging = true;
-            mousePos = [e.pageX, e.pageY];
-        } else {
-            dragging = false;
-        }
-    });
-    $view.on('touchstart', function (e) {
-        if (e.touches.length == 1) {
-            dragging = true;
-            mousePos = [e.touches[0].pageX, e.touches[0].pageY];
-        } else {
-            //As soon as more than 1 finger is detected, stop dragging.
-            dragging = false;
-            //Pinching
-            if (e.touches.length == 2) {
-                e.preventDefault();
-                pinchPos = e.touches;
-            }
-        }
-    });
-
-    $(window).on('mouseup', function (e) {
-        dragging = false;
-    });
-    $(window).on('touchend', function (e) {
-        dragging = false;
-    });
-
-    $view.on('mousemove', function (e) {
-        if (dragging) {
-            e.preventDefault();
-            var deltaX = (e.pageX - mousePos[0]) / $viewParent.width();
-            var deltaY = (e.pageY - mousePos[1]) / $viewParent.height();
-            rotatePhi(2 * Math.PI * deltaX);
-            rotateTheta(-Math.PI * deltaY);
-            mousePos = [e.pageX, e.pageY];
-        }
-    });
-    $view.on('touchmove', function (e) {
-        if (dragging) {
-            e.preventDefault();
-            var deltaX = (e.touches[0].pageX - mousePos[0]) / $viewParent.width();
-            var deltaY = (e.touches[0].pageY - mousePos[1]) / $viewParent.height();
-            rotatePhi(2 * Math.PI * deltaX);
-            rotateTheta(-Math.PI * deltaY);
-            mousePos = [e.touches[0].pageX, e.touches[0].pageY];
-        } else if (e.touches.length == 2) {
-            e.preventDefault();
-            var oldScale = Math.sqrt(Math.pow(pinchPos[0].pageX - pinchPos[1].pageX, 2) + Math.pow(pinchPos[0].pageY - pinchPos[1].pageY, 2));
-            var scale = Math.sqrt(Math.pow(e.touches[0].pageX - e.touches[1].pageX, 2) + Math.pow(e.touches[0].pageY - e.touches[1].pageY, 2));
-            var delta = scale - oldScale; //Positive means fingers moved apart, negative means fingers moved together.
-            //Define 1 change 'unit' as the fingers moving half the minimum screen extent. Tweak after experimentation.
-            zoom(Math.log(camR / 0.5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
-        }
-    });
-    $view.on('mousewheel', function (e) {
-        //Zoom slower as we paroach camR = 0;
-        zoom(Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
-    });
-
-    var fabSwitchTimeout = void 0;
-    $('#fab-tune').on('click', function () {
-        clearTimeout(fabSwitchTimeout);
-        $(this).addClass('mdc-fab--exited');
-        $viewParent.addClass('shrunk');
-        $('#bottom-sheet').addClass('visible');
-        //500ms delay while we wait for the bottom sheet to show up.
-        fabSwitchTimeout = setTimeout(function () {
-            $("#fab-update").removeClass("mdc-fab--exited");
-        }, 250);
-    });
-    $("#close-bottom-sheet").on('click', function () {
-        clearTimeout(fabSwitchTimeout);
-        $("#fab-update").addClass("mdc-fab--exited");
-        $viewParent.removeClass('shrunk');
-        $('#bottom-sheet').removeClass('visible');
-        fabSwitchTimeout = setTimeout(function () {
-            return $("#fab-tune").removeClass("mdc-fab--exited");
-        }, 250);
-    });
-    $("#fab-update").on('click', updateProgram);
-    $(window).on('keydown', function (e) {
-        if (e.which == 13 && e.ctrlKey && $('#bottom-sheet').hasClass('visible')) {
-            e.preventDefault();
-            updateProgram();
-        } else if (e.which == 27 && e.shiftKey) {
-            e.preventDefault();
-            if ($('#bottom-sheet').hasClass('visible')) {
-                $('#close-bottom-sheet').click();
-                editor.blur();
-            } else {
-                $('#fab-tune').click();
-                editor.focus();
-            }
-        }
-    });
-    $("#show-gallery").on('click', function () {
-        $("#gallery").addClass('visible');
-    });
-    $("#close-gallery").on('click', function () {
-        $("#gallery").removeClass('visible');
-    });
-
-    _reactDom2.default.render(_react2.default.createElement(GalleryTiles, { snippets: _sdf_snippets2.default, onSelect: function onSelect(key) {
-            var snippet = _sdf_snippets2.default[key];
-
-            editor.setValue(snippet.code, 1);
-
-            updateAO(snippet.aoParams || {
-                sampleDistance: 0.2,
-                nSamples: 7
-            });
-
-            updateEnvMap(snippet.envMap || 'arches-env.png');
-
-            updateProgram();
-
-            $("#gallery").removeClass('visible');
-        } }), $("#gallery-tiles")[0]);
-    _reactDom2.default.render(_react2.default.createElement(PlayerControl, {
-        onUpdateTime: updateTime,
-        time: marchPass.material.uniforms.time }), $("#player-control")[0]);
-    _reactDom2.default.render(_react2.default.createElement(Settings, {
-        boundingBox: marchPass.material.uniforms.bounds.value,
-        camera: camera,
-        onChangeBounds: updateBounds,
-        onChangeFov: updateCameraFov }), $("#settings-container")[0]);
-
-    _reactDom2.default.render(_react2.default.createElement(Lighting, {
-        aoParams: aoParams,
-        lightingParams: viewerPass.material.uniforms,
-        onUpdateLighting: updateLighting,
-        onChangeEnvMap: updateEnvMap,
-        onUpdateAO: updateAO }), $("#lighting-container")[0]);
-};
-
-var _reactColor = __webpack_require__(191);
-
-var _tabs = __webpack_require__(362);
-
-var _ripple = __webpack_require__(135);
-
-var _TextField = __webpack_require__(371);
-
-var _TextField2 = _interopRequireDefault(_TextField);
-
-var _Slider = __webpack_require__(456);
-
-var _Slider2 = _interopRequireDefault(_Slider);
-
-var _IconToggle = __webpack_require__(458);
-
-var _IconToggle2 = _interopRequireDefault(_IconToggle);
-
-var _three = __webpack_require__(56);
-
-var T = _interopRequireWildcard(_three);
-
-var _stuff = __webpack_require__(57);
-
-var _stuff2 = _interopRequireDefault(_stuff);
-
-var _raySphereMarching = __webpack_require__(460);
-
-var _raySphereMarching2 = _interopRequireDefault(_raySphereMarching);
-
-var _raySphereLighting = __webpack_require__(461);
-
-var _raySphereLighting2 = _interopRequireDefault(_raySphereLighting);
-
-var _sdf_snippets = __webpack_require__(463);
-
-var _sdf_snippets2 = _interopRequireDefault(_sdf_snippets);
-
-var _react = __webpack_require__(0);
-
-var _react2 = _interopRequireDefault(_react);
-
-var _reactDom = __webpack_require__(72);
-
-var _reactDom2 = _interopRequireDefault(_reactDom);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Lighting = function (_React$Component) {
-    _inherits(Lighting, _React$Component);
-
-    function Lighting(props) {
-        _classCallCheck(this, Lighting);
-
-        var _this = _possibleConstructorReturn(this, (Lighting.__proto__ || Object.getPrototypeOf(Lighting)).call(this, props));
-
-        _this.changeAOSamples = function (e) {
-            this.props.onUpdateAO({
-                nSamples: e.target.value
-            });
-            this.forceUpdate();
-        }.bind(_this);
-        _this.changeAODistance = function (e) {
-            this.props.onUpdateAO({
-                sampleDistance: e.target.value
-            });
-            this.forceUpdate();
-        }.bind(_this);
-        _this.changeLighting = function (which, color, e) {
-            this.props.onUpdateLighting(which, new T.Vector3(color.rgb.r / 255, color.rgb.g / 255, color.rgb.b / 255));
-        }.bind(_this);
-        return _this;
-    }
-
-    _createClass(Lighting, [{
-        key: 'render',
-        value: function render() {
-            var _this2 = this;
-
-            var bgColor = this.props.lightingParams.background.value;
-            bgColor = { r: bgColor.x * 255, g: bgColor.y * 255, b: bgColor.z * 255 };
-            return _react2.default.createElement(
-                'div',
-                null,
-                _react2.default.createElement(
-                    'p',
-                    null,
-                    'Ambient Occlusion'
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { className: 'mdc-typography--caption' },
-                    'Number of samples (',
-                    this.props.aoParams.nSamples.toLocaleString(),
-                    ')'
-                ),
-                _react2.default.createElement(_Slider2.default, { discrete: true, step: '1', value: this.props.aoParams.nSamples, min: 0, max: 50, onChange: this.changeAOSamples }),
-                _react2.default.createElement(
-                    'div',
-                    { className: 'mdc-typography--caption' },
-                    'Distance (',
-                    this.props.aoParams.sampleDistance.toFixed(2),
-                    ')'
-                ),
-                _react2.default.createElement(_Slider2.default, { step: 0.01, value: this.props.aoParams.sampleDistance, min: 0.05, max: 2, onChange: this.changeAODistance }),
-                _react2.default.createElement(
-                    'p',
-                    null,
-                    'Lighting'
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { className: 'mdc-typography--caption' },
-                    'Environment Map'
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { className: 'mdc-grid-list environment-map-grid-list' },
-                    _react2.default.createElement(
-                        'ul',
-                        { className: 'mdc-grid-list__tiles mdc-grid-list--tile-aspect-4x3' },
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('arches-env.png', 'Arches');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/arches-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Arches'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('footprint-court-env.png', 'Footprint Court');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/footprint-court-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Footprint Court'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('gloucester-env.png', 'Gloucester Church');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/gloucester.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Gloucester Church'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('greenhouse-1-env.png', 'Greenhouse');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/greenhouse-1-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Greenhouse'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('ice-lake-env.png', 'Ice Lake');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/ice-lake-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Ice Lake'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('sunrise-1-env.png', 'Sunrise');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/sunrise-1-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Sunrise'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('washington-hotel-env.png', 'Washington Hotel');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/washington-hotel-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                _react2.default.createElement(
-                                    'span',
-                                    { className: 'mdc-grid-tile__title' },
-                                    'Washington Hotel Overlook'
-                                )
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('norm-env.png', 'Surface Normal');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/norm-env.png') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Surface Normal'
-                            )
-                        )
-                    )
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { style: { display: 'inline-block', marginRight: 10 } },
-                    _react2.default.createElement(
-                        'div',
-                        { className: 'mdc-typography--caption' },
-                        'Background'
-                    ),
-                    _react2.default.createElement(_reactColor.ChromePicker, { color: bgColor, onChange: this.changeLighting.bind(null, 'background') })
-                )
-            );
-        }
-    }]);
-
-    return Lighting;
-}(_react2.default.Component);
-
-var PlayerControl = function (_React$Component2) {
-    _inherits(PlayerControl, _React$Component2);
-
-    function PlayerControl(props) {
-        _classCallCheck(this, PlayerControl);
-
-        var _this3 = _possibleConstructorReturn(this, (PlayerControl.__proto__ || Object.getPrototypeOf(PlayerControl)).call(this, props));
-
-        _this3.state = {
-            start: new Date(),
-            isPaused: false,
-            delta: 0
-        };
-        _this3.elapse = function () {
-            if (!this.state.isPaused) {
-                this.props.onUpdateTime(this.state.delta + (new Date() - this.state.start) / 1000);
-                this.forceUpdate();
-            }
-            requestAnimationFrame(this.elapse);
-        }.bind(_this3);
-        _this3.playpause = function () {
-            if (this.state.isPaused) {
-                this.setState({ isPaused: false, start: new Date(), delta: this.props.time.value });
-            } else {
-                this.setState({ isPaused: true });
-            }
-        }.bind(_this3);
-        requestAnimationFrame(_this3.elapse);
-        return _this3;
-    }
-
-    _createClass(PlayerControl, [{
-        key: 'render',
-        value: function render() {
-            return _react2.default.createElement(
-                'div',
-                null,
-                _react2.default.createElement(_IconToggle2.default, { value: !this.state.isPaused, on: { label: 'pause', content: 'pause' }, off: { label: 'play', content: 'play_arrow' }, onChange: this.playpause })
-            );
-        }
-    }]);
-
-    return PlayerControl;
-}(_react2.default.Component);
-
-var Settings = function (_React$Component3) {
-    _inherits(Settings, _React$Component3);
-
-    function Settings(props) {
-        _classCallCheck(this, Settings);
-
-        var _this4 = _possibleConstructorReturn(this, (Settings.__proto__ || Object.getPrototypeOf(Settings)).call(this, props));
-
-        _this4.changeFov = function (e) {
-            this.props.onChangeFov(e.target.value);
-            this.forceUpdate();
-        }.bind(_this4);
-        _this4.changeBounds = function (bound, dimension, e) {
-            //Reverse
-            this.props.onChangeBounds(bound, dimension, bound == 0 ? -e.target.value : e.target.value);
-            this.forceUpdate();
-        }.bind(_this4);
-        return _this4;
-    }
-
-    _createClass(Settings, [{
-        key: 'render',
-        value: function render() {
-            return _react2.default.createElement(
-                'div',
-                null,
-                _react2.default.createElement(
-                    'p',
-                    null,
-                    'Camera'
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { className: 'mdc-typography--caption' },
-                    'FOV (',
-                    this.props.camera.fov.toLocaleString(),
-                    ')'
-                ),
-                _react2.default.createElement(_Slider2.default, { discrete: true, step: '1', value: this.props.camera.fov, min: 30, max: 120, onChange: this.changeFov }),
-                _react2.default.createElement(
-                    'p',
-                    null,
-                    'Scene'
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { className: 'mdc-typography--caption' },
-                    _react2.default.createElement(
-                        'em',
-                        null,
-                        'Waiting on official support for ranged sliders, so two sliders for now :/'
-                    )
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { className: 'mdc-typography--caption' },
-                    'Bounding Box'
-                ),
-                _react2.default.createElement(
-                    'p',
-                    null,
-                    'x: ',
-                    _react2.default.createElement(
-                        'strong',
-                        null,
-                        this.props.boundingBox[0].x.toFixed(2),
-                        ', ',
-                        this.props.boundingBox[1].x.toFixed(2)
-                    )
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { dir: 'rtl' },
-                    _react2.default.createElement(_Slider2.default, { step: '0.01', value: -this.props.boundingBox[0].x, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'x') })
-                ),
-                _react2.default.createElement(_Slider2.default, { step: '0.01', value: this.props.boundingBox[1].x, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'x') }),
-                _react2.default.createElement(
-                    'p',
-                    null,
-                    'y: ',
-                    _react2.default.createElement(
-                        'strong',
-                        null,
-                        this.props.boundingBox[0].y.toFixed(2),
-                        ', ',
-                        this.props.boundingBox[1].y.toFixed(2)
-                    )
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { dir: 'rtl' },
-                    _react2.default.createElement(_Slider2.default, { step: '0.01', value: -this.props.boundingBox[0].y, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'y') })
-                ),
-                _react2.default.createElement(_Slider2.default, { step: '0.01', value: this.props.boundingBox[1].y, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'y') }),
-                _react2.default.createElement(
-                    'p',
-                    null,
-                    'z: ',
-                    _react2.default.createElement(
-                        'strong',
-                        null,
-                        this.props.boundingBox[0].z.toFixed(2),
-                        ', ',
-                        this.props.boundingBox[1].z.toFixed(2)
-                    )
-                ),
-                _react2.default.createElement(
-                    'div',
-                    { dir: 'rtl' },
-                    _react2.default.createElement(_Slider2.default, { step: '0.01', value: -this.props.boundingBox[0].z, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'z') })
-                ),
-                _react2.default.createElement(_Slider2.default, { step: '0.01', value: this.props.boundingBox[1].z, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'z') })
-            );
-        }
-    }]);
-
-    return Settings;
-}(_react2.default.Component);
-
-var GalleryTiles = function GalleryTiles(props) {
-    return _react2.default.createElement(
-        'div',
-        { className: 'mdc-grid-list environment-map-grid-list' },
-        _react2.default.createElement(
-            'ul',
-            { className: 'mdc-grid-list__tiles' },
-            function () {
-                var tiles = [];
-                for (var key in props.snippets) {
-                    tiles.push(_react2.default.createElement(
-                        'li',
-                        { key: key, className: 'mdc-grid-tile', onClick: props.onSelect.bind(null, key) },
-                        _react2.default.createElement(
-                            'div',
-                            { className: 'mdc-grid-tile__primary' },
-                            _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: 'url(\'/images/thumbnails/' + key + '.png\') center' } })
-                        )
-                    ));
-                }
-                return tiles;
-            }()
-        )
-    );
-};
-
-/***/ }),
+/* 190 */,
 /* 191 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -93282,9 +92302,9 @@ var _sdf_ops = __webpack_require__(464);
 
 var _sdf_ops2 = _interopRequireDefault(_sdf_ops);
 
-var _implicit_function = __webpack_require__(172);
+var _sdf_marcher = __webpack_require__(465);
 
-var _implicit_function2 = _interopRequireDefault(_implicit_function);
+var _sdf_marcher2 = _interopRequireDefault(_sdf_marcher);
 
 var _fractal_sdf = __webpack_require__(173);
 
@@ -93296,7 +92316,7 @@ exports.default = function (_ref) {
     var maxSteps = _ref.maxSteps,
         sdf = _ref.sdf,
         distanceProgram = _ref.distanceProgram;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _sdf_ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\nuniform vec3 bounds[2];\nvarying vec2 vUv;\n\n' + distanceProgram + '\n\n//Include this here since the shader needs to have the sdf defined before calling.\n' + (0, _implicit_function2.default)({ maxSteps: maxSteps, sdf: sdf }) + '\n\nvoid main() {\n    gl_FragColor = vec4(-1.);\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n\n    float bbmin, bbmax;\n    if(intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n        float t;\n        if(intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {\n            gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir, t, getCameraRay(vec2(1., 0.)).x)), t);\n        }\n    }\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _sdf_ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\nuniform vec3 bounds[2];\nvarying vec2 vUv;\n\n' + distanceProgram + '\n\n//Include this here since the shader needs to have the sdf defined before calling.\n' + (0, _sdf_marcher2.default)({ maxSteps: maxSteps, sdf: sdf }) + '\n\nvoid main() {\n    gl_FragColor = vec4(-1.);\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n\n    float bbmin, bbmax;\n    if(intersectAABB(bounds[0], bounds[1], rayPos.xyz, rayDir.xyz, bbmin, bbmax)) {\n        float t;\n        if(intersectImplicit(rayPos, rayDir, bbmin, bbmax, t)) {\n            gl_FragColor = vec4(normalize(gradient(rayPos + t * rayDir, t, getCameraRay(vec2(1., 0.)).x)), t);\n        }\n    }\n}\n';
 };
 
 /***/ }),
@@ -93334,9 +92354,9 @@ var _sdf_ops = __webpack_require__(464);
 
 var _sdf_ops2 = _interopRequireDefault(_sdf_ops);
 
-var _implicit_function = __webpack_require__(172);
+var _sdf_marcher = __webpack_require__(465);
 
-var _implicit_function2 = _interopRequireDefault(_implicit_function);
+var _sdf_marcher2 = _interopRequireDefault(_sdf_marcher);
 
 var _fractal_sdf = __webpack_require__(173);
 
@@ -93351,7 +92371,7 @@ exports.default = function (_ref) {
         sampleDistance = _ref.sampleDistance,
         nSamples = _ref.nSamples,
         occlusionStrength = _ref.occlusionStrength;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _sdf_ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _implicit_function2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\nuniform sampler2D envMap;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-0.3, -1., -1.)),\n        3.5 * vec3(255., 254., 246.) / 255.\n    );\n\n    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 70.);\n    PointLight pLight2 = PointLight(vec3(-2., 1., 3.), vec3(1., 1., 1.) * 100.);\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    normal *= dot(rayDir, normal) < 0. ? 1. : -1.;\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos, normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.6 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(pLight2)\n    CONTRIBUTE_COLOR(directionLight)\n\n    float theta = acos(clamp(normal.y, -1., 1.));\n    float phi = atan(normal.z, normal.x);\n    phi = phi < 0. ? phi + 2. * 3.1415926536 : phi;\n\n    vec4 amb = texture2D(envMap, vec2(\n        phi / (2. * 3.1415926536),\n        1. - theta / 3.1415926536\n    ));\n\n    gl_FragColor = vec4(0.6 * amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _sdf_ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _sdf_marcher2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\nuniform sampler2D envMap;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-0.3, -1., -1.)),\n        3.5 * vec3(255., 254., 246.) / 255.\n    );\n\n    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 40.);\n    PointLight pLight2 = PointLight(vec3(-2., 1., 3.), vec3(1., 1., 1.) * 60.);\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    normal *= dot(rayDir, normal) < 0. ? 1. : -1.;\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos, normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.6 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(pLight2)\n    CONTRIBUTE_COLOR(directionLight)\n\n    float theta = acos(clamp(normal.y, -1., 1.));\n    float phi = atan(normal.z, normal.x);\n    phi = phi < 0. ? phi + 2. * 3.1415926536 : phi;\n\n    vec4 amb = texture2D(envMap, vec2(\n        phi / (2. * 3.1415926536),\n        1. - theta / 3.1415926536\n    ));\n\n    gl_FragColor = vec4(0.6 * amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);\n}\n';
 };
 
 /***/ }),
@@ -93379,9 +92399,8 @@ exports.default = function () {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-//This is the initial program.
 var heart = function heart() {
-    return '\nuniform float time;\n\nfloat cone(in vec3 p) {\n    float sphere = (length(p * vec3(1., 1.7, 1.)) - 1.) / 1.7;\n    p.y -= -1.;\n    vec3 c = vec3(1.);\n    vec2 q = vec2( length(p.xz), -p.y );\n    vec2 v = vec2( c.z*c.y/c.x, -c.z );\n    vec2 w = v - q;\n    vec2 vv = vec2( dot(v,v), v.x*v.x );\n    vec2 qv = vec2( dot(v,w), v.x*w.x );\n    vec2 d = max(qv,0.0)*qv/vv;\n    return smin(sphere, sqrt( dot(w,w) - max(d.x,d.y) ) * sign(max(q.y*v.x-q.x*v.y,w.y)), 1.);\n}\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float lefty = length(p * vec3(1., 1., 1.5) - vec3(-1.1, 0., 0.)) - 1.5;\n    \n    float righty = length(p * vec3(1., 1., 1.5) - vec3(1.1, 0., 0.)) - 1.5;\n    \n    vec2 q = vec2(length(p.xz * vec2(1., 2.)) - 1., p.y + 0.3);\n    float torus = (length(q) - 1.25) / 1.8;\n    \n    float sphereMid = (length(p * vec3(1.3, 1.6, 1.9) - vec3(0., -1.5, 0.)) - 1.2) / 1.9;\n    float heartTop = smin(\n        sphereMid,\n        smin(smin(lefty, righty, 0.05), torus, 0.5),\n        1.9\n    );\n    \n    return smin(heartTop, cone(p * vec3(1.6, 1., 2.95) - vec3(0., -1.73, 0.)) / 2.95, 0.6);\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, 1e-3);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    return sdf((pos + t * dir).xyz);\n}\n'.trimt();
+    return '\nuniform float time;\n\nfloat cone(in vec3 p) {\n    float sphere = (length(p * vec3(1., 1.7, 1.)) - 1.) / 1.7;\n    p.y -= -1.;\n    vec3 c = vec3(1.);\n    vec2 q = vec2( length(p.xz), -p.y );\n    vec2 v = vec2( c.z*c.y/c.x, -c.z );\n    vec2 w = v - q;\n    vec2 vv = vec2( dot(v,v), v.x*v.x );\n    vec2 qv = vec2( dot(v,w), v.x*w.x );\n    vec2 d = max(qv,0.0)*qv/vv;\n    return smin(sphere, sqrt( dot(w,w) - max(d.x,d.y) ) * sign(max(q.y*v.x-q.x*v.y,w.y)), 1.);\n}\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float lefty = length(p * vec3(1., 1., 1.5) - vec3(-1.1, 0., 0.)) - 1.5;\n    \n    float righty = length(p * vec3(1., 1., 1.5) - vec3(1.1, 0., 0.)) - 1.5;\n    \n    vec2 q = vec2(length(p.xz * vec2(1., 2.)) - 1., p.y + 0.3);\n    float torus = (length(q) - 1.25) / 1.8;\n    \n    float sphereMid = (length(p * vec3(1.3, 1.6, 1.9) - vec3(0., -1.5, 0.)) - 1.2) / 1.9;\n    float heartTop = smin(\n        sphereMid,\n        smin(smin(lefty, righty, 0.05), torus, 0.5),\n        1.9\n    );\n    \n    return smin(heartTop, cone(p * vec3(1.6, 1., 2.95) - vec3(0., -1.73, 0.)) / 2.95, 0.6);\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, 1e-3);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    return sdf((pos + t * dir).xyz);\n}\n'.trim();
 };
 
 var julia = function julia() {
@@ -93410,6 +92429,9 @@ exports.default = {
     },
     'mandelbulb': {
         code: mandelbulb()
+    },
+    'heart': {
+        code: heart()
     }
 };
 
@@ -93426,6 +92448,988 @@ Object.defineProperty(exports, "__esModule", {
 
 exports.default = function () {
     return "\nvec2 opUnion(in vec2 a, in vec2 b) {\n    return a.x <= b.x ? a : b;\n}\n\nfloat smin(float a, float b, float k) {\n    float h = clamp(0.5 + 0.5 * (b - a) / k, 0., 1.);\n    return mix(b, a, h) - k * h * (1. - h);\n}\n";
+};
+
+/***/ }),
+/* 465 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+exports.default = function (_ref) {
+    var maxSteps = _ref.maxSteps,
+        sdf = _ref.sdf;
+    return "\n#define MAX_STEPS " + maxSteps + "\n#define SDF_FN " + sdf + "\n\nuniform float far;\nuniform float threshold;\n\nbool intersectImplicit(vec4 rayPos, vec4 rayDir, float tmin, float tmax, out float t) {\n    t = max(tmin, 0.);\n    tmax = min(tmax, far);\n\n    float dist = SDF_FN(rayPos, rayDir, t, 0);\n\n    //Inside/outside\n    float fSign = dist < 0. ? -1. : 1.;\n    float prevSign = fSign;\n    for(int i = 1; i <= MAX_STEPS; ++i) {\n        if(abs(dist) < abs(threshold * t)) {\n            return t >= tmin && t < tmax;\n        }\n\n        t += fSign * dist;\n\n        //Just some early exit\n        if(t > 2. * tmax + threshold) {\n            return false;\n        }\n        dist = SDF_FN(rayPos, rayDir, t, i);\n    }\n    return false;\n}\n";
+};
+
+/***/ }),
+/* 466 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+exports.default = function () {
+    var needsUpdate = true;
+
+    var aoParams = {
+        sampleDistance: 0.2,
+        nSamples: 7
+    };
+    var lightingParams = {
+        maxSteps: 150,
+        sdf: 'distance'
+    };
+
+    var tabBar = _tabs.MDCTabBar.attachTo($('#code-tab-bar')[0]);
+    //Blegh, there's no documentation on toolbar text links...what?
+    tabBar.tabs[0].destroy();
+    _ripple.MDCRipple.attachTo($("#code-tab-bar").children()[0]);
+
+    var fabTop = $("#fab-tune").offset().top;
+    var fabBottom = $(window).height() - fabTop - $("#fab-tune").height();
+    var fabEvenSpacing = fabTop - fabBottom;
+
+    var $activePanel = $("#lighting");
+    $('#code-tab-bar').find('.mdc-tab').on('click', function (e) {
+        if ($(this).attr('href').indexOf('#') == -1) {
+            return;
+        }
+
+        $activePanel.removeClass('active');
+        $activePanel = $($(this).attr('href')).addClass('active');
+        $("#editor").height($("#editor").parent().height());
+        editor.resize();
+    });
+
+    var editor = ace.edit('editor');
+    editor.$blockScrolling = Infinity;
+    editor.setShowPrintMargin(false);
+    editor.setOption('highlightActiveLine', false);
+    editor.renderer.setScrollMargin(16, 16);
+    editor.setTheme('ace/theme/dracula');
+    editor.getSession().setMode('ace/mode/glsl');
+    editor.setValue(_sdf_snippets2.default.mandelbulb.code, 1);
+    editor.gotoLine(1);
+    editor.commands.addCommand({
+        name: 'updateprogram',
+        bindKey: {
+            win: 'Ctrl-Enter', mac: 'Command-Enter'
+        },
+        exec: function exec() {
+            updateProgram();
+        }
+    });
+
+    var $viewParent = $('#view-container');
+
+    var camera = new T.PerspectiveCamera(80, $viewParent.width() / $viewParent.height(), 1., 1000); //By using near as 1., it does not at all affect the fov.
+    var camR = 5,
+        camPhi = Math.PI * 0.5,
+        camTheta = Math.PI * 0.5;
+    var origin = new T.Vector3(0., 0., 0.);
+
+    updateCamera();
+
+    function setCameraPosition() {
+        camera.position.set(camR * Math.cos(camPhi) * Math.sin(camTheta), camR * Math.cos(camTheta), camR * Math.sin(camPhi) * Math.sin(camTheta));
+    }
+    function updateCameraFov(fov) {
+        camera.fov = fov;
+        camera.updateProjectionMatrix();
+        marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
+        needsUpdate = true;
+    }
+    function updateLighting(type, colorVec) {
+        viewerPass.material.uniforms[type].value.copy(colorVec);
+        needsUpdate = true;
+    }
+    function updateAO(settings) {
+        Object.assign(aoParams, settings);
+        updateProgram();
+    }
+    function updateBounds(which, dim, value) {
+        var bounds = marchPass.material.uniforms.bounds.value;
+        if (which == 0) {
+            bounds[0][dim] = Math.min(value, bounds[1][dim] - 0.01);
+        } else {
+            bounds[1][dim] = Math.max(value, bounds[0][dim] + 0.01);
+        }
+        needsUpdate = true;
+    }
+    function updateCamera() {
+        setCameraPosition();
+        camera.lookAt(origin);
+        camera.updateMatrix();
+        needsUpdate = true;
+    }
+    function zoom(amount) {
+        camR = T.Math.clamp(camR + amount, 0.01, 50);
+        updateCamera();
+    }
+    function rotateTheta(amount) {
+        camTheta = T.Math.clamp(camTheta + amount, 1e-2, Math.PI - 1e-2);
+        updateCamera();
+    }
+    function rotatePhi(amount) {
+        camPhi += amount;
+        if (camPhi > 2 * Math.PI) {
+            camPhi -= 2 * Math.PI;
+        } else if (camPhi < 0.) {
+            camPhi += 2 * Math.PI;
+        }
+        updateCamera();
+    }
+    function updateTime(value) {
+        marchPass.material.uniforms.time.value = value;
+        needsUpdate = true;
+    }
+    var marchPass = new _stuff2.default.gl.ComputeShaderPass({
+        uniforms: {
+            time: {
+                type: 'f',
+                value: 0.
+            },
+            bounds: {
+                type: 'v4v',
+                value: [new T.Vector3(-3, -3, -3), new T.Vector3(3, 3, 3)]
+            },
+            //Used to quit early. Kinda useless.
+            far: {
+                type: 'f',
+                value: 1e5
+            },
+            threshold: {
+                type: 'f',
+                value: 1e-3
+            },
+            //Must not use the name same names as any of the camera matrices, as that would override the orthographic camera matrix from the compute shader!
+            invProjMat: {
+                type: 'm4',
+                value: new T.Matrix4().getInverse(camera.projectionMatrix)
+            },
+            cameraMat: {
+                type: 'm4',
+                value: camera.matrix
+            }
+        },
+        //Use this FIRSTLINE comment to figure out where the distanceProgram starts
+        fragmentShader: (0, _raySphereMarching2.default)(Object.assign({
+            maxSteps: 150,
+            sdf: 'distance',
+            distanceProgram: '//FIRSTLINE\n' + editor.getValue()
+        }, aoParams))
+    }, $viewParent.width(), $viewParent.height());
+
+    var envTextureLoader = new T.TextureLoader();
+    var lightingPass = new _stuff2.default.gl.ComputeShaderPass({
+        uniforms: {
+            time: marchPass.material.uniforms.time,
+            invProjMat: marchPass.material.uniforms.invProjMat,
+            cameraMat: marchPass.material.uniforms.cameraMat,
+            far: marchPass.material.uniforms.far,
+            threshold: marchPass.material.uniforms.threshold,
+            surfaceData: {
+                type: 't',
+                value: marchPass.texTarget.t.texture
+            },
+            envMap: {
+                type: 't',
+                value: envTextureLoader.load("/images/ibl/arches-env.png")
+            }
+        },
+        fragmentShader: (0, _raySphereLighting2.default)(Object.assign({
+            distanceProgram: editor.getValue()
+        }, lightingParams, aoParams))
+    }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
+
+    lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
+    lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
+    function updateEnvMap(img, label) {
+        lightingPass.material.uniforms.envMap.value.dispose();
+        lightingPass.material.uniforms.envMap.value = envTextureLoader.load('/images/ibl/' + img);
+        lightingPass.material.uniforms.envMap.value.magFilter = T.LinearFilter;
+        lightingPass.material.uniforms.envMap.value.minFilter = T.LinearFilter;
+        needsUpdate = true;
+    }
+
+    var viewerPass = new _stuff2.default.gl.ComputeShaderPass({
+        uniforms: {
+            surfaceData: {
+                type: 't',
+                value: marchPass.texTarget.t.texture
+            },
+            lighting: {
+                type: 't',
+                value: lightingPass.texTarget.t.texture
+            },
+            background: {
+                type: 'v3',
+                value: new T.Vector3(0.95, 0.95, 0.95)
+            }
+        },
+        fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 background;\n\n            void main() {\n                //float theta = (1. - vUv.y) * 3.1415926535;\n                //float phi = vUv.x * 2. * 3.1415926535;\n                //gl_FragColor = abs(vec4(\n                //    cos(phi) * sin(theta),\n                //    cos(theta),\n                //    sin(phi) * sin(theta),\n                //1.));\n                //return;\n                gl_FragColor = vec4(background, 1.);\n                vec4 surface = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n\n                if(surface.a != -1.) {\n                    if(surface.a == -2.) {\n                        gl_FragColor = vec4(surface.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = lightingData;\n                    }\n                }\n            }\n        '
+    }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
+    //}, 360, 180);
+
+    var $view = $(marchPass.renderer.domElement);
+    $viewParent.append($view);
+    //$viewParent.append(viewerPass.renderer.domElement);
+
+
+    function updateProgram() {
+        editor.session.clearAnnotations();
+        diagnostics = undefined;
+        var distanceProgram = '//FIRSTLINE\n' + editor.getValue();
+
+        marchPass.material.fragmentShader = (0, _raySphereMarching2.default)(Object.assign({
+            maxSteps: 150,
+            sdf: 'distance',
+            distanceProgram: distanceProgram
+        }, aoParams));
+        marchPass.material.needsUpdate = true;
+
+        lightingPass.material.fragmentShader = (0, _raySphereLighting2.default)(Object.assign({
+            distanceProgram: distanceProgram
+        }, lightingParams, aoParams));
+        lightingPass.material.needsUpdate = true;
+        needsUpdate = true;
+    }
+
+    function resize() {
+        $("#editor").height($("#editor").parent().height());
+        editor.resize();
+
+        camera.aspect = $viewParent.width() / $viewParent.height();
+        camera.updateProjectionMatrix();
+
+        viewerPass.resize($viewParent.width(), $viewParent.height());
+
+        marchPass.resize($viewParent.width(), $viewParent.height());
+        marchPass.material.uniforms.invProjMat.value.getInverse(camera.projectionMatrix);
+
+        lightingPass.resize($viewParent.width(), $viewParent.height());
+
+        needsUpdate = true;
+    }
+
+    var diagnostics = void 0;
+    function draw() {
+        if (!diagnostics) {
+            //Easy way to take advantage of container transitions.
+            if ($view.width() != $viewParent.width() || $view.height() != $viewParent.height()) {
+                resize();
+            }
+            if (needsUpdate) {
+                marchPass.execute();
+                lightingPass.execute();
+
+                //TODO: Move this into stuff.js
+                diagnostics = marchPass.material.program.diagnostics || lightingPass.diagnostics;
+                if (diagnostics) {
+                    var log = diagnostics.fragmentShader.log;
+                    if (log.indexOf('ERROR') != -1) {
+                        var prefixLines = diagnostics.fragmentShader.prefix.split('\n');
+                        var lines = marchPass.material.fragmentShader.split('\n');
+
+                        //Find the start of the distance program.
+                        var i = void 0;
+                        for (i = 0; i < lines.length; ++i) {
+                            if (lines[i] == '//FIRSTLINE') {
+                                break;
+                            }
+                        }
+                        i += prefixLines.length;
+
+                        var annotations = [];
+                        //Parse the error.
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = log.split('\n')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var error = _step.value;
+
+                                if (!error || error.indexOf('ERROR') == -1) {
+                                    break;
+                                }
+
+                                var _error$substring$spli = error.substring(7).split(':'),
+                                    _error$substring$spli2 = _slicedToArray(_error$substring$spli, 4),
+                                    column = _error$substring$spli2[0],
+                                    row = _error$substring$spli2[1],
+                                    code = _error$substring$spli2[2],
+                                    text = _error$substring$spli2[3];
+
+                                column = parseInt(column);
+                                row = parseInt(row);
+                                row -= i + 1;
+                                annotations.push({
+                                    row: T.Math.clamp(row, 0, editor.session.getLength() - 1), column: column,
+                                    text: code + ':' + text,
+                                    type: "error"
+                                });
+                                if (row < 0 || row >= editor.session.getLength()) {
+                                    annotations.push({
+                                        row: editor.session.getLength() - 1,
+                                        column: 0,
+                                        text: "This error was detected but occurred outside the distance shader section. Things such as redefinition of variables, removing the functions distance or gradient, or changing their function signatures could have caused this. If you think this is a genuine error, feel free to tell me all about it on Github.",
+                                        type: "error"
+                                    });
+                                }
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+
+                        editor.session.setAnnotations(annotations);
+                    }
+                }
+                viewerPass.execute(true);
+            }
+        }
+        requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+
+    var dragging = false;
+    var mousePos = void 0;
+    var pinchPos = void 0;
+    $(window).on('blur', function (e) {
+        dragging = false;
+    });
+
+    $view.on('mousedown', function (e) {
+        if (e.which == 1) {
+            dragging = true;
+            mousePos = [e.pageX, e.pageY];
+        } else {
+            dragging = false;
+        }
+    });
+    $view.on('touchstart', function (e) {
+        if (e.touches.length == 1) {
+            dragging = true;
+            mousePos = [e.touches[0].pageX, e.touches[0].pageY];
+        } else {
+            //As soon as more than 1 finger is detected, stop dragging.
+            dragging = false;
+            //Pinching
+            if (e.touches.length == 2) {
+                e.preventDefault();
+                pinchPos = e.touches;
+            }
+        }
+    });
+
+    $(window).on('mouseup', function (e) {
+        dragging = false;
+    });
+    $(window).on('touchend', function (e) {
+        dragging = false;
+    });
+
+    $view.on('mousemove', function (e) {
+        if (dragging) {
+            e.preventDefault();
+            var deltaX = (e.pageX - mousePos[0]) / $viewParent.width();
+            var deltaY = (e.pageY - mousePos[1]) / $viewParent.height();
+            rotatePhi(2 * Math.PI * deltaX);
+            rotateTheta(-Math.PI * deltaY);
+            mousePos = [e.pageX, e.pageY];
+        }
+    });
+    $view.on('touchmove', function (e) {
+        if (dragging) {
+            e.preventDefault();
+            var deltaX = (e.touches[0].pageX - mousePos[0]) / $viewParent.width();
+            var deltaY = (e.touches[0].pageY - mousePos[1]) / $viewParent.height();
+            rotatePhi(2 * Math.PI * deltaX);
+            rotateTheta(-Math.PI * deltaY);
+            mousePos = [e.touches[0].pageX, e.touches[0].pageY];
+        } else if (e.touches.length == 2) {
+            e.preventDefault();
+            var oldScale = Math.sqrt(Math.pow(pinchPos[0].pageX - pinchPos[1].pageX, 2) + Math.pow(pinchPos[0].pageY - pinchPos[1].pageY, 2));
+            var scale = Math.sqrt(Math.pow(e.touches[0].pageX - e.touches[1].pageX, 2) + Math.pow(e.touches[0].pageY - e.touches[1].pageY, 2));
+            var delta = scale - oldScale; //Positive means fingers moved apart, negative means fingers moved together.
+            //Define 1 change 'unit' as the fingers moving half the minimum screen extent. Tweak after experimentation.
+            zoom(Math.log(camR / 0.5 + 1) * (-delta * 2 / Math.min($view.height(), $view.width())));
+        }
+    });
+    $view.on('mousewheel', function (e) {
+        //Zoom slower as we paroach camR = 0;
+        zoom(Math.log(camR / 5 + 1) * (-e.originalEvent.wheelDelta / 120));
+    });
+
+    var fabSwitchTimeout = void 0;
+    $('#fab-tune').on('click', function () {
+        clearTimeout(fabSwitchTimeout);
+        $(this).addClass('mdc-fab--exited');
+        $viewParent.addClass('shrunk');
+        $('#bottom-sheet').addClass('visible');
+        //500ms delay while we wait for the bottom sheet to show up.
+        fabSwitchTimeout = setTimeout(function () {
+            $("#fab-update").removeClass("mdc-fab--exited");
+        }, 250);
+    });
+    $("#close-bottom-sheet").on('click', function () {
+        clearTimeout(fabSwitchTimeout);
+        $("#fab-update").addClass("mdc-fab--exited");
+        $viewParent.removeClass('shrunk');
+        $('#bottom-sheet').removeClass('visible');
+        fabSwitchTimeout = setTimeout(function () {
+            return $("#fab-tune").removeClass("mdc-fab--exited");
+        }, 250);
+    });
+    $("#fab-update").on('click', updateProgram);
+    $(window).on('keydown', function (e) {
+        if (e.which == 13 && e.ctrlKey && $('#bottom-sheet').hasClass('visible')) {
+            e.preventDefault();
+            updateProgram();
+        } else if (e.which == 27 && e.shiftKey) {
+            e.preventDefault();
+            if ($('#bottom-sheet').hasClass('visible')) {
+                $('#close-bottom-sheet').click();
+                editor.blur();
+            } else {
+                $('#fab-tune').click();
+                editor.focus();
+            }
+        }
+    });
+    $("#show-gallery").on('click', function () {
+        $("#gallery").addClass('visible');
+    });
+    $("#close-gallery").on('click', function () {
+        $("#gallery").removeClass('visible');
+    });
+
+    _reactDom2.default.render(_react2.default.createElement(GalleryTiles, { snippets: _sdf_snippets2.default, onSelect: function onSelect(key) {
+            var snippet = _sdf_snippets2.default[key];
+
+            editor.setValue(snippet.code, 1);
+
+            updateAO(snippet.aoParams || {
+                sampleDistance: 0.2,
+                nSamples: 7
+            });
+
+            updateEnvMap(snippet.envMap || 'arches-env.png');
+
+            updateProgram();
+
+            $("#gallery").removeClass('visible');
+        } }), $("#gallery-tiles")[0]);
+    _reactDom2.default.render(_react2.default.createElement(PlayerControl, {
+        onUpdateTime: updateTime,
+        time: marchPass.material.uniforms.time }), $("#player-control")[0]);
+    _reactDom2.default.render(_react2.default.createElement(Settings, {
+        boundingBox: marchPass.material.uniforms.bounds.value,
+        camera: camera,
+        onChangeBounds: updateBounds,
+        onChangeFov: updateCameraFov }), $("#settings-container")[0]);
+
+    _reactDom2.default.render(_react2.default.createElement(Lighting, {
+        aoParams: aoParams,
+        lightingParams: viewerPass.material.uniforms,
+        onUpdateLighting: updateLighting,
+        onChangeEnvMap: updateEnvMap,
+        onUpdateAO: updateAO }), $("#lighting-container")[0]);
+};
+
+var _reactColor = __webpack_require__(191);
+
+var _tabs = __webpack_require__(362);
+
+var _ripple = __webpack_require__(135);
+
+var _TextField = __webpack_require__(371);
+
+var _TextField2 = _interopRequireDefault(_TextField);
+
+var _Slider = __webpack_require__(456);
+
+var _Slider2 = _interopRequireDefault(_Slider);
+
+var _IconToggle = __webpack_require__(458);
+
+var _IconToggle2 = _interopRequireDefault(_IconToggle);
+
+var _three = __webpack_require__(56);
+
+var T = _interopRequireWildcard(_three);
+
+var _stuff = __webpack_require__(57);
+
+var _stuff2 = _interopRequireDefault(_stuff);
+
+var _raySphereMarching = __webpack_require__(460);
+
+var _raySphereMarching2 = _interopRequireDefault(_raySphereMarching);
+
+var _raySphereLighting = __webpack_require__(461);
+
+var _raySphereLighting2 = _interopRequireDefault(_raySphereLighting);
+
+var _sdf_snippets = __webpack_require__(463);
+
+var _sdf_snippets2 = _interopRequireDefault(_sdf_snippets);
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactDom = __webpack_require__(72);
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Lighting = function (_React$Component) {
+    _inherits(Lighting, _React$Component);
+
+    function Lighting(props) {
+        _classCallCheck(this, Lighting);
+
+        var _this = _possibleConstructorReturn(this, (Lighting.__proto__ || Object.getPrototypeOf(Lighting)).call(this, props));
+
+        _this.changeAOSamples = function (e) {
+            this.props.onUpdateAO({
+                nSamples: e.target.value
+            });
+            this.forceUpdate();
+        }.bind(_this);
+        _this.changeAODistance = function (e) {
+            this.props.onUpdateAO({
+                sampleDistance: e.target.value
+            });
+            this.forceUpdate();
+        }.bind(_this);
+        _this.changeLighting = function (which, color, e) {
+            this.props.onUpdateLighting(which, new T.Vector3(color.rgb.r / 255, color.rgb.g / 255, color.rgb.b / 255));
+        }.bind(_this);
+        return _this;
+    }
+
+    _createClass(Lighting, [{
+        key: 'render',
+        value: function render() {
+            var _this2 = this;
+
+            var bgColor = this.props.lightingParams.background.value;
+            bgColor = { r: bgColor.x * 255, g: bgColor.y * 255, b: bgColor.z * 255 };
+            return _react2.default.createElement(
+                'div',
+                null,
+                _react2.default.createElement(
+                    'p',
+                    null,
+                    'Ambient Occlusion'
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    'Number of samples (',
+                    this.props.aoParams.nSamples.toLocaleString(),
+                    ')'
+                ),
+                _react2.default.createElement(_Slider2.default, { discrete: true, step: '1', value: this.props.aoParams.nSamples, min: 0, max: 50, onChange: this.changeAOSamples }),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    'Distance (',
+                    this.props.aoParams.sampleDistance.toFixed(2),
+                    ')'
+                ),
+                _react2.default.createElement(_Slider2.default, { step: 0.01, value: this.props.aoParams.sampleDistance, min: 0.05, max: 2, onChange: this.changeAODistance }),
+                _react2.default.createElement(
+                    'p',
+                    null,
+                    'Lighting'
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    'Environment Map'
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-grid-list environment-map-grid-list' },
+                    _react2.default.createElement(
+                        'ul',
+                        { className: 'mdc-grid-list__tiles mdc-grid-list--tile-aspect-4x3' },
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('arches-env.png', 'Arches');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/arches-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Arches'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('footprint-court-env.png', 'Footprint Court');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/footprint-court-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Footprint Court'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('gloucester-env.png', 'Gloucester Church');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/gloucester.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Gloucester Church'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('greenhouse-1-env.png', 'Greenhouse');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/greenhouse-1-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Greenhouse'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('ice-lake-env.png', 'Ice Lake');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/ice-lake-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Ice Lake'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('sunrise-1-env.png', 'Sunrise');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/sunrise-1-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Sunrise'
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('washington-hotel-env.png', 'Washington Hotel');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/washington-hotel-thumb.jpg') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                _react2.default.createElement(
+                                    'span',
+                                    { className: 'mdc-grid-tile__title' },
+                                    'Washington Hotel Overlook'
+                                )
+                            )
+                        ),
+                        _react2.default.createElement(
+                            'li',
+                            { className: 'mdc-grid-tile', onClick: function onClick() {
+                                    return _this2.props.onChangeEnvMap('norm-env.png', 'Surface Normal');
+                                } },
+                            _react2.default.createElement(
+                                'div',
+                                { className: 'mdc-grid-tile__primary' },
+                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/norm-env.png') center" } })
+                            ),
+                            _react2.default.createElement(
+                                'span',
+                                { className: 'mdc-grid-tile__secondary' },
+                                'Surface Normal'
+                            )
+                        )
+                    )
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { style: { display: 'inline-block', marginRight: 10 } },
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'mdc-typography--caption' },
+                        'Background'
+                    ),
+                    _react2.default.createElement(_reactColor.ChromePicker, { color: bgColor, onChange: this.changeLighting.bind(null, 'background') })
+                )
+            );
+        }
+    }]);
+
+    return Lighting;
+}(_react2.default.Component);
+
+var PlayerControl = function (_React$Component2) {
+    _inherits(PlayerControl, _React$Component2);
+
+    function PlayerControl(props) {
+        _classCallCheck(this, PlayerControl);
+
+        var _this3 = _possibleConstructorReturn(this, (PlayerControl.__proto__ || Object.getPrototypeOf(PlayerControl)).call(this, props));
+
+        _this3.state = {
+            start: new Date(),
+            isPaused: false,
+            delta: 0
+        };
+        _this3.elapse = function () {
+            if (!this.state.isPaused) {
+                this.props.onUpdateTime(this.state.delta + (new Date() - this.state.start) / 1000);
+                this.forceUpdate();
+            }
+            requestAnimationFrame(this.elapse);
+        }.bind(_this3);
+        _this3.playpause = function () {
+            if (this.state.isPaused) {
+                this.setState({ isPaused: false, start: new Date(), delta: this.props.time.value });
+            } else {
+                this.setState({ isPaused: true });
+            }
+        }.bind(_this3);
+        requestAnimationFrame(_this3.elapse);
+        return _this3;
+    }
+
+    _createClass(PlayerControl, [{
+        key: 'render',
+        value: function render() {
+            return _react2.default.createElement(
+                'div',
+                null,
+                _react2.default.createElement(_IconToggle2.default, { value: !this.state.isPaused, on: { label: 'pause', content: 'pause' }, off: { label: 'play', content: 'play_arrow' }, onChange: this.playpause })
+            );
+        }
+    }]);
+
+    return PlayerControl;
+}(_react2.default.Component);
+
+var Settings = function (_React$Component3) {
+    _inherits(Settings, _React$Component3);
+
+    function Settings(props) {
+        _classCallCheck(this, Settings);
+
+        var _this4 = _possibleConstructorReturn(this, (Settings.__proto__ || Object.getPrototypeOf(Settings)).call(this, props));
+
+        _this4.changeFov = function (e) {
+            this.props.onChangeFov(e.target.value);
+            this.forceUpdate();
+        }.bind(_this4);
+        _this4.changeBounds = function (bound, dimension, e) {
+            //Reverse
+            this.props.onChangeBounds(bound, dimension, bound == 0 ? -e.target.value : e.target.value);
+            this.forceUpdate();
+        }.bind(_this4);
+        return _this4;
+    }
+
+    _createClass(Settings, [{
+        key: 'render',
+        value: function render() {
+            return _react2.default.createElement(
+                'div',
+                null,
+                _react2.default.createElement(
+                    'p',
+                    null,
+                    'Camera'
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    'FOV (',
+                    this.props.camera.fov.toLocaleString(),
+                    ')'
+                ),
+                _react2.default.createElement(_Slider2.default, { discrete: true, step: '1', value: this.props.camera.fov, min: 30, max: 120, onChange: this.changeFov }),
+                _react2.default.createElement(
+                    'p',
+                    null,
+                    'Scene'
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    _react2.default.createElement(
+                        'em',
+                        null,
+                        'Waiting on official support for ranged sliders, so two sliders for now :/'
+                    )
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { className: 'mdc-typography--caption' },
+                    'Bounding Box'
+                ),
+                _react2.default.createElement(
+                    'p',
+                    null,
+                    'x: ',
+                    _react2.default.createElement(
+                        'strong',
+                        null,
+                        this.props.boundingBox[0].x.toFixed(2),
+                        ', ',
+                        this.props.boundingBox[1].x.toFixed(2)
+                    )
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { dir: 'rtl' },
+                    _react2.default.createElement(_Slider2.default, { step: '0.01', value: -this.props.boundingBox[0].x, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'x') })
+                ),
+                _react2.default.createElement(_Slider2.default, { step: '0.01', value: this.props.boundingBox[1].x, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'x') }),
+                _react2.default.createElement(
+                    'p',
+                    null,
+                    'y: ',
+                    _react2.default.createElement(
+                        'strong',
+                        null,
+                        this.props.boundingBox[0].y.toFixed(2),
+                        ', ',
+                        this.props.boundingBox[1].y.toFixed(2)
+                    )
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { dir: 'rtl' },
+                    _react2.default.createElement(_Slider2.default, { step: '0.01', value: -this.props.boundingBox[0].y, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'y') })
+                ),
+                _react2.default.createElement(_Slider2.default, { step: '0.01', value: this.props.boundingBox[1].y, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'y') }),
+                _react2.default.createElement(
+                    'p',
+                    null,
+                    'z: ',
+                    _react2.default.createElement(
+                        'strong',
+                        null,
+                        this.props.boundingBox[0].z.toFixed(2),
+                        ', ',
+                        this.props.boundingBox[1].z.toFixed(2)
+                    )
+                ),
+                _react2.default.createElement(
+                    'div',
+                    { dir: 'rtl' },
+                    _react2.default.createElement(_Slider2.default, { step: '0.01', value: -this.props.boundingBox[0].z, min: -20, max: 20, onChange: this.changeBounds.bind(null, 0, 'z') })
+                ),
+                _react2.default.createElement(_Slider2.default, { step: '0.01', value: this.props.boundingBox[1].z, min: -20, max: 20, onChange: this.changeBounds.bind(null, 1, 'z') })
+            );
+        }
+    }]);
+
+    return Settings;
+}(_react2.default.Component);
+
+var GalleryTiles = function GalleryTiles(props) {
+    return _react2.default.createElement(
+        'div',
+        { className: 'mdc-grid-list environment-map-grid-list' },
+        _react2.default.createElement(
+            'ul',
+            { className: 'mdc-grid-list__tiles' },
+            function () {
+                var tiles = [];
+                for (var key in props.snippets) {
+                    tiles.push(_react2.default.createElement(
+                        'li',
+                        { key: key, className: 'mdc-grid-tile', onClick: props.onSelect.bind(null, key) },
+                        _react2.default.createElement(
+                            'div',
+                            { className: 'mdc-grid-tile__primary' },
+                            _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: 'url(\'/images/thumbnails/' + key + '.png\') center' } })
+                        )
+                    ));
+                }
+                return tiles;
+            }()
+        )
+    );
 };
 
 /***/ })

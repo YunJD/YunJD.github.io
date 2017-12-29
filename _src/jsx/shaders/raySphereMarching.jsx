@@ -3,7 +3,7 @@ import intersect from 'stuff/gl/geometry/shaders/intersect.jsx';
 import differential from 'stuff/gl/geometry/shaders/differential.jsx';
 import camera from 'stuff/gl/camera/shaders/camera.jsx';
 import sdfOps from 'stuff/gl/geometry/shaders/sdf_ops.jsx';
-import implicitFunction from 'stuff/gl/geometry/shaders/implicit_function.jsx';
+import sdfMarcher from 'stuff/gl/geometry/shaders/sdf_marcher.jsx';
 import fractalSdf from 'stuff/gl/geometry/shaders/fractal_sdf.jsx';
 
 export default ({maxSteps, sdf, distanceProgram}) => `
@@ -22,7 +22,7 @@ varying vec2 vUv;
 ${distanceProgram}
 
 //Include this here since the shader needs to have the sdf defined before calling.
-${implicitFunction({ maxSteps, sdf })}
+${sdfMarcher({ maxSteps, sdf })}
 
 void main() {
     gl_FragColor = vec4(-1.);
