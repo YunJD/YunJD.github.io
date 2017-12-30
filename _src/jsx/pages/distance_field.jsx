@@ -235,11 +235,19 @@ export default function() {
             void main() {
                 //float theta = (1. - vUv.y) * 3.1415926535;
                 //float phi = vUv.x * 2. * 3.1415926535;
-                //gl_FragColor = abs(vec4(
+                //vec4 norm = abs(vec4(
                 //    cos(phi) * sin(theta),
                 //    cos(theta),
                 //    sin(phi) * sin(theta),
-                //1.));
+                //    1.
+                //));
+                //gl_FragColor = vec4(
+                //    (vec3(0.,230.,118.) * norm.x 
+                //        + vec3(124.,77.,255.) * norm.y 
+                //        + vec3(255.,255.,255.) * norm.z
+                //    ) / 255.,
+                //    1.
+                //);
                 //return;
                 gl_FragColor = vec4(background, 1.);
                 vec4 surface = texture2D(surfaceData, vUv);
@@ -570,61 +578,30 @@ class Lighting extends React.Component {
                 <div className="mdc-typography--caption">Environment Map</div>
                 <div className="mdc-grid-list environment-map-grid-list">
                     <ul className="mdc-grid-list__tiles mdc-grid-list--tile-aspect-4x3">
-                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('arches-env.png', 'Arches')}>
-                            <div className="mdc-grid-tile__primary">
-                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/arches-thumb.jpg') center"}}></span>
-                            </div>
-                            <span className="mdc-grid-tile__secondary">Arches</span>
-                        </li>
-                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('footprint-court-env.png', 'Footprint Court')}>
-                            <div className="mdc-grid-tile__primary">
-                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/footprint-court-thumb.jpg') center"}}></span>
-                            </div>
-                            <span className="mdc-grid-tile__secondary">Footprint Court</span>
-                        </li>
-                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('gloucester-env.png', 'Gloucester Church')}>
-                            <div className="mdc-grid-tile__primary">
-                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/gloucester.jpg') center"}}></span>
-                            </div>
-                            <span className="mdc-grid-tile__secondary">Gloucester Church</span>
-                        </li>
-                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('greenhouse-1-env.png', 'Greenhouse')}>
-                            <div className="mdc-grid-tile__primary">
-                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/greenhouse-1-thumb.jpg') center"}}></span>
-                            </div>
-                            <span className="mdc-grid-tile__secondary">Greenhouse</span>
-                        </li>
-                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('ice-lake-env.png', 'Ice Lake')}>
-                            <div className="mdc-grid-tile__primary">
-                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/ice-lake-thumb.jpg') center"}}></span>
-                            </div>
-                            <span className="mdc-grid-tile__secondary">Ice Lake</span>
-                        </li>
-                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('sunrise-1-env.png', 'Sunrise')}>
-                            <div className="mdc-grid-tile__primary">
-                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/sunrise-1-thumb.jpg') center"}}></span>
-                            </div>
-                            <span className="mdc-grid-tile__secondary">Sunrise</span>
-                        </li>
-                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('washington-hotel-env.png', 'Washington Hotel')}>
-                            <div className="mdc-grid-tile__primary">
-                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/washington-hotel-thumb.jpg') center"}}></span>
-                            </div>
-                            <span className="mdc-grid-tile__secondary">
-                                <span className="mdc-grid-tile__title">
-                                    Washington Hotel Overlook
-                                </span>
-                            </span>
-                        </li>
-                        <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap('norm-env.png', 'Surface Normal')}>
-                            <div className="mdc-grid-tile__primary">
-                                <span className="mdc-grid-tile__primary-content" style={{background: "url('/images/ibl/norm-env.png') center"}}></span>
-                            </div>
-                            <span className="mdc-grid-tile__secondary">Surface Normal</span>
-                        </li>
+                        {[
+                            'arches',
+                            'footprint-court',
+                            'gloucester',
+                            'gravel-plaza',
+                            'greenhouse-1',
+                            'ice-lake',
+                            'sunrise-1',
+                            'theatre-center',
+                            'washington-hotel',
+                            'wooden-door',
+                            'norm-1',
+                            'none',
+                            'dim',
+                        ].map((name) => (
+                            <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap(`${name}-env.png`)}>
+                                <div className="mdc-grid-tile__primary">
+                                    <span className="mdc-grid-tile__primary-content" style={{background: `url('/images/ibl/${name}-thumb.jpg'), url('/images/ibl/${name}-env.png') no-repeat center center`}}></span>
+                                </div>
+                            </li>
+                        ))}
                     </ul>
                 </div>
-                <div style={{ display: 'inline-block', marginRight: 10 }}>
+                <div>
                     <div className="mdc-typography--caption">Background</div>
                     <ChromePicker color={bgColor} onChange={this.changeLighting.bind(null, 'background')}/>
                 </div>

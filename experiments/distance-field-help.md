@@ -1,6 +1,6 @@
 ---
 layout: markdown
-title: Distance Field Experiment Help / Reference
+title: Distance Field Experiment - Help / Reference
 ---
 # Distance Field Experiment
 ## Help & Reference

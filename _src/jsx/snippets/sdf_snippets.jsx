@@ -16,6 +16,7 @@ float cone(in vec3 p) {
 
 //Make sure to keep the function signatures the same.
 float sdf(in vec3 p) {
+    p *= 2.;
     float lefty = length(p * vec3(1., 1., 1.5) - vec3(-1.1, 0., 0.)) - 1.5;
     
     float righty = length(p * vec3(1., 1., 1.5) - vec3(1.1, 0., 0.)) - 1.5;
@@ -30,7 +31,7 @@ float sdf(in vec3 p) {
         1.9
     );
     
-    return smin(heartTop, cone(p * vec3(1.6, 1., 2.95) - vec3(0., -1.73, 0.)) / 2.95, 0.6);
+    return smin(heartTop, cone(p * vec3(1.6, 1., 2.95) - vec3(0., -1.73, 0.)) / 2.95, 0.6) * 0.5;
 }
 
 vec3 gradient(in vec4 p, float t, float fovScale) {
@@ -134,7 +135,7 @@ export default {
         aoParams: {
             nSamples: 0
         },
-        envMap: 'norm-env.png'
+        envMap: 'norm-1-env.png'
     },
     'mandelbulb': {
         code: mandelbulb()

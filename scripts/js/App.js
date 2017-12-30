@@ -57778,8 +57778,14 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+/* Not really sure of a better way to do this. A macro is used because:
+ *   A: This way, a new gradient function does not need to be defined for every new function.
+ *   B: How else can callbacks be performed in GLSL?
+ * I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's
+ * recommended that this function be replaced by an analytical gradient implementation.
+ */
 exports.default = function () {
-    return "\n//Not really sure of a better way to do this. A macro is used because:\n//  A: This way, a new gradient function does not need to be defined for every new function.\n//  B: How else can callbacks be performed in GLSL?\n//I would love to know better auto-differentiation methods for WebGL.  For now, if the gradient is known, then it's\n//recommended that this function be replaced by an analytical gradient implementation.\n#define NUM_GRAD3(fn, p, delta)         (vec3(            fn(vec3(p.x + delta, p.y, p.z)),            fn(vec3(p.x, p.y + delta, p.z)),            fn(vec3(p.x, p.y, p.z + delta))        )        - vec3(            fn(vec3(p.x - delta, p.y, p.z)),            fn(vec3(p.x, p.y - delta, p.z)),            fn(vec3(p.x, p.y, p.z - delta))        ))\n\nfloat numDiff(float deltaPositive, float deltaNeg, float delta) {\n    return (deltaPositive - deltaNeg);\n}\n\nvec2 numDiff(in vec2 deltaPositive, in vec2 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative);\n}\n\nvec3 numDiff(in vec3 deltaPositive, in vec3 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative);\n}\n\nvec4 numDiff(in vec4 deltaPositive, in vec4 deltaNegative, float delta) {\n    return (deltaPositive - deltaNegative);\n}\n";
+    return "\n#define NUM_GRAD3(fn, p, delta)         (vec3(            fn(vec3(p.x + delta, p.y, p.z)),            fn(vec3(p.x, p.y + delta, p.z)),            fn(vec3(p.x, p.y, p.z + delta))        )        - vec3(            fn(vec3(p.x - delta, p.y, p.z)),            fn(vec3(p.x, p.y - delta, p.z)),            fn(vec3(p.x, p.y, p.z - delta))        )) / (2. * delta)\n";
 };
 
 /***/ }),
@@ -92371,7 +92377,7 @@ exports.default = function (_ref) {
         sampleDistance = _ref.sampleDistance,
         nSamples = _ref.nSamples,
         occlusionStrength = _ref.occlusionStrength;
-    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _sdf_ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _sdf_marcher2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\nuniform sampler2D envMap;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-0.3, -1., -1.)),\n        3.5 * vec3(255., 254., 246.) / 255.\n    );\n\n    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 40.);\n    PointLight pLight2 = PointLight(vec3(-2., 1., 3.), vec3(1., 1., 1.) * 60.);\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    normal *= dot(rayDir, normal) < 0. ? 1. : -1.;\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos, normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.6 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(pLight2)\n    CONTRIBUTE_COLOR(directionLight)\n\n    float theta = acos(clamp(normal.y, -1., 1.));\n    float phi = atan(normal.z, normal.x);\n    phi = phi < 0. ? phi + 2. * 3.1415926536 : phi;\n\n    vec4 amb = texture2D(envMap, vec2(\n        phi / (2. * 3.1415926536),\n        1. - theta / 3.1415926536\n    ));\n\n    gl_FragColor = vec4(0.6 * amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);\n}\n';
+    return '\nprecision highp float;\nprecision highp int;\n' + (0, _ops2.default)() + '\n' + (0, _sdf_ops2.default)() + '\n' + (0, _intersect2.default)() + '\n' + (0, _differential2.default)() + '\n' + (0, _camera2.default)() + '\n' + (0, _lights2.default)() + '\n' + (0, _fractal_sdf2.default)() + '\n\n#define SAMPLE_DISTANCE ' + sampleDistance + '\n#define N_SAMPLES ' + nSamples + '\n#define OCCLUSION_STRENGTH ' + occlusionStrength + '\n\n' + distanceProgram + '\n\n' + (0, _sdf_marcher2.default)({ sdf: sdf, maxSteps: maxSteps }) + '\n\nuniform sampler2D surfaceData;\nuniform sampler2D envMap;\n\nvarying vec2 vUv;\n\nvoid main() {\n    DirectionLight directionLight = DirectionLight(\n        normalize(vec3(-0.3, -1., -1.)),\n        4. * vec3(255., 244., 226.) / 255.\n    );\n\n    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 40.);\n    PointLight pLight2 = PointLight(vec3(-2., 1., 3.), vec3(1., 1., 1.) * 60.);\n\n    vec4 data = texture2D(surfaceData, vUv);\n    if(data.w == -1.) {\n        return;\n    }\n\n    vec4 rayPos = getCameraPos();\n    vec4 rayDir = getCameraRay(vUv);\n    vec4 startPos = rayPos + data.w * rayDir;\n    vec4 normal = vec4(data.xyz, 0.);\n    normal *= dot(rayDir, normal) < 0. ? 1. : -1.;\n\n    float occlusion = 0.;\n    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);\n    float t = 1e-3;\n    float occTotal = 0.;\n\n    for(int i = 0; i < N_SAMPLES; ++i) {\n        //Strength decreases with distance because distant light is dimmer. Still just an approximation, and not a real simulation at all (no directionality for example, symmetrical shapes get occluded the same as non-symmetrical ones).\n        float strength = 1. / (1. + t);\n        occTotal += strength;\n        occlusion += strength * max(abs(t - abs(distance(startPos, normal, t, i))) - 1e-2, 0.);\n        t += stepSize;\n    }\n\n    vec3 color = vec3(0.);\n    float tmax = 0.;\n    float vv = 0.;\n\n    vec4 lightDir;\n\n    #define CONTRIBUTE_COLOR(light) lightDir = vec4(sampleDirectLight(light, startPos.xyz, tmax), 0.);    if(!intersectImplicit(startPos, lightDir, 1e-1, tmax, vv)) {        color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.6 / 3.14159265);    }\n\n    CONTRIBUTE_COLOR(pLight)\n    CONTRIBUTE_COLOR(pLight2)\n    CONTRIBUTE_COLOR(directionLight)\n\n    float theta = acos(clamp(normal.y, -1., 1.));\n    float phi = atan(normal.z, normal.x);\n    phi = phi < 0. ? phi + 2. * 3.1415926536 : phi;\n\n    vec4 amb = texture2D(envMap, vec2(\n        phi / (2. * 3.1415926536),\n        1. - theta / 3.1415926536\n    ));\n\n    gl_FragColor = vec4(0.6 * amb.xyz * (1. - clamp(occlusion, 0., 1.)) + color, 1.);\n}\n';
 };
 
 /***/ }),
@@ -92400,7 +92406,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var heart = function heart() {
-    return '\nuniform float time;\n\nfloat cone(in vec3 p) {\n    float sphere = (length(p * vec3(1., 1.7, 1.)) - 1.) / 1.7;\n    p.y -= -1.;\n    vec3 c = vec3(1.);\n    vec2 q = vec2( length(p.xz), -p.y );\n    vec2 v = vec2( c.z*c.y/c.x, -c.z );\n    vec2 w = v - q;\n    vec2 vv = vec2( dot(v,v), v.x*v.x );\n    vec2 qv = vec2( dot(v,w), v.x*w.x );\n    vec2 d = max(qv,0.0)*qv/vv;\n    return smin(sphere, sqrt( dot(w,w) - max(d.x,d.y) ) * sign(max(q.y*v.x-q.x*v.y,w.y)), 1.);\n}\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float lefty = length(p * vec3(1., 1., 1.5) - vec3(-1.1, 0., 0.)) - 1.5;\n    \n    float righty = length(p * vec3(1., 1., 1.5) - vec3(1.1, 0., 0.)) - 1.5;\n    \n    vec2 q = vec2(length(p.xz * vec2(1., 2.)) - 1., p.y + 0.3);\n    float torus = (length(q) - 1.25) / 1.8;\n    \n    float sphereMid = (length(p * vec3(1.3, 1.6, 1.9) - vec3(0., -1.5, 0.)) - 1.2) / 1.9;\n    float heartTop = smin(\n        sphereMid,\n        smin(smin(lefty, righty, 0.05), torus, 0.5),\n        1.9\n    );\n    \n    return smin(heartTop, cone(p * vec3(1.6, 1., 2.95) - vec3(0., -1.73, 0.)) / 2.95, 0.6);\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, 1e-3);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    return sdf((pos + t * dir).xyz);\n}\n'.trim();
+    return '\nuniform float time;\n\nfloat cone(in vec3 p) {\n    float sphere = (length(p * vec3(1., 1.7, 1.)) - 1.) / 1.7;\n    p.y -= -1.;\n    vec3 c = vec3(1.);\n    vec2 q = vec2( length(p.xz), -p.y );\n    vec2 v = vec2( c.z*c.y/c.x, -c.z );\n    vec2 w = v - q;\n    vec2 vv = vec2( dot(v,v), v.x*v.x );\n    vec2 qv = vec2( dot(v,w), v.x*w.x );\n    vec2 d = max(qv,0.0)*qv/vv;\n    return smin(sphere, sqrt( dot(w,w) - max(d.x,d.y) ) * sign(max(q.y*v.x-q.x*v.y,w.y)), 1.);\n}\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    p *= 2.;\n    float lefty = length(p * vec3(1., 1., 1.5) - vec3(-1.1, 0., 0.)) - 1.5;\n    \n    float righty = length(p * vec3(1., 1., 1.5) - vec3(1.1, 0., 0.)) - 1.5;\n    \n    vec2 q = vec2(length(p.xz * vec2(1., 2.)) - 1., p.y + 0.3);\n    float torus = (length(q) - 1.25) / 1.8;\n    \n    float sphereMid = (length(p * vec3(1.3, 1.6, 1.9) - vec3(0., -1.5, 0.)) - 1.2) / 1.9;\n    float heartTop = smin(\n        sphereMid,\n        smin(smin(lefty, righty, 0.05), torus, 0.5),\n        1.9\n    );\n    \n    return smin(heartTop, cone(p * vec3(1.6, 1., 2.95) - vec3(0., -1.73, 0.)) / 2.95, 0.6) * 0.5;\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, 1e-3);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    return sdf((pos + t * dir).xyz);\n}\n'.trim();
 };
 
 var julia = function julia() {
@@ -92425,7 +92431,7 @@ exports.default = {
         aoParams: {
             nSamples: 0
         },
-        envMap: 'norm-env.png'
+        envMap: 'norm-1-env.png'
     },
     'mandelbulb': {
         code: mandelbulb()
@@ -92683,7 +92689,7 @@ exports.default = function () {
                 value: new T.Vector3(0.95, 0.95, 0.95)
             }
         },
-        fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 background;\n\n            void main() {\n                //float theta = (1. - vUv.y) * 3.1415926535;\n                //float phi = vUv.x * 2. * 3.1415926535;\n                //gl_FragColor = abs(vec4(\n                //    cos(phi) * sin(theta),\n                //    cos(theta),\n                //    sin(phi) * sin(theta),\n                //1.));\n                //return;\n                gl_FragColor = vec4(background, 1.);\n                vec4 surface = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n\n                if(surface.a != -1.) {\n                    if(surface.a == -2.) {\n                        gl_FragColor = vec4(surface.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = lightingData;\n                    }\n                }\n            }\n        '
+        fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 background;\n\n            void main() {\n                //float theta = (1. - vUv.y) * 3.1415926535;\n                //float phi = vUv.x * 2. * 3.1415926535;\n                //vec4 norm = abs(vec4(\n                //    cos(phi) * sin(theta),\n                //    cos(theta),\n                //    sin(phi) * sin(theta),\n                //    1.\n                //));\n                //gl_FragColor = vec4(\n                //    (vec3(0.,230.,118.) * norm.x \n                //        + vec3(124.,77.,255.) * norm.y \n                //        + vec3(255.,255.,255.) * norm.z\n                //    ) / 255.,\n                //    1.\n                //);\n                //return;\n                gl_FragColor = vec4(background, 1.);\n                vec4 surface = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n\n                if(surface.a != -1.) {\n                    if(surface.a == -2.) {\n                        gl_FragColor = vec4(surface.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = lightingData;\n                    }\n                }\n            }\n        '
     }, $viewParent.width(), $viewParent.height(), null, marchPass.renderer);
     //}, 360, 180);
 
@@ -93104,143 +93110,24 @@ var Lighting = function (_React$Component) {
                     _react2.default.createElement(
                         'ul',
                         { className: 'mdc-grid-list__tiles mdc-grid-list--tile-aspect-4x3' },
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('arches-env.png', 'Arches');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/arches-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Arches'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('footprint-court-env.png', 'Footprint Court');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/footprint-court-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Footprint Court'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('gloucester-env.png', 'Gloucester Church');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/gloucester.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Gloucester Church'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('greenhouse-1-env.png', 'Greenhouse');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/greenhouse-1-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Greenhouse'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('ice-lake-env.png', 'Ice Lake');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/ice-lake-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Ice Lake'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('sunrise-1-env.png', 'Sunrise');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/sunrise-1-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Sunrise'
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('washington-hotel-env.png', 'Washington Hotel');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/washington-hotel-thumb.jpg') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
+                        ['arches', 'footprint-court', 'gloucester', 'gravel-plaza', 'greenhouse-1', 'ice-lake', 'sunrise-1', 'theatre-center', 'washington-hotel', 'wooden-door', 'norm-1', 'none', 'dim'].map(function (name) {
+                            return _react2.default.createElement(
+                                'li',
+                                { className: 'mdc-grid-tile', onClick: function onClick() {
+                                        return _this2.props.onChangeEnvMap(name + '-env.png');
+                                    } },
                                 _react2.default.createElement(
-                                    'span',
-                                    { className: 'mdc-grid-tile__title' },
-                                    'Washington Hotel Overlook'
+                                    'div',
+                                    { className: 'mdc-grid-tile__primary' },
+                                    _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: 'url(\'/images/ibl/' + name + '-thumb.jpg\'), url(\'/images/ibl/' + name + '-env.png\') no-repeat center center' } })
                                 )
-                            )
-                        ),
-                        _react2.default.createElement(
-                            'li',
-                            { className: 'mdc-grid-tile', onClick: function onClick() {
-                                    return _this2.props.onChangeEnvMap('norm-env.png', 'Surface Normal');
-                                } },
-                            _react2.default.createElement(
-                                'div',
-                                { className: 'mdc-grid-tile__primary' },
-                                _react2.default.createElement('span', { className: 'mdc-grid-tile__primary-content', style: { background: "url('/images/ibl/norm-env.png') center" } })
-                            ),
-                            _react2.default.createElement(
-                                'span',
-                                { className: 'mdc-grid-tile__secondary' },
-                                'Surface Normal'
-                            )
-                        )
+                            );
+                        })
                     )
                 ),
                 _react2.default.createElement(
                     'div',
-                    { style: { display: 'inline-block', marginRight: 10 } },
+                    null,
                     _react2.default.createElement(
                         'div',
                         { className: 'mdc-typography--caption' },

@@ -34,7 +34,7 @@ varying vec2 vUv;
 void main() {
     DirectionLight directionLight = DirectionLight(
         normalize(vec3(-0.3, -1., -1.)),
-        3.5 * vec3(255., 254., 246.) / 255.
+        4. * vec3(255., 244., 226.) / 255.
     );
 
     PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 40.);
