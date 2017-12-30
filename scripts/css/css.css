@@ -34,6 +34,12 @@
 .adjust-right-padding-for-fab {
   padding-right: 106px; }
 
+header.transparent {
+  background: transparent;
+  color: #009688; }
+  header.transparent .mdc-toolbar__menu-icon {
+    color: #009688; }
+
 .panels {
   display: block; }
   .panels .panel {

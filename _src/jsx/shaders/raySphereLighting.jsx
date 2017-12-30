@@ -31,15 +31,12 @@ uniform sampler2D envMap;
 
 varying vec2 vUv;
 
+DirectionLight directionLight = DirectionLight(
+    normalize(vec3(-0.3, -1., -1.)),
+    4. * vec3(255., 244., 226.) / 255.
+);
+
 void main() {
-    DirectionLight directionLight = DirectionLight(
-        normalize(vec3(-0.3, -1., -1.)),
-        4. * vec3(255., 244., 226.) / 255.
-    );
-
-    PointLight pLight = PointLight(vec3(1., 5., 2.8), vec3(1., 1., 1.) * 40.);
-    PointLight pLight2 = PointLight(vec3(-2., 1., 3.), vec3(1., 1., 1.) * 60.);
-
     vec4 data = texture2D(surfaceData, vUv);
     if(data.w == -1.) {
         return;
@@ -75,8 +72,6 @@ void main() {
         color += Le(light, startPos.xyz) * max(0., dot(lightDir, normal)) * (0.6 / 3.14159265);\
     }
 
-    CONTRIBUTE_COLOR(pLight)
-    CONTRIBUTE_COLOR(pLight2)
     CONTRIBUTE_COLOR(directionLight)
 
     float theta = acos(clamp(normal.y, -1., 1.));

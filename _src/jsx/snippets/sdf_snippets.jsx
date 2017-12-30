@@ -138,7 +138,8 @@ export default {
         envMap: 'norm-1-env.png'
     },
     'mandelbulb': {
-        code: mandelbulb()
+        code: mandelbulb(),
+        envMap: 'gloucester-env.png'
     },
     'heart': {
         code: heart()

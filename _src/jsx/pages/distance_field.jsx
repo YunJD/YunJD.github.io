@@ -595,7 +595,7 @@ class Lighting extends React.Component {
                         ].map((name) => (
                             <li className="mdc-grid-tile" onClick={() => this.props.onChangeEnvMap(`${name}-env.png`)}>
                                 <div className="mdc-grid-tile__primary">
-                                    <span className="mdc-grid-tile__primary-content" style={{background: `url('/images/ibl/${name}-thumb.jpg'), url('/images/ibl/${name}-env.png') no-repeat center center`}}></span>
+                                    <span className="mdc-grid-tile__primary-content" style={{background: `url('/images/ibl/${name}-thumb.jpg'), url('/images/ibl/${name}-env.png')`, backgroundPosition: 'center'}}></span>
                                 </div>
                             </li>
                         ))}

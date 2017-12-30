@@ -71,14 +71,17 @@ header: |
         #gallery.visible {
             display: block;
         }
+        #gallery-tiles li {
+            width: 300px;
+        }
     </style>
 ---
 <div id="gallery">
-    <header>
+    <header class="mdc-toolbar transparent">
         <div class="mdc-toolbar__row">
             <section class="mdc-toolbar__section mdc-toolbar__section--shrink-to-fit mdc-toolbar__section--align-start">
-                <a id="close-gallery" class="material-icons mdc-toolbar__menu-icon mdc-theme--text-primary-on-light" href="#">arrow_back</a>
-                <span class="mdc-toolbar__title" style="text-transform: uppercase">Gallery</span>
+                <a id="close-gallery" class="material-icons mdc-toolbar__menu-icon" href="#">arrow_back</a>
+                <span class="mdc-toolbar__title mdc-typography--body2">GALLERY</span>
             </section>
         </div>
     </header>
