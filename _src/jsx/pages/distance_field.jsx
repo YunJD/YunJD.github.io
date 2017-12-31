@@ -16,7 +16,7 @@ export default function() {
     let needsUpdate = true;
 
     let aoParams = {
-        sampleDistance: 0.2,
+        sampleDistance: 0.35,
         nSamples: 7
     };
     let rayMarcherParams = {
@@ -56,7 +56,7 @@ export default function() {
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(sdfSnippets.mandelbulb.code, 1);
+    editor.setValue(sdfSnippets.julia3.code, 1);
     editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -191,7 +191,7 @@ export default function() {
             },
             envMap: {
                 type: 't',
-                value: envTextureLoader.load("/images/ibl/arches-env.png")
+                value: envTextureLoader.load("/images/ibl/gloucester-env.png")
             }
         },
         fragmentShader: raySphereLightingShader(Object.assign({
@@ -498,7 +498,7 @@ export default function() {
         editor.setValue(snippet.code, 1);
 
         updateAO(snippet.aoParams || {
-            sampleDistance: 0.2,
+            sampleDistance: 0.35,
             nSamples: 7
         });
 
@@ -579,12 +579,15 @@ class Lighting extends React.Component {
                 <div className="mdc-grid-list environment-map-grid-list">
                     <ul className="mdc-grid-list__tiles mdc-grid-list--tile-aspect-4x3">
                         {[
+                            'antonius-church',
                             'arches',
                             'footprint-court',
                             'gloucester',
                             'gravel-plaza',
                             'greenhouse-1',
+                            'harbour',
                             'ice-lake',
+                            'new-snow',
                             'sunrise-1',
                             'theatre-center',
                             'washington-hotel',

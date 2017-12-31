@@ -45,4 +45,33 @@ float mandelbulb(in vec4 p, float power, float phaseShift) {
     }
     return 0.5 * log(r) * r / dr;
 }
+
+float julia3D(in vec4 p, in vec3 c, float power) {
+    vec3 pos = p.xzy;
+    vec3 z = pos;
+
+    float dr = 1.;
+    float r = 0.;
+
+    for(int i = 0; i < ITERATIONS; ++i) {
+        r = length(z);
+        if(r > 2.) break;
+
+        //Convert to polar coordinates
+        float theta = acos(z.z / r);
+        float phi = atan(z.y, z.x);
+        dr = power * pow(r, power - 1.) * dr;
+
+        float zr = pow(r, power);
+        theta *= power;
+        phi *= power;
+
+        //Convert back to cartesian coordinates
+        float sinTheta = sin(theta);
+        z = zr * vec3(
+            sinTheta * cos(phi), sinTheta * sin(phi), cos(theta)
+        ) + c;
+    }
+    return 0.5 * log(r) * r / dr;
+}
 `;

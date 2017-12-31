@@ -1,3 +1,65 @@
+let menger = () => `
+uniform float time;
+
+float box(in vec3 p, in vec3 b) {
+    vec3 d = abs(p) - b;
+    return min(max(d.x, max(d.y, d.z)), 0.) + length(max(d, 0.));
+}
+
+float box2(in vec2 p, in vec2 b) {
+    vec2 d = abs(p) - b;
+    return min(max(d.x, d.y), 0.) + length(max(d, 0.));
+}
+
+float cross(in vec3 p) {
+    vec2 unit = vec2(1.);
+    return min(
+        box2(p.xy, unit),
+        min(
+            box2(p.yz, unit),
+            box2(p.xz, unit)
+        )
+    );
+}
+//Signs are probably wrong :)
+const mat3 rot = mat3(
+    cos(0.45), -sin(0.45), 0.,
+    sin(0.45), cos(0.45), 0.,
+    0., 0., 1.
+);
+const mat3 rot2 = mat3(
+    cos(0.5), 0., -sin(0.5),
+    0., 1., 0.,
+    sin(0.5), 0., cos(0.5)
+);
+
+float sdf(in vec3 p) {
+    float d = length(max(abs(p) - vec3(2.), 0.));
+    float scale = 0.35;
+    vec3 tp = p;
+    
+    for(int i = 0; i < 6; ++i) {
+        tp = rot2 * rot * tp;
+        vec3 mp = mod(tp * scale, 2.) - 1.;
+        scale *= 3.;
+        float c = cross(3. * abs(mp) - 1.) / scale;
+        d = max(d, c);
+    }
+    return min(p.y + 2., d);
+}
+
+vec3 gradient(in vec4 p, float t, float fovScale) {
+    return NUM_GRAD3(sdf, p, clamp(t * 2e-3, 1e-3, 0.5));
+}
+
+float distance(in vec4 pos, in vec4 dir, float t, int i) {
+    return sdf((pos + t * dir).xyz);
+}
+`;
+
+
+
+
 let heart = () => `
 uniform float time;
 
@@ -62,9 +124,39 @@ vec3 gradient(in vec4 p, float t, float fovScale) {
 
 float distance(in vec4 pos, in vec4 dir, float t, int i) {
     //Ignore everything outside a sphere of radius 2.
-	float tmin, tmax;
+    float tmin, tmax;
     float distJulia = 0.;
-	if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
+    if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
+
+    return sdf((pos + max(t, tmin) * dir).xyz);
+}
+`.trim();
+
+
+
+
+let julia3 = () => `
+uniform float time;
+
+//Make sure to keep the function signatures the same.
+float sdf(in vec3 p) {
+    float t = time * 0.5;
+    return julia3D(
+        vec4(p, 0.),
+        0.5 * vec3(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3)), 
+        2.
+    );
+}
+
+vec3 gradient(in vec4 p, float t, float fovScale) {
+    return NUM_GRAD3(sdf, p, clamp(t * 2e-3, 1e-3, 0.5));
+}
+
+float distance(in vec4 pos, in vec4 dir, float t, int i) {
+    //Ignore everything outside a sphere of radius 2.
+    float tmin, tmax;
+    float distJulia = 0.;
+    if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
 
     return sdf((pos + max(t, tmin) * dir).xyz);
 }
@@ -89,9 +181,9 @@ vec3 gradient(in vec4 p, float t, float fovScale) {
 
 float distance(in vec4 pos, in vec4 dir, float t, int i) {
     //Ignore everything outside a sphere of radius 2.
-	float tmin, tmax;
+    float tmin, tmax;
     float distJulia = 0.;
-	if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
+    if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
 
     return sdf((pos + max(t, tmin) * dir).xyz);
 }
@@ -114,9 +206,9 @@ vec3 gradient(in vec4 p, float t, float fovScale) {
 
 float distance(in vec4 pos, in vec4 dir, float t, int i) {
     //Ignore everything outside a sphere of radius 2.
-	float tmin, tmax;
+    float tmin, tmax;
     float distJulia = 0.;
-	if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
+    if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
 
     return sdf((pos + max(t, tmin) * dir).xyz);
 }
@@ -126,9 +218,22 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 
 
 export default {
-    //These keys match up with the thumbnails for the gallery.
+    'julia3': {
+        code: julia3(),
+        envMap: 'gloucester-env.png'
+    },
+    //These keys match up with the thumbnail names for the gallery.
+    'mandelbulb': {
+        code: mandelbulb(),
+        envMap: 'gloucester-env.png'
+    },
+    'menger': {
+        code: menger(),
+        envMap: 'theatre-center-env.png'
+    },
     'julia': {
-        code: julia()
+        code: julia(),
+        envMap: 'gravel-plaza-env.png'
     },
     'julia-smooth-normal': {
         code: juliaSmoothNormal(),
@@ -137,11 +242,7 @@ export default {
         },
         envMap: 'norm-1-env.png'
     },
-    'mandelbulb': {
-        code: mandelbulb(),
-        envMap: 'gloucester-env.png'
-    },
     'heart': {
         code: heart()
-    }
+    },
 };

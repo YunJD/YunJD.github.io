@@ -57847,7 +57847,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 
 exports.default = function () {
-    return "\n#define ITERATIONS 16\nfloat julia4D(in vec4 p, in vec4 c) {\n    vec4 z = p;\n    vec4 grad = vec4(1., 0., 0., 0.);\n\n    float mz2 = dot(z, z);\n    float md2 = 1.;\n\n    for(int i = 0; i < ITERATIONS; ++i) {\n        if(mz2 > 4.) { break; }\n        md2 *= 4. * mz2;\n        z = vec4(z.x * z.x - dot(z.yzw, z.yzw), 2.0 * z.x * z.yzw) + c;\n        mz2 = dot(z, z);\n    }\n\n    return 0.25 * sqrt(mz2 / md2) * log(mz2);\n}\n\nfloat mandelbulb(in vec4 p, float power, float phaseShift) {\n    vec3 pos = p.xzy;\n    vec3 z = pos;\n\n    float dr = 1.;\n    float r = 0.;\n\n    for(int i = 0; i < ITERATIONS; ++i) {\n        r = length(z);\n        if(r > 2.) break;\n\n        //Convert to polar coordinates\n        float theta = acos(z.z / r) - phaseShift;\n        float phi = atan(z.y, z.x);\n        dr = power * pow(r, power - 1.) * dr + 1.;\n\n        float zr = pow(r, power);\n        theta *= power;\n        phi *= power;\n\n        //Convert back to cartesian coordinates\n        float sinTheta = sin(theta);\n        z = zr * vec3(\n            sinTheta * cos(phi), sinTheta * sin(phi), cos(theta)\n        ) + pos;\n    }\n    return 0.5 * log(r) * r / dr;\n}\n";
+    return "\n#define ITERATIONS 16\nfloat julia4D(in vec4 p, in vec4 c) {\n    vec4 z = p;\n    vec4 grad = vec4(1., 0., 0., 0.);\n\n    float mz2 = dot(z, z);\n    float md2 = 1.;\n\n    for(int i = 0; i < ITERATIONS; ++i) {\n        if(mz2 > 4.) { break; }\n        md2 *= 4. * mz2;\n        z = vec4(z.x * z.x - dot(z.yzw, z.yzw), 2.0 * z.x * z.yzw) + c;\n        mz2 = dot(z, z);\n    }\n\n    return 0.25 * sqrt(mz2 / md2) * log(mz2);\n}\n\nfloat mandelbulb(in vec4 p, float power, float phaseShift) {\n    vec3 pos = p.xzy;\n    vec3 z = pos;\n\n    float dr = 1.;\n    float r = 0.;\n\n    for(int i = 0; i < ITERATIONS; ++i) {\n        r = length(z);\n        if(r > 2.) break;\n\n        //Convert to polar coordinates\n        float theta = acos(z.z / r) - phaseShift;\n        float phi = atan(z.y, z.x);\n        dr = power * pow(r, power - 1.) * dr + 1.;\n\n        float zr = pow(r, power);\n        theta *= power;\n        phi *= power;\n\n        //Convert back to cartesian coordinates\n        float sinTheta = sin(theta);\n        z = zr * vec3(\n            sinTheta * cos(phi), sinTheta * sin(phi), cos(theta)\n        ) + pos;\n    }\n    return 0.5 * log(r) * r / dr;\n}\n\nfloat julia3D(in vec4 p, in vec3 c, float power) {\n    vec3 pos = p.xzy;\n    vec3 z = pos;\n\n    float dr = 1.;\n    float r = 0.;\n\n    for(int i = 0; i < ITERATIONS; ++i) {\n        r = length(z);\n        if(r > 2.) break;\n\n        //Convert to polar coordinates\n        float theta = acos(z.z / r);\n        float phi = atan(z.y, z.x);\n        dr = power * pow(r, power - 1.) * dr;\n\n        float zr = pow(r, power);\n        theta *= power;\n        phi *= power;\n\n        //Convert back to cartesian coordinates\n        float sinTheta = sin(theta);\n        z = zr * vec3(\n            sinTheta * cos(phi), sinTheta * sin(phi), cos(theta)\n        ) + c;\n    }\n    return 0.5 * log(r) * r / dr;\n}\n";
 };
 
 /***/ }),
@@ -59645,7 +59645,7 @@ exports.default = function () {
     var needsUpdate = true;
 
     var aoParams = {
-        sampleDistance: 0.2,
+        sampleDistance: 0.35,
         nSamples: 7
     };
     var rayMarcherParams = {
@@ -59684,7 +59684,7 @@ exports.default = function () {
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(_sdf_snippets2.default.mandelbulb.code, 1);
+    editor.setValue(_sdf_snippets2.default.julia3.code, 1);
     editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -59809,7 +59809,7 @@ exports.default = function () {
             },
             envMap: {
                 type: 't',
-                value: envTextureLoader.load("/images/ibl/arches-env.png")
+                value: envTextureLoader.load("/images/ibl/gloucester-env.png")
             }
         },
         fragmentShader: (0, _raySphereLighting2.default)(Object.assign({
@@ -60097,7 +60097,7 @@ exports.default = function () {
             editor.setValue(snippet.code, 1);
 
             updateAO(snippet.aoParams || {
-                sampleDistance: 0.2,
+                sampleDistance: 0.35,
                 nSamples: 7
             });
 
@@ -60263,7 +60263,7 @@ var Lighting = function (_React$Component) {
                     _react2.default.createElement(
                         'ul',
                         { className: 'mdc-grid-list__tiles mdc-grid-list--tile-aspect-4x3' },
-                        ['arches', 'footprint-court', 'gloucester', 'gravel-plaza', 'greenhouse-1', 'ice-lake', 'sunrise-1', 'theatre-center', 'washington-hotel', 'wooden-door', 'norm-1', 'none', 'dim'].map(function (name) {
+                        ['antonius-church', 'arches', 'footprint-court', 'gloucester', 'gravel-plaza', 'greenhouse-1', 'harbour', 'ice-lake', 'new-snow', 'sunrise-1', 'theatre-center', 'washington-hotel', 'wooden-door', 'norm-1', 'none', 'dim'].map(function (name) {
                             return _react2.default.createElement(
                                 'li',
                                 { className: 'mdc-grid-tile', onClick: function onClick() {
@@ -93326,26 +93326,47 @@ exports.default = function () {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+var menger = function menger() {
+    return '\nuniform float time;\n\nfloat box(in vec3 p, in vec3 b) {\n    vec3 d = abs(p) - b;\n    return min(max(d.x, max(d.y, d.z)), 0.) + length(max(d, 0.));\n}\n\nfloat box2(in vec2 p, in vec2 b) {\n    vec2 d = abs(p) - b;\n    return min(max(d.x, d.y), 0.) + length(max(d, 0.));\n}\n\nfloat cross(in vec3 p) {\n    vec2 unit = vec2(1.);\n    return min(\n        box2(p.xy, unit),\n        min(\n            box2(p.yz, unit),\n            box2(p.xz, unit)\n        )\n    );\n}\n//Signs are probably wrong :)\nconst mat3 rot = mat3(\n    cos(0.45), -sin(0.45), 0.,\n    sin(0.45), cos(0.45), 0.,\n    0., 0., 1.\n);\nconst mat3 rot2 = mat3(\n    cos(0.5), 0., -sin(0.5),\n    0., 1., 0.,\n    sin(0.5), 0., cos(0.5)\n);\n\nfloat sdf(in vec3 p) {\n    float d = length(max(abs(p) - vec3(2.), 0.));\n    float scale = 0.35;\n    vec3 tp = p;\n    \n    for(int i = 0; i < 6; ++i) {\n        tp = rot2 * rot * tp;\n        vec3 mp = mod(tp * scale, 2.) - 1.;\n        scale *= 3.;\n        float c = cross(3. * abs(mp) - 1.) / scale;\n        d = max(d, c);\n    }\n    return min(p.y + 2., d);\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-3, 1e-3, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    return sdf((pos + t * dir).xyz);\n}\n';
+};
+
 var heart = function heart() {
     return '\nuniform float time;\n\nfloat cone(in vec3 p) {\n    float sphere = (length(p * vec3(1., 1.7, 1.)) - 1.) / 1.7;\n    p.y -= -1.;\n    vec3 c = vec3(1.);\n    vec2 q = vec2( length(p.xz), -p.y );\n    vec2 v = vec2( c.z*c.y/c.x, -c.z );\n    vec2 w = v - q;\n    vec2 vv = vec2( dot(v,v), v.x*v.x );\n    vec2 qv = vec2( dot(v,w), v.x*w.x );\n    vec2 d = max(qv,0.0)*qv/vv;\n    return smin(sphere, sqrt( dot(w,w) - max(d.x,d.y) ) * sign(max(q.y*v.x-q.x*v.y,w.y)), 1.);\n}\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    p *= 2.;\n    float lefty = length(p * vec3(1., 1., 1.5) - vec3(-1.1, 0., 0.)) - 1.5;\n    \n    float righty = length(p * vec3(1., 1., 1.5) - vec3(1.1, 0., 0.)) - 1.5;\n    \n    vec2 q = vec2(length(p.xz * vec2(1., 2.)) - 1., p.y + 0.3);\n    float torus = (length(q) - 1.25) / 1.8;\n    \n    float sphereMid = (length(p * vec3(1.3, 1.6, 1.9) - vec3(0., -1.5, 0.)) - 1.2) / 1.9;\n    float heartTop = smin(\n        sphereMid,\n        smin(smin(lefty, righty, 0.05), torus, 0.5),\n        1.9\n    );\n    \n    return smin(heartTop, cone(p * vec3(1.6, 1., 2.95) - vec3(0., -1.73, 0.)) / 2.95, 0.6) * 0.5;\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, 1e-3);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    return sdf((pos + t * dir).xyz);\n}\n'.trim();
 };
 
 var julia = function julia() {
-    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-3, 1e-3, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-3, 1e-3, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n    float tmin, tmax;\n    float distJulia = 0.;\n    if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+};
+
+var julia3 = function julia3() {
+    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia3D(\n        vec4(p, 0.),\n        0.5 * vec3(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3)), \n        2.\n    );\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-3, 1e-3, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n    float tmin, tmax;\n    float distJulia = 0.;\n    if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
 };
 
 var juliaSmoothNormal = function juliaSmoothNormal() {
-    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, 3.);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.5;\n    return julia4D(vec4(p, 0.),\n        0.6 * vec4(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3), sin(2. + t * 1.8)));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, 3.);\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n    float tmin, tmax;\n    float distJulia = 0.;\n    if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
 };
 
 var mandelbulb = function mandelbulb() {
-    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    return mandelbulb(vec4(p, 0.), 8., time * 0.3);\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-4, 1e-5, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n\tfloat tmin, tmax;\n    float distJulia = 0.;\n\tif(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
+    return '\nuniform float time;\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    return mandelbulb(vec4(p, 0.), 8., time * 0.3);\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 2e-4, 1e-5, 0.5));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    //Ignore everything outside a sphere of radius 2.\n    float tmin, tmax;\n    float distJulia = 0.;\n    if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;\n\n    return sdf((pos + max(t, tmin) * dir).xyz);\n}\n'.trim();
 };
 
 exports.default = {
-    //These keys match up with the thumbnails for the gallery.
+    'julia3': {
+        code: julia3(),
+        envMap: 'gloucester-env.png'
+    },
+    //These keys match up with the thumbnail names for the gallery.
+    'mandelbulb': {
+        code: mandelbulb(),
+        envMap: 'gloucester-env.png'
+    },
+    'menger': {
+        code: menger(),
+        envMap: 'theatre-center-env.png'
+    },
     'julia': {
-        code: julia()
+        code: julia(),
+        envMap: 'gravel-plaza-env.png'
     },
     'julia-smooth-normal': {
         code: juliaSmoothNormal(),
@@ -93353,10 +93374,6 @@ exports.default = {
             nSamples: 0
         },
         envMap: 'norm-1-env.png'
-    },
-    'mandelbulb': {
-        code: mandelbulb(),
-        envMap: 'gloucester-env.png'
     },
     'heart': {
         code: heart()
