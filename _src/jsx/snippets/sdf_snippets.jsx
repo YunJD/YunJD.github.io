@@ -1,23 +1,18 @@
 let sierpinski = () => `
 uniform float time;
-#define ITER 14
-#define SCALE 1.6
+#define ITER 16
+#define SCALE 1.8
 
 const mat3 rot = mat3(
     cos(0.1), -sin(0.1), 0.,
     sin(0.1), cos(0.1), 0.,
     0., 0., 1.
 );
-const mat3 rot2 = mat3(
-    cos(1.3), 0., -sin(1.3),
-    0., 1., 0.,
-    sin(1.3), 0., cos(1.3)
-);
 
 
 //Make sure to keep the function signatures the same.
 float sdf(in vec3 p) {
-    mat3 rot3 = mat3(
+    mat3 rot2 = mat3(
         1., 0., 0.,
         0., cos(time * 0.3), -sin(time * 0.3),
         0., sin(time * 0.3), cos(time * 0.3)
@@ -27,9 +22,9 @@ float sdf(in vec3 p) {
        if(z.x+z.y<0.) z.xy = -z.yx; // fold 1
        if(z.x+z.z<0.) z.xz = -z.zx; // fold 2
        if(z.y+z.z<0.) z.zy = -z.yz; // fold 3
-       z = rot3 * rot2 * rot * (SCALE * (z + vec3(0., 0.25, 0.1)) - vec3(1.));
+       z = rot2 * rot * (SCALE * (z + vec3(0., 0.25, 0.1)) - vec3(1.));
     }
-    return (length(max(abs(z) - 1., 0.))) * pow(SCALE, -float(ITER));
+    return (length(max(abs(z) - 20., 0.))) * pow(SCALE, -float(ITER));
 }
 
 vec3 gradient(in vec4 p, float t, float fovScale) {
