@@ -24,11 +24,11 @@ float sdf(in vec3 p) {
        if(z.y+z.z<0.) z.zy = -z.yz; // fold 3
        z = rot2 * rot * (SCALE * (z + vec3(0., 0.25, 0.1)) - vec3(1.));
     }
-    return (length(max(abs(z) - 20., 0.))) * pow(SCALE, -float(ITER));
+    return (length(max(abs(z) - 1.8, 0.))) * pow(SCALE, -float(ITER));
 }
 
 vec3 gradient(in vec4 p, float t, float fovScale) {
-    return NUM_GRAD3(sdf, p, 1e-3);
+    return NUM_GRAD3(sdf, p, clamp(t * 1e-3, 1e-5, 0.1));
 }
 
 float distance(in vec4 pos, in vec4 dir, float t, int i) {
