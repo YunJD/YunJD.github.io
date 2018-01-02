@@ -59740,7 +59740,7 @@ exports.default = function () {
         needsUpdate = true;
     }
     function zoom(amount) {
-        camR = T.Math.clamp(camR + amount, 0.01, 50);
+        camR = T.Math.clamp(camR + amount, 0.01, 100);
         updateCamera();
     }
     function rotateTheta(amount) {
@@ -60041,8 +60041,7 @@ exports.default = function () {
         }
     });
     $view.on('mousewheel', function (e) {
-        //Zoom slower as we approach camR = 0;
-        zoom(T.Math.clamp(camR * 0.25, 0.05, 1.1) * Math.log(camR + 1) * (-e.originalEvent.wheelDelta / 120));
+        zoom(0.1 * (-e.originalEvent.wheelDelta / 120));
     });
 
     var fabSwitchTimeout = void 0;
@@ -93327,7 +93326,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var sierpinski = function sierpinski() {
-    return '\nuniform float time;\n#define ITER 16\n#define SCALE 1.8\n\nconst mat3 rot = mat3(\n    cos(0.1), -sin(0.1), 0.,\n    sin(0.1), cos(0.1), 0.,\n    0., 0., 1.\n);\n\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    mat3 rot2 = mat3(\n        1., 0., 0.,\n        0., cos(time * 0.3), -sin(time * 0.3),\n        0., sin(time * 0.3), cos(time * 0.3)\n    );\n    vec3 z = p;\n    for(int i = 0; i < ITER; ++i) {\n       if(z.x+z.y<0.) z.xy = -z.yx; // fold 1\n       if(z.x+z.z<0.) z.xz = -z.zx; // fold 2\n       if(z.y+z.z<0.) z.zy = -z.yz; // fold 3\n       z = rot2 * rot * (SCALE * (z + vec3(0., 0.25, 0.1)) - vec3(1.));\n    }\n    return (length(max(abs(z) - 1.8, 0.))) * pow(SCALE, -float(ITER));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 1e-3, 1e-5, 0.1));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    return sdf((pos + t * dir).xyz);\n}\n';
+    return '\nuniform float time;\n#define ITER 30\n#define SCALE 1.3\n\n\n//Make sure to keep the function signatures the same.\nfloat sdf(in vec3 p) {\n    float t = time * 0.3 - 0.02;\n    mat3 rot = mat3(\n        1., 0., 0.,\n        0., cos(t), -sin(t),\n        0., sin(t), cos(t)\n    );\n    \n    float t2 = time * 0.1;\n    mat3 rot2 = mat3(\n        cos(t2), -sin(t2), 0.,\n        sin(t2), cos(t2), 0.,\n        0., 0., 1.\n    );\n    \n    float t3 = time * 0.05;\n    mat3 rot3 = mat3(\n        cos(t3), 0., -sin(t3),\n        0., 1., 0.,\n        sin(t3), 0., cos(t3)\n    );\n    vec3 z = p;\n    for(int i = 0; i < ITER; ++i) {\n       if(z.x+z.y<0.) z.xy = -z.yx; // fold 1\n       if(z.x+z.z<0.) z.xz = -z.zx; // fold 2\n       if(z.y+z.z<0.) z.zy = -z.yz; // fold 3\n       z = rot3 * rot2 * rot * (SCALE * (z + vec3(0.2, 0.4, 0.1)) - vec3(1.));\n    }\n    return (length(max(abs(z) - .5, 0.))) * pow(SCALE, -float(ITER));\n}\n\nvec3 gradient(in vec4 p, float t, float fovScale) {\n    return NUM_GRAD3(sdf, p, clamp(t * 1e-3, 1e-5, 0.1));\n}\n\nfloat distance(in vec4 pos, in vec4 dir, float t, int i) {\n    return sdf((pos + t * dir).xyz);\n}\n';
 };
 
 var menger = function menger() {

@@ -118,7 +118,7 @@ export default function() {
         needsUpdate = true;
     }
     function zoom(amount) {
-        camR = T.Math.clamp(camR + amount, 0.01, 50);
+        camR = T.Math.clamp(camR + amount, 0.01, 100);
         updateCamera();
     }
     function rotateTheta(amount) {
@@ -442,8 +442,7 @@ export default function() {
         }
     });
     $view.on('mousewheel', function(e) {
-        //Zoom slower as we approach camR = 0;
-        zoom(T.Math.clamp(camR * 0.25, 0.05, 1.1) * Math.log(camR + 1) * (-e.originalEvent.wheelDelta / 120));
+        zoom(0.1 * (-e.originalEvent.wheelDelta / 120));
     });
 
     let fabSwitchTimeout;
