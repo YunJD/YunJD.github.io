@@ -442,7 +442,7 @@ export default function() {
         }
     });
     $view.on('mousewheel', function(e) {
-        zoom(0.1 * (-e.originalEvent.wheelDelta / 120));
+        zoom(0.3 * (-e.originalEvent.wheelDelta / 120));
     });
 
     let fabSwitchTimeout;

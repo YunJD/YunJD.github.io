@@ -49,7 +49,7 @@ void main() {
     normal *= dot(rayDir, normal) < 0. ? 1. : -1.;
 
     float occlusion = 0.;
-    float stepSize = float(SAMPLE_DISTANCE) / float(N_SAMPLES);
+    float stepSize = float(SAMPLE_DISTANCE) / max(1e-4, float(N_SAMPLES));
     float t = 5e-3;
     float occTotal = 0.;
 
