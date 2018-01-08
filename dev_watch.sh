@@ -9,4 +9,4 @@ trap "kill 0" EXIT
 
 webpack --watch &
 
-jekyll serve
+bundle exec jekyll serve

@@ -50,7 +50,7 @@ void main() {
 
     float occlusion = 0.;
     float stepSize = float(SAMPLE_DISTANCE) / max(1e-4, float(N_SAMPLES));
-    float t = 5e-3;
+    float t = 1e-3;
     float occTotal = 0.;
 
     for(int i = 0; i < N_SAMPLES; ++i) {

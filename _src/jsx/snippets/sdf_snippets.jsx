@@ -1,6 +1,6 @@
 let sierpinski2 = () => `
 uniform float time;
-#define ITER 30
+#define ITER 20
 #define SCALE 1.6
 const float invScale = pow(SCALE, -float(ITER));
 
@@ -35,15 +35,14 @@ float sdf(in vec3 p) {
     );
     vec3 z = p;
     for(int i = 0; i < ITER; ++i) {
-        z = i > 1 && i < 7 ? rot3 * rot2 * rot * z : z;
+        z = i < 9 ? rot3 * rot2 * rot * z : z;
         if(z.x+z.y<0.) z.xy = -z.yx; // fold 1
         if(z.x+z.z<0.) z.xz = -z.zx; // fold 2
         if(z.y+z.z<0.) z.zy = -z.yz; // fold 3
-        z = (SCALE * (z) - 1.);
-        z = i == 0 ? rot2 * rot * z : z;
+        z = (SCALE * (z - 0.5 * abs(vec3(cos(time * 0.01), cos(time * 0.05), cos(time * 0.1)))) - 1.);
         //z = i == 10 ? rot * z : z;
     }
-    return (length(z) - 2.) * invScale;
+    return (length(z) - 5.) * invScale;
 }
 
 vec3 gradient(in vec4 p, float t, float fovScale) {
@@ -96,7 +95,7 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 
 let sierpinski = () => `
 uniform float time;
-#define ITER 30
+#define ITER 25
 #define SCALE 1.3
 const float invScale = pow(SCALE, -float(ITER));
 
@@ -134,9 +133,9 @@ float sdf(in vec3 p) {
         if(z.x+z.y<0.) z.xy = -z.yx; // fold 1
         if(z.x+z.z<0.) z.xz = -z.zx; // fold 2
         if(z.y+z.z<0.) z.zy = -z.yz; // fold 3
-        z = rot3 * rot2 * rot * (SCALE * (z + vec3(0.2, 0.4, 0.1)) - 1.);
+        z = rot3 * rot2 * rot * (SCALE * (z - 0.5 * abs(vec3(cos(time * 0.2), cos(time * 0.4), cos(time * 0.1)))) - 0.2);
     }
-    return (length(z) - 2.) * invScale;
+    return (length(max(abs(z) - 2., 0.))) * invScale;
 }
 
 vec3 gradient(in vec4 p, float t, float fovScale) {
@@ -153,8 +152,8 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 
 let menger = () => `
 uniform float time;
-#define ITER 25
-#define SCALE 2.5
+#define ITER 15
+#define SCALE 2.8
 const float invScale = pow(SCALE, -float(ITER));
 
 
@@ -189,19 +188,18 @@ float sdf(in vec3 p) {
 
     vec3 z = p;
     for(int i = 0; i < ITER; ++i) {
-        z = i < 2 ? rot * rot2 * rot3 * z : z;
-        z = i < 6 && i >= 1 ? rot * z : z;
+        z = i < 2 ? rot2 * rot * z : z;
+        z = i > 1 ? rot3 * rot2 * rot * z : z;
         z = abs(z);
         if(z.x < z.y) z.xy = z.yx;
         if(z.y < z.z) z.yz = z.zy;
         if(z.x < z.y) z.xy = z.yx;
 
-        z = (SCALE * z - 2.);
-        z = i < 2 ? -rot3 * rot * rot2 * z : z;
+        z = (SCALE * (z - .8 * abs(vec3(cos(time * 0.1), cos(time * 0.15), cos(time * 0.25)))) - (SCALE - 1.));
 
         if(z.z < -1.) z.z += 2.;
     }
-    return (length(z) - 2.) * invScale;
+    return length(max(abs(z) - 1., 0.)) * invScale;
 }
 
 vec3 gradient(in vec4 p, float t, float fovScale) {
