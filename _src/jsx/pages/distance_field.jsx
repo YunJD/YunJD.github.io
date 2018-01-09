@@ -16,7 +16,7 @@ export default function() {
     let needsUpdate = true;
 
     let aoParams = {
-        sampleDistance: 0.35,
+        sampleDistance: 0.20,
         nSamples: 7
     };
     let rayMarcherParams = {
@@ -497,7 +497,7 @@ export default function() {
         editor.setValue(snippet.code, 1);
 
         updateAO(snippet.aoParams || {
-            sampleDistance: 0.35,
+            sampleDistance: 0.2,
             nSamples: 7
         });
 

@@ -57,19 +57,25 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 
 
 
-let mandelbox = () => `
-#define SCALE -2.
+let mandelboxNeg = () => `
+#define ITER 20
 #define FIXED_RADIUS 1.
 #define MIN_RADIUS 0.5
-#define ITER 20
 const float minRad2 = MIN_RADIUS * MIN_RADIUS;
-const vec4 scaleVec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / minRad2;
-const float C1 = abs(SCALE - 1.); const float C2 = pow(abs(SCALE), float(1 - ITER));
 
 uniform float time;
 
 //Make sure to keep the function signatures the same.
 float sdf(in vec3 p) {
+    float SCALE = -(2.75 + 1.5 * cos(time * 0.5));
+    float rescale = 2.;
+    
+    
+    vec4 scaleVec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / minRad2;
+    float C1 = abs(SCALE - 1.); float C2 = pow(abs(SCALE), float(1 - ITER));
+    
+    p *= rescale;
+
     vec4 z = vec4(p, 1.);
     vec4 p0 = vec4(p, 1.);
     for(int i = 0; i < ITER; ++i) {
@@ -78,7 +84,50 @@ float sdf(in vec3 p) {
         z.xyzw *= clamp(max(minRad2 / r2, minRad2), 0., 1.); //Sphere fold
         z.xyzw = scaleVec * z + p0;
     }
-    return (length(z.xyz) - C1) / z.w - C2;
+    return ((length(z.xyz) - C1) / z.w - C2) / rescale;
+}
+
+vec3 gradient(in vec4 p, float t, float fovScale) {
+    return NUM_GRAD3(sdf, p, clamp(t * 1e-3, 1e-5, 0.1));
+}
+
+float distance(in vec4 pos, in vec4 dir, float t, int i) {
+    return sdf((pos + t * dir).xyz);
+}
+`;
+
+
+
+
+let mandelbox = () => `
+#define ITER 20
+#define FIXED_RADIUS 1.
+#define MIN_RADIUS 0.5
+const float minRad2 = MIN_RADIUS * MIN_RADIUS;
+
+uniform float time;
+
+//Make sure to keep the function signatures the same.
+float sdf(in vec3 p) {
+    float SCALE = 2.8 + 1.5 * cos(time * 0.5);
+    float boxScale = 2. * (SCALE + 1.) / (SCALE - 1.);
+    float rescale = boxScale;
+    
+    
+    vec4 scaleVec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / minRad2;
+    float C1 = abs(SCALE - 1.); float C2 = pow(abs(SCALE), float(1 - ITER));
+    
+    p *= rescale;
+
+    vec4 z = vec4(p, 1.);
+    vec4 p0 = vec4(p, 1.);
+    for(int i = 0; i < ITER; ++i) {
+        z.xyz = clamp(z.xyz, -1., 1.) * 2. - z.xyz; //Box fold
+        float r2 = dot(z.xyz, z.xyz);
+        z.xyzw *= clamp(max(minRad2 / r2, minRad2), 0., 1.); //Sphere fold
+        z.xyzw = scaleVec * z + p0;
+    }
+    return ((length(z.xyz) - C1) / z.w - C2) / rescale;
 }
 
 vec3 gradient(in vec4 p, float t, float fovScale) {
@@ -136,6 +185,69 @@ float sdf(in vec3 p) {
         z = rot3 * rot2 * rot * (SCALE * (z - 0.5 * abs(vec3(cos(time * 0.2), cos(time * 0.4), cos(time * 0.1)))) - 0.2);
     }
     return (length(max(abs(z) - 2., 0.))) * invScale;
+}
+
+vec3 gradient(in vec4 p, float t, float fovScale) {
+    return NUM_GRAD3(sdf, p, clamp(t * 1e-3, 1e-5, 0.1));
+}
+
+float distance(in vec4 pos, in vec4 dir, float t, int i) {
+    return sdf((pos + t * dir).xyz);
+}
+`;
+
+
+
+
+let menger2 = () => `
+uniform float time;
+#define ITER 15
+#define SCALE 2.5
+const float invScale = pow(SCALE, -float(ITER));
+
+
+//Make sure to keep the function signatures the same.
+float sdf(in vec3 p) {
+    float t = time * 0.3;
+    float s = sin(t);
+    float c = cos(t);
+    mat3 rot = mat3(
+        1., 0., 0.,
+        0., c, -s,
+        0., s, c
+    );
+    
+    t = time * 0.1;
+    s = sin(t);
+    c = cos(t);
+    mat3 rot2 = mat3(
+        c, -s, 0.,
+        s, c, 0.,
+        0., 0., 1.
+    );
+    
+    t = time * 0.05;
+    s = sin(t);
+    c = cos(t);
+    mat3 rot3 = mat3(
+        c, 0., -s,
+        0., 1., 0.,
+        s, 0., c
+    );
+
+    vec3 z = p;
+    for(int i = 0; i < ITER; ++i) {
+        z = i < 2 ? rot2 * rot * z : z;
+        z = abs(z);
+        if(z.x < z.y) z.xy = z.yx;
+        if(z.y < z.z) z.yz = z.zy;
+        if(z.x < z.y) z.xy = z.yx;
+
+        z = (SCALE * (z - .8 * abs(vec3(cos(time * 0.1), cos(time * 0.15), cos(time * 0.25)))) - (SCALE - 1.));
+
+        if(z.z < -1.) z.z += 2.;
+    }
+    return length(max(abs(z) - 1., 0.)) * invScale;
 }
 
 vec3 gradient(in vec4 p, float t, float fovScale) {
@@ -279,7 +391,6 @@ vec3 gradient(in vec4 p, float t, float fovScale) {
 float distance(in vec4 pos, in vec4 dir, float t, int i) {
     //Ignore everything outside a sphere of radius 2.
     float tmin, tmax;
-    float distJulia = 0.;
     if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
 
     return sdf((pos + max(t, tmin) * dir).xyz);
@@ -298,7 +409,8 @@ float sdf(in vec3 p) {
     return julia3D(
         vec4(p, 0.),
         0.5 * vec3(cos(t), sin(0.2 + t * 1.05), cos(1.08 + t * 1.3)), 
-        2.
+        2.,
+        time * 0.3
     );
 }
 
@@ -309,7 +421,6 @@ vec3 gradient(in vec4 p, float t, float fovScale) {
 float distance(in vec4 pos, in vec4 dir, float t, int i) {
     //Ignore everything outside a sphere of radius 2.
     float tmin, tmax;
-    float distJulia = 0.;
     if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
 
     return sdf((pos + max(t, tmin) * dir).xyz);
@@ -336,7 +447,6 @@ vec3 gradient(in vec4 p, float t, float fovScale) {
 float distance(in vec4 pos, in vec4 dir, float t, int i) {
     //Ignore everything outside a sphere of radius 2.
     float tmin, tmax;
-    float distJulia = 0.;
     if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
 
     return sdf((pos + max(t, tmin) * dir).xyz);
@@ -361,7 +471,6 @@ vec3 gradient(in vec4 p, float t, float fovScale) {
 float distance(in vec4 pos, in vec4 dir, float t, int i) {
     //Ignore everything outside a sphere of radius 2.
     float tmin, tmax;
-    float distJulia = 0.;
     if(!intersectSphere(2.001, pos.xyz, dir.xyz, tmin, tmax)) return 1e5;
 
     return sdf((pos + max(t, tmin) * dir).xyz);
@@ -374,7 +483,11 @@ float distance(in vec4 pos, in vec4 dir, float t, int i) {
 export default {
     'mandelbox': {
         code: mandelbox(),
-        envMap: 'gloucester-env.png'
+        envMap: 'harbour-env.png'
+    },
+    'mandelboxNeg': {
+        code: mandelboxNeg(),
+        envMap: 'wooden-door-env.png'
     },
     'julia3': {
         code: julia3(),
@@ -388,6 +501,10 @@ export default {
     'menger': {
         code: menger(),
         envMap: 'theatre-center-env.png'
+    },
+    'menger2': {
+        code: menger2(),
+        envMap: 'antonius-church-env.png'
     },
     'sierpinski': {
         code: sierpinski(),
