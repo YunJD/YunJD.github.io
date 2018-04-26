@@ -56,7 +56,7 @@ export default function() {
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(sdfSnippets.julia3.code, 1);
+    editor.setValue(sdfSnippets.sierpinski2.code, 1);
     editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -191,7 +191,7 @@ export default function() {
             },
             envMap: {
                 type: 't',
-                value: envTextureLoader.load("/images/ibl/gloucester-env.png")
+                value: envTextureLoader.load("/images/ibl/wooden-door-env.png")
             }
         },
         fragmentShader: raySphereLightingShader(Object.assign({
@@ -221,7 +221,7 @@ export default function() {
             },
             background: {
                 type: 'v3',
-                value: new T.Vector3(0.95, 0.95, 0.95)
+                value: new T.Vector3(0.05, 0.05, 0.1)
             }
         },
         fragmentShader: `
@@ -642,9 +642,9 @@ class PlayerControl extends React.Component {
 
     render() {
         return (
-            <div>
-                <IconToggle value={!this.state.isPaused} on={{label: 'pause', content: 'pause'}} off={{label: 'play', content: 'play_arrow'}} onChange={this.playpause}/>
-            </div>
+            <button className="mdc-button mdc-button--raised" style={{background: 'white', color: 'black'}} onClick={this.playpause}>
+                <i className="material-icons" style={{verticalAlign: 'middle'}}>{this.state.isPaused ? 'play_arrow' : 'pause'}</i>
+            </button>
         );
     }
 }

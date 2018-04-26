@@ -59684,7 +59684,7 @@ exports.default = function () {
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(_sdf_snippets2.default.julia3.code, 1);
+    editor.setValue(_sdf_snippets2.default.sierpinski2.code, 1);
     editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
@@ -59809,7 +59809,7 @@ exports.default = function () {
             },
             envMap: {
                 type: 't',
-                value: envTextureLoader.load("/images/ibl/gloucester-env.png")
+                value: envTextureLoader.load("/images/ibl/wooden-door-env.png")
             }
         },
         fragmentShader: (0, _raySphereLighting2.default)(Object.assign({
@@ -59839,7 +59839,7 @@ exports.default = function () {
             },
             background: {
                 type: 'v3',
-                value: new T.Vector3(0.95, 0.95, 0.95)
+                value: new T.Vector3(0.05, 0.05, 0.1)
             }
         },
         fragmentShader: '\n            precision highp float;\n            precision highp int;\n            varying vec2 vUv;\n            uniform sampler2D surfaceData;\n            uniform sampler2D lighting;\n            uniform vec3 background;\n\n            void main() {\n                //float theta = (1. - vUv.y) * 3.1415926535;\n                //float phi = vUv.x * 2. * 3.1415926535;\n                //vec4 norm = abs(vec4(\n                //    cos(phi) * sin(theta),\n                //    cos(theta),\n                //    sin(phi) * sin(theta),\n                //    1.\n                //));\n                //gl_FragColor = vec4(\n                //    (vec3(0.,230.,118.) * norm.x \n                //        + vec3(124.,77.,255.) * norm.y \n                //        + vec3(255.,255.,255.) * norm.z\n                //    ) / 255.,\n                //    1.\n                //);\n                //return;\n                gl_FragColor = vec4(background, 1.);\n                vec4 surface = texture2D(surfaceData, vUv);\n                vec4 lightingData = texture2D(lighting, vUv);\n\n                if(surface.a != -1.) {\n                    if(surface.a == -2.) {\n                        gl_FragColor = vec4(surface.xyz, 1.);\n                    }\n                    else {\n                        gl_FragColor = lightingData;\n                    }\n                }\n            }\n        '
@@ -60329,9 +60329,13 @@ var PlayerControl = function (_React$Component2) {
         key: 'render',
         value: function render() {
             return _react2.default.createElement(
-                'div',
-                null,
-                _react2.default.createElement(_IconToggle2.default, { value: !this.state.isPaused, on: { label: 'pause', content: 'pause' }, off: { label: 'play', content: 'play_arrow' }, onChange: this.playpause })
+                'button',
+                { className: 'mdc-button mdc-button--raised', style: { background: 'white', color: 'black' }, onClick: this.playpause },
+                _react2.default.createElement(
+                    'i',
+                    { className: 'material-icons', style: { verticalAlign: 'middle' } },
+                    this.state.isPaused ? 'play_arrow' : 'pause'
+                )
             );
         }
     }]);
