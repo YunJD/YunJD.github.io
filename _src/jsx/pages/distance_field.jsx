@@ -56,7 +56,7 @@ export default function() {
     editor.renderer.setScrollMargin(16, 16);
     editor.setTheme('ace/theme/dracula');
     editor.getSession().setMode('ace/mode/glsl');
-    editor.setValue(sdfSnippets.sierpinski2.code, 1);
+    editor.setValue(sdfSnippets.julia3.code, 1);
     editor.gotoLine(1);
     editor.commands.addCommand({
         name: 'updateprogram',
