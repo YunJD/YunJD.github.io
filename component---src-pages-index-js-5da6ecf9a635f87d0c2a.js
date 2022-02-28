@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[678],{6558:function(e,n,t){t.r(n);var u=t(7294),c=t(1597);n.default=function(){return(0,u.useEffect)((function(){(0,c.c4)("/distance-field")}),[]),u.createElement("main",null)}}}]);
+//# sourceMappingURL=component---src-pages-index-js-5da6ecf9a635f87d0c2a.js.map
