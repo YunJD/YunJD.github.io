@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkpersonal_website_yunjd=self.webpackChunkpersonal_website_yunjd||[]).push([[678],{6558:function(e,n,t){t.r(n);var u=t(7294),s=t(1597);n.default=function(){return(0,u.useEffect)((function(){(0,s.c4)("/distance-field")}),[]),u.createElement("main",null)}}}]);
+//# sourceMappingURL=component---src-pages-index-js-f62d820a49913971ada5.js.map
