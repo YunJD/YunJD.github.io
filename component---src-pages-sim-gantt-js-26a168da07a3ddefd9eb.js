@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkpersonal_website_yunjd=self.webpackChunkpersonal_website_yunjd||[]).push([[893],{9529:function(n,e,t){t.r(e);var u=t(7294);e.default=function(){return(0,u.useEffect)((function(){window.location.href="/autogantt"}),[]),null}}}]);
+//# sourceMappingURL=component---src-pages-sim-gantt-js-26a168da07a3ddefd9eb.js.map
