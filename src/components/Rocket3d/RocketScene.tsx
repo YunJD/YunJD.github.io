@@ -3,15 +3,16 @@ import { Suspense, createRef, useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { RocketModel } from "./RocketModel";
 import { Sphere, SoftShadows, Environment, Html } from "@react-three/drei";
-import {
-  UnrealBloomPass,
-  RenderPass,
-  ShaderPass,
-  EffectComposer,
-} from "three-stdlib";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { BloomPass } from "three/addons/postprocessing/BloomPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
 import * as THREE from "three";
 
-const FINAL_EFFECT_VERT_SHADER = `
+const MIX_PASS_VERT_SHADER = `
 varying vec2 vUv;
 
 void main() {
@@ -22,18 +23,17 @@ void main() {
 
 }`;
 
-const FINAL_EFFECT_FRAG_SHADER = `
+const MIX_PASS_FRAG_SHADER = `
 uniform sampler2D baseTexture;
 uniform sampler2D bloomTexture;
 
 varying vec2 vUv;
 
 void main() {
-
-    vec4 base = texture2D( baseTexture, vUv );
-    vec4 bloom = texture2D( bloomTexture, vUv );
-    bloom.a = max(bloom.b, max(bloom.r, bloom.g));
-    gl_FragColor = base + bloom;
+  vec4 base = texture2D( baseTexture, vUv );
+  vec4 bloom = texture2D( bloomTexture, vUv );
+  bloom.a = max(bloom.r, max(bloom.g, bloom.b));
+  gl_FragColor = (base + bloom);
 }`;
 const BloomEffects = ({
   selection,
@@ -45,18 +45,20 @@ const BloomEffects = ({
     () =>
       new THREE.MeshBasicMaterial({
         color: "black",
-        transparent: true,
-        opacity: 0,
+        transparent: false,
+        opacity: 1,
       }),
     []
   );
   const renderPass = useMemo(() => new RenderPass(scene, camera), []);
   const bloomPass = useMemo(
-    () => new UnrealBloomPass(new THREE.Vector2(0, 0), 3, 1, 0),
+    () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.125, 0, 0),
     []
   );
-  const bloomComposer = useMemo(() => new EffectComposer(gl), []);
-  const finalPass = useMemo(
+  const genericBloomPass = useMemo(() => new BloomPass(0.5, 2, 20), []);
+  const outputPass = useMemo(() => new OutputPass(), []);
+  const bloomComposer = useMemo(() => new EffectComposer(gl), [gl]);
+  const mixPass = useMemo(
     () =>
       new ShaderPass(
         new THREE.ShaderMaterial({
@@ -64,24 +66,28 @@ const BloomEffects = ({
             baseTexture: { value: null },
             bloomTexture: { value: bloomComposer.renderTarget2.texture },
           },
-          vertexShader: FINAL_EFFECT_VERT_SHADER,
-          fragmentShader: FINAL_EFFECT_FRAG_SHADER,
+          vertexShader: MIX_PASS_VERT_SHADER,
+          fragmentShader: MIX_PASS_FRAG_SHADER,
+          defines: {},
         }),
         "baseTexture"
       ),
     []
   );
+
   const finalComposer = useMemo(() => new EffectComposer(gl), []);
+
   useEffect(() => {
     renderPass.clearAlpha = 0;
     bloomComposer.renderToScreen = false;
     bloomComposer.addPass(renderPass);
     bloomComposer.addPass(bloomPass);
 
-    finalPass.needsSwap = true;
+    mixPass.needsSwap = true;
     finalComposer.addPass(renderPass);
-    finalComposer.addPass(finalPass);
-  }, []);
+    finalComposer.addPass(mixPass);
+    finalComposer.addPass(outputPass);
+  }, [renderPass, bloomComposer, finalComposer]);
 
   useEffect(() => {
     bloomComposer.setSize(size.width, size.height);
@@ -193,7 +199,7 @@ export const RocketScene = () => {
           <group ref={fumesRef} position={[0, -2, 0]} scale={[1, 8, 1]}>
             <Sphere args={[0.5, 8, 25]} ref={fumesMeshRef}>
               <meshBasicMaterial
-                color="#ff5544"
+                color={new THREE.Color(40, 5, 2)}
                 opacity={1}
                 transparent={true}
               />
