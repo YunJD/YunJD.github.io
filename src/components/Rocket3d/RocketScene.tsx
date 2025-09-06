@@ -35,7 +35,11 @@ void main() {
     bloom.a = max(bloom.b, max(bloom.r, bloom.g));
     gl_FragColor = base + bloom;
 }`;
-const BloomEffects = ({ selection }: { selection: RefObject<THREE.Mesh> }) => {
+const BloomEffects = ({
+  selection,
+}: {
+  selection: RefObject<THREE.Mesh | null>[];
+}) => {
   const { scene, gl, size, camera } = useThree();
   const invisibleMaterial = useMemo(
     () =>
@@ -85,24 +89,33 @@ const BloomEffects = ({ selection }: { selection: RefObject<THREE.Mesh> }) => {
   }, [size]);
 
   useFrame(() => {
-    const originalMaterials = {};
+    const selectedObjs = selection
+      .filter((obj) => obj.current)
+      .map((obj) => obj.current);
+    const originalMaterials: Record<
+      string,
+      {
+        obj: THREE.Mesh | THREE.Points;
+        material: THREE.Material;
+      }
+    > = {};
     scene.traverse((obj) => {
-      if (obj.isMesh || obj.isPoints) {
-        originalMaterials[obj.uuid] = obj.material;
+      if (obj instanceof THREE.Mesh || obj instanceof THREE.Points) {
+        originalMaterials[obj.uuid] = { obj, material: obj.material };
         obj.material = invisibleMaterial;
       }
     });
-    for (let objRef of selection) {
-      const obj = objRef.current;
-      obj.material = originalMaterials[obj.uuid];
+    for (let selectedObj of selectedObjs) {
+      if (!selectedObj?.uuid) {
+        continue;
+      }
+      const { obj, material } = originalMaterials[selectedObj.uuid];
+      obj.material = material;
     }
     bloomComposer.render();
-    scene.traverse((obj) => {
-      if (originalMaterials[obj.uuid]) {
-        obj.material = originalMaterials[obj.uuid];
-        delete originalMaterials[obj.uuid];
-      }
-    });
+    for (let { obj, material } of Object.values(originalMaterials)) {
+      obj.material = material;
+    }
     finalComposer.render();
   }, 1);
   return null;
@@ -110,7 +123,6 @@ const BloomEffects = ({ selection }: { selection: RefObject<THREE.Mesh> }) => {
 
 export const RocketScene = () => {
   const rocketRef = createRef<THREE.Mesh>();
-  const starsRef = createRef<THREE.Mesh>();
   const fumesRef = createRef<THREE.Mesh>();
   const fumesMeshRef = createRef<THREE.Mesh>();
   const { size } = useThree();
@@ -127,10 +139,6 @@ export const RocketScene = () => {
     }
     if (rocketRef.current) {
       rocketRef.current.rotation.y += 0.0015;
-    }
-    if (starsRef.current) {
-      starsRef.current.rotation.x = 0.0001;
-      starsRef.current.rotation.y -= 0.0001;
     }
   });
 

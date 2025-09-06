@@ -23,9 +23,8 @@ function Content() {
             <Section>
               <div className="text-8xl font-extrabold">Jin Ding</div>
               <div className="mt-10 inline-block text-2xl bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-pink-500 font-medium">
-                Shipping software since 3142
+                Software developer. 3D enthusiast.
               </div>
-              <p className="mt-4 text-lg">Software developer. 3D enthusiast.</p>
             </Section>
           </Container>
         </div>
