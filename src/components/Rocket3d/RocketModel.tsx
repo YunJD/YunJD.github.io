@@ -62,7 +62,7 @@ export const RocketModel = forwardRef((props, ref) => {
         <meshPhysicalMaterial
           map={bodyMap}
           metalness={1}
-          roughness={0.4}
+          roughness={0.35}
           clearcoat={1}
         />
       </mesh>
@@ -88,7 +88,7 @@ export const RocketModel = forwardRef((props, ref) => {
         <meshPhysicalMaterial
           color="#ff0109"
           metalness={1}
-          roughness={0.35}
+          roughness={0.8}
           clearcoat={0.1}
           clearcoatRoughness={0.05}
         />
