@@ -6,7 +6,6 @@ import { Sphere, SoftShadows, Environment, Html } from "@react-three/drei";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
-import { BloomPass } from "three/addons/postprocessing/BloomPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
@@ -55,7 +54,6 @@ const BloomEffects = ({
     () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.125, 0, 0),
     []
   );
-  const genericBloomPass = useMemo(() => new BloomPass(0.5, 2, 20), []);
   const outputPass = useMemo(() => new OutputPass(), []);
   const bloomComposer = useMemo(() => new EffectComposer(gl), [gl]);
   const mixPass = useMemo(
