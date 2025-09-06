@@ -1,3 +1,4 @@
+import type { RefObject } from "react";
 import { Suspense, createRef, useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { RocketModel } from "./RocketModel";
@@ -34,7 +35,7 @@ void main() {
     bloom.a = max(bloom.b, max(bloom.r, bloom.g));
     gl_FragColor = base + bloom;
 }`;
-const BloomEffects = ({ selection }) => {
+const BloomEffects = ({ selection }: { selection: RefObject<THREE.Mesh> }) => {
   const { scene, gl, size, camera } = useThree();
   const invisibleMaterial = useMemo(
     () =>
@@ -46,7 +47,10 @@ const BloomEffects = ({ selection }) => {
     []
   );
   const renderPass = useMemo(() => new RenderPass(scene, camera), []);
-  const bloomPass = useMemo(() => new UnrealBloomPass(undefined, 3, 1, 0), []);
+  const bloomPass = useMemo(
+    () => new UnrealBloomPass(new THREE.Vector2(0, 0), 3, 1, 0),
+    []
+  );
   const bloomComposer = useMemo(() => new EffectComposer(gl), []);
   const finalPass = useMemo(
     () =>
@@ -131,7 +135,7 @@ export const RocketScene = () => {
   });
 
   //Window inner width is not affected by scrollbar.  It is needed to match css @media.
-  const rocketTransformProps =
+  const rocketTransformProps: Record<string, [number, number, number]> =
     window.innerWidth >= 1024
       ? {
           position: [1, -0.5, 1.1 / Math.max(1.5 * aspect, 1)],
