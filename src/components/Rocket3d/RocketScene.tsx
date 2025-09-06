@@ -2,7 +2,7 @@ import type { RefObject } from "react";
 import { Suspense, createRef, useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { RocketModel } from "./RocketModel";
-import { Sphere, SoftShadows, Environment, Html } from "@react-three/drei";
+import { Sphere, Environment, Html } from "@react-three/drei";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
@@ -157,9 +157,16 @@ export const RocketScene = () => {
           position: [0, 0, -1],
           rotation: [0, 0, 0],
         };
+
+  const environment = (
+    <Environment
+      background={false}
+      files="industrial_sunset_lowres.hdr"
+      path="/scenes3d/env-maps/"
+    />
+  );
   return (
     <>
-      <SoftShadows />
       <Suspense
         fallback={
           <Html>
@@ -169,25 +176,19 @@ export const RocketScene = () => {
           </Html>
         }
       >
-        <Environment
-          background={false}
-          files="industrial_sunset_lowres.hdr"
-          path="/scenes3d/env-maps/"
-        />
-        <pointLight intensity={1} position={[-20, -30, 530]} color="#11aaee" />
-        <pointLight intensity={1} position={[100, 50, 10]} color="#11aaee" />
+        {environment}
         <directionalLight
           color="#ff3311"
           intensity={30}
-          position={[-100, -100, -200]}
+          position={[-100, 100, -200]}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
         />
         <directionalLight
-          color="#ff3311"
+          color="#bb66ff"
           intensity={20}
-          position={[-500, 900, -400]}
+          position={[0, 300, -100]}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}

@@ -38,7 +38,7 @@ export const RocketModel = forwardRef((props, ref) => {
         geometry={Rocket_window_glass.geometry}
         rotation={Rocket_window_glass.rotation}
         scale={Rocket_window_glass.scale}
-        castShadow={true}
+        castShadow
       >
         <meshPhysicalMaterial
           color="#333"
@@ -52,7 +52,8 @@ export const RocketModel = forwardRef((props, ref) => {
         />
       </mesh>
       <mesh
-        receiveShadow={true}
+        castShadow
+        receiveShadow
         ref={bodyRef}
         geometry={Rocket_body.geometry}
         position={Rocket_body.position}
@@ -71,7 +72,8 @@ export const RocketModel = forwardRef((props, ref) => {
         position={Rocket_window.position}
         rotation={Rocket_window.rotation}
         scale={Rocket_window.scale}
-        castShadow={true}
+        castShadow
+        receiveShadow
       >
         <meshPhysicalMaterial map={windowMap} metalness={1} roughness={0.2} />
       </mesh>
@@ -80,7 +82,8 @@ export const RocketModel = forwardRef((props, ref) => {
         geometry={Rocket_fin.geometry}
         position={Rocket_fin.position}
         scale={Rocket_fin.scale}
-        castShadow={true}
+        castShadow
+        receiveShadow
       >
         <meshPhysicalMaterial
           color="#ff0109"
@@ -94,7 +97,7 @@ export const RocketModel = forwardRef((props, ref) => {
         geometry={Rocket_hatch_window.geometry}
         rotation={Rocket_hatch_window.rotation}
         scale={Rocket_hatch_window.scale}
-        castShadow={true}
+        castShadow
       >
         <meshPhysicalMaterial map={windowMap} metalness={1} roughness={0.2} />
       </mesh>
