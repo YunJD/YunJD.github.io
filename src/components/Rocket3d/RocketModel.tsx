@@ -24,33 +24,11 @@ export const RocketModel = forwardRef((props, ref) => {
   const rocket = useGLTF("/scenes3d/rocket/rocket.glb");
   const { nodes } = rocket;
 
-  const {
-    Rocket_window_glass,
-    Rocket_body,
-    Rocket_window,
-    Rocket_fin,
-    Rocket_hatch_window,
-  } = nodes as Record<string, THREE.Mesh>;
+  const { Rocket_body, Rocket_window, Rocket_fin, Rocket_hatch_window } =
+    nodes as Record<string, THREE.Mesh>;
 
   return (
     <group ref={ref} {...props} rotation={[0, Math.PI * 0.5, 0]}>
-      <mesh
-        geometry={Rocket_window_glass.geometry}
-        rotation={Rocket_window_glass.rotation}
-        scale={Rocket_window_glass.scale}
-        castShadow
-      >
-        <meshPhysicalMaterial
-          color="#333"
-          thickness={0.05}
-          transmission={1}
-          ior={1.5}
-          reflectivity={0.5}
-          transparent={true}
-          opacity={1}
-          roughness={0.0}
-        />
-      </mesh>
       <mesh
         castShadow
         receiveShadow
