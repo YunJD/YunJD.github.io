@@ -166,7 +166,7 @@ export const RocketScene = () => {
   const { size } = useThree();
   const aspect = size.height / size.width;
 
-  useFrame((state) => {
+  useFrame(() => {
     if (rocketRef.current) {
       // rocketRef.current.rotation.y = 0.6;
       rocketRef.current.rotation.y += 0.0015;
