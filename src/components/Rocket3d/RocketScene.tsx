@@ -171,7 +171,7 @@ export const RocketScene = () => {
       <Suspense
         fallback={
           <Html>
-            <div className="font-extrabold text-center inline-block bg-primary-900/60 text-white backdrop-blur mb-14 px-5 py-4 rounded-xl">
+            <div className="font-extrabold m-auto inline-block text-white">
               Loading...
             </div>
           </Html>
