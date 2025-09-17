@@ -160,9 +160,10 @@ export const RocketScene = () => {
 
   const environment = (
     <Environment
-      background={false}
-      files="industrial_sunset_lowres.hdr"
+      files="qwantani_sunset.hdr"
       path="/scenes3d/env-maps/"
+      environmentRotation={[0, (-30 * Math.PI) / 180, (-20 * Math.PI) / 180]}
+      environmentIntensity={1}
     />
   );
   return (
@@ -178,17 +179,9 @@ export const RocketScene = () => {
       >
         {environment}
         <directionalLight
-          color="#ff3311"
-          intensity={30}
-          position={[-100, 100, -200]}
-          castShadow
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-        />
-        <directionalLight
-          color="#bb66ff"
-          intensity={20}
-          position={[0, 300, -100]}
+          color="white"
+          intensity={10}
+          position={[4, 12, 4]}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
