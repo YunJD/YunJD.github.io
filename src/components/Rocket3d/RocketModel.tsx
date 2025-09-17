@@ -1,7 +1,33 @@
-import { forwardRef, useRef, useMemo } from "react";
+import { forwardRef, useRef, useMemo, type ReactElement } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
+const Engine = ({
+  nodes,
+  children,
+  part,
+}: {
+  nodes: Record<string, THREE.Mesh>;
+  part?: "_a" | "_b" | "_c" | "_d";
+  children: ReactElement;
+}) => {
+  const suffix = part ?? "";
+  const engine = nodes[`Rocket_engine${suffix}`];
+  if (!engine) {
+    return null;
+  }
+  return (
+    <mesh
+      castShadow
+      receiveShadow
+      geometry={engine.geometry}
+      position={engine.position}
+      scale={engine.scale}
+    >
+      {children}
+    </mesh>
+  );
+};
 export const RocketModel = forwardRef((props, ref) => {
   const bodyMap = useMemo(() => {
     const tex = new THREE.TextureLoader().load(
@@ -24,11 +50,42 @@ export const RocketModel = forwardRef((props, ref) => {
   const rocket = useGLTF("/scenes3d/rocket/rocket.glb");
   const { nodes } = rocket;
 
-  const { Rocket_body, Rocket_window, Rocket_fin, Rocket_hatch_window } =
-    nodes as Record<string, THREE.Mesh>;
+  const recordNodes = nodes as Record<string, THREE.Mesh>;
+  const {
+    Rocket_body,
+    Rocket_engine,
+    Rocket_window,
+    Rocket_fin,
+    Rocket_hatch_window,
+  } = recordNodes;
 
+  const engineMaterial = (
+    <meshPhysicalMaterial color="black" metalness={1} roughness={0.2} />
+  );
   return (
     <group ref={ref} {...props} rotation={[0, Math.PI * 0.5, 0]}>
+      <Engine nodes={recordNodes}>{engineMaterial}</Engine>
+      <Engine nodes={recordNodes} part="_a">
+        {engineMaterial}
+      </Engine>
+      <Engine nodes={recordNodes} part="_b">
+        {engineMaterial}
+      </Engine>
+      <Engine nodes={recordNodes} part="_c">
+        {engineMaterial}
+      </Engine>
+      <Engine nodes={recordNodes} part="_d">
+        {engineMaterial}
+      </Engine>
+      <mesh
+        castShadow
+        receiveShadow
+        geometry={Rocket_engine.geometry}
+        position={Rocket_engine.position}
+        scale={Rocket_engine.scale}
+      >
+        <meshPhysicalMaterial color="black" metalness={1} roughness={0.2} />
+      </mesh>
       <mesh
         castShadow
         receiveShadow
@@ -40,8 +97,9 @@ export const RocketModel = forwardRef((props, ref) => {
         <meshPhysicalMaterial
           map={bodyMap}
           metalness={1}
-          roughness={0.5}
+          roughness={0.7}
           clearcoat={1}
+          clearcoatRoughness={0.4}
         />
       </mesh>
       <mesh

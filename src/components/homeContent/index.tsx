@@ -22,6 +22,7 @@ function Content() {
     const callback = () => {
       setCanvasHeight(window.innerHeight < 700 ? "700px" : "100vh");
     };
+    callback();
     window.addEventListener("resize", callback);
     return () => {
       window.removeEventListener("resize", callback);

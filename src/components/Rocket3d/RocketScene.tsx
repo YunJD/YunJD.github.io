@@ -125,23 +125,50 @@ const BloomEffects = ({
   return null;
 };
 
-export const RocketScene = () => {
-  const rocketRef = createRef<THREE.Mesh>();
-  const fumesRef = createRef<THREE.Mesh>();
-  const fumesMeshRef = createRef<THREE.Mesh>();
-  const { size } = useThree();
-  const aspect = size.height / size.width;
-
+const useFume = (
+  position: THREE.Vector3Like = new THREE.Vector3(),
+  elapsedShift: number = 0,
+  key = "main"
+) => {
+  const groupRef = createRef<THREE.Mesh>();
+  const meshRef = createRef<THREE.Mesh>();
+  const component = (
+    <group
+      key={key}
+      ref={groupRef}
+      position={new THREE.Vector3(0, -3, 0).add(position)}
+      scale={[1, 8, 1]}
+    >
+      <Sphere args={[0.25, 8, 25]} ref={meshRef}>
+        <meshBasicMaterial
+          color={new THREE.Color(40, 5, 2).multiplyScalar(1.5)}
+          opacity={0.5}
+          transparent={true}
+        />
+      </Sphere>
+    </group>
+  );
   useFrame((state) => {
-    const elapsedTime = state.clock.getElapsedTime();
-    const { current } = fumesRef;
+    const elapsedTime = state.clock.getElapsedTime() + elapsedShift;
+    const { current } = groupRef;
     if (current) {
       const scale1 = Math.sin(elapsedTime * 80 + 0.2) * 0.025;
       const scale2 = Math.sin(elapsedTime * 10) * 0.02;
       current.scale.x = 0.5 + scale1 + scale2;
       current.scale.z = 0.5 + scale1 + scale2;
     }
+  });
+  return { meshRef, component };
+};
+
+export const RocketScene = () => {
+  const rocketRef = createRef<THREE.Mesh>();
+  const { size } = useThree();
+  const aspect = size.height / size.width;
+
+  useFrame((state) => {
     if (rocketRef.current) {
+      // rocketRef.current.rotation.y = 0.6;
       rocketRef.current.rotation.y += 0.0015;
     }
   });
@@ -166,6 +193,13 @@ export const RocketScene = () => {
       environmentIntensity={1}
     />
   );
+  const fumes = [
+    useFume(),
+    useFume({ x: 0.2830262780189514, y: 0, z: -0.1837994009256363 }, 0.05, "a"),
+    useFume({ x: -0.2830262780189514, y: 0, z: 0.1837994009256363 }, 0.1, "b"),
+    useFume({ z: 0.2830262780189514, y: 0, x: 0.1837994009256363 }, 0.15, "c"),
+    useFume({ z: -0.2830262780189514, y: 0, x: -0.1837994009256363 }, 0.2, "d"),
+  ];
   return (
     <>
       <Suspense
@@ -187,18 +221,12 @@ export const RocketScene = () => {
           shadow-mapSize-height={2048}
         />
         <group {...rocketTransformProps}>
-          <RocketModel ref={rocketRef} />
-          <group ref={fumesRef} position={[0, -2, 0]} scale={[1, 8, 1]}>
-            <Sphere args={[0.5, 8, 25]} ref={fumesMeshRef}>
-              <meshBasicMaterial
-                color={new THREE.Color(40, 5, 2)}
-                opacity={1}
-                transparent={true}
-              />
-            </Sphere>
+          <group ref={rocketRef}>
+            {fumes.map(({ component }) => component)}
+            <RocketModel />
           </group>
         </group>
-        <BloomEffects selection={[fumesMeshRef]} />
+        <BloomEffects selection={fumes.map(({ meshRef }) => meshRef)} />
       </Suspense>
     </>
   );
