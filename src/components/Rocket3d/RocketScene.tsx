@@ -190,7 +190,7 @@ export const RocketScene = () => {
       files="qwantani_sunset.hdr"
       path="/scenes3d/env-maps/"
       environmentRotation={[0, (-30 * Math.PI) / 180, (-20 * Math.PI) / 180]}
-      environmentIntensity={1}
+      environmentIntensity={0.6}
     />
   );
   const fumes = [
@@ -214,7 +214,7 @@ export const RocketScene = () => {
         {environment}
         <directionalLight
           color="white"
-          intensity={10}
+          intensity={2}
           position={[4, 12, 4]}
           castShadow
           shadow-mapSize-width={2048}
