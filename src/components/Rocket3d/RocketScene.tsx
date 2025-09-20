@@ -168,7 +168,6 @@ export const RocketScene = () => {
 
   useFrame(() => {
     if (rocketRef.current) {
-      // rocketRef.current.rotation.y = 0.6;
       rocketRef.current.rotation.y += 0.0015;
     }
   });
@@ -187,9 +186,10 @@ export const RocketScene = () => {
 
   const environment = (
     <Environment
+      backgroundRotation={[0, (90 * Math.PI) / 180, (-30 * Math.PI) / 180]}
       files="qwantani_sunset.hdr"
       path="/scenes3d/env-maps/"
-      environmentRotation={[0, (-30 * Math.PI) / 180, (-20 * Math.PI) / 180]}
+      environmentRotation={[0, (-60 * Math.PI) / 180, (-30 * Math.PI) / 180]}
       environmentIntensity={0.6}
     />
   );
@@ -213,9 +213,9 @@ export const RocketScene = () => {
       >
         {environment}
         <directionalLight
-          color="white"
+          color="#ff9911"
           intensity={2}
-          position={[4, 12, 4]}
+          position={[-12, -8, 8]}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}

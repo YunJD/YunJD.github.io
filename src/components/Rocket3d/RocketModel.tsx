@@ -121,7 +121,12 @@ export const RocketModel = forwardRef((props, ref) => {
         castShadow
         receiveShadow
       >
-        <meshPhysicalMaterial color="#ff0109" metalness={1} roughness={0.6} />
+        <meshPhysicalMaterial
+          color="#ff0109"
+          metalness={1}
+          roughness={0.5}
+          clearcoat={1}
+        />
       </mesh>
       <mesh
         geometry={Rocket_hatch_window.geometry}
