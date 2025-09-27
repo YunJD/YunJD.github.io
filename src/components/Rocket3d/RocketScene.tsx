@@ -137,7 +137,6 @@ const useFume = (
       <pointLight
         distance={1}
         color={[1, 0.15, 0.05]}
-        castShadow
         intensity={100}
         position={[0, 1.5, 0]}
       />
@@ -190,13 +189,13 @@ export const RocketScene = () => {
 
   const environment = (
     <Environment
-      backgroundRotation={[(-30 * Math.PI) / 180, 0, (30 * Math.PI) / 180]}
+      backgroundRotation={[(-30 * Math.PI) / 180, 0, (90 * Math.PI) / 180]}
       files="orbital.hdr"
       path="/scenes3d/env-maps/"
       environmentRotation={[
         (-80 * Math.PI) / 180,
-        (-60 * Math.PI) / 180,
-        (-120 * Math.PI) / 180,
+        (-90 * Math.PI) / 180,
+        (-90 * Math.PI) / 180,
       ]}
     />
   );
@@ -222,19 +221,18 @@ export const RocketScene = () => {
         <directionalLight
           color="white"
           intensity={2}
-          position={[-8, 8, -2]}
+          position={[-8, 8, 5]}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
         />
         <group {...rocketTransformProps}>
           <spotLight
-            angle={10}
+            penumbra={20}
+            angle={90}
             color={[1, 0.15, 0.05]}
-            intensity={1000}
-            position={[0, -5, 0]}
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
+            intensity={2000}
+            position={[0, -9, 0]}
           />
           <group ref={rocketRef}>
             {fumes.map(({ component }) => component)}
