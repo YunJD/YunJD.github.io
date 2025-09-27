@@ -79,7 +79,13 @@ export const RocketModel = forwardRef((props, ref) => {
         position={Rocket_body.position}
         scale={Rocket_body.scale}
       >
-        <meshPhysicalMaterial map={bodyMap} metalness={1} roughness={0.5} />
+        <meshPhysicalMaterial
+          map={bodyMap}
+          metalness={1}
+          roughness={0.4}
+          clearcoat={1}
+          clearcoatRoughness={0.1}
+        />
       </mesh>
       <mesh
         ref={windowRef}
@@ -101,10 +107,11 @@ export const RocketModel = forwardRef((props, ref) => {
         receiveShadow
       >
         <meshPhysicalMaterial
-          color="#ff0109"
+          color="#dd0109"
           metalness={1}
           roughness={0.5}
           clearcoat={1}
+          clearcoatRoughness={0.1}
         />
       </mesh>
       <mesh

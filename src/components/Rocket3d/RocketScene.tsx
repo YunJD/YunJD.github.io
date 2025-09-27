@@ -189,13 +189,12 @@ export const RocketScene = () => {
 
   const environment = (
     <Environment
-      backgroundRotation={[(-30 * Math.PI) / 180, 0, (90 * Math.PI) / 180]}
       files="orbital.hdr"
       path="/scenes3d/env-maps/"
       environmentRotation={[
-        (-80 * Math.PI) / 180,
-        (-90 * Math.PI) / 180,
-        (-90 * Math.PI) / 180,
+        (-20 * Math.PI) / 180,
+        (0 * Math.PI) / 180,
+        (20 * Math.PI) / 180,
       ]}
     />
   );
@@ -220,8 +219,8 @@ export const RocketScene = () => {
         {environment}
         <directionalLight
           color="white"
-          intensity={2}
-          position={[-8, 8, 5]}
+          intensity={20}
+          position={[1.5, 7, 2]}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
