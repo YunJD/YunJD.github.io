@@ -38,6 +38,7 @@ function Content() {
       </div>
       <Canvas
         shadows
+        dpr={[1, 1]}
         style={{
           height: canvasHeight,
           display: "block",

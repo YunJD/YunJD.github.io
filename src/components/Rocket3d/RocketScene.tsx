@@ -134,6 +134,13 @@ const useFume = (
   const meshRef = createRef<THREE.Mesh>();
   const component = (
     <group key={key} position={new THREE.Vector3(0, -3, 0).add(position)}>
+      <pointLight
+        distance={1}
+        color={[1, 0.15, 0.05]}
+        castShadow
+        intensity={100}
+        position={[0, 1.5, 0]}
+      />
       <group ref={groupRef} scale={[1, 8, 1]}>
         <Sphere args={[0.25, 8, 25]} ref={meshRef}>
           <meshBasicMaterial
@@ -215,22 +222,22 @@ export const RocketScene = () => {
         <directionalLight
           color="white"
           intensity={2}
-          position={[-4, 8, 0]}
+          position={[-8, 8, -2]}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
         />
         <group {...rocketTransformProps}>
+          <spotLight
+            angle={10}
+            color={[1, 0.15, 0.05]}
+            intensity={1000}
+            position={[0, -5, 0]}
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+          />
           <group ref={rocketRef}>
             {fumes.map(({ component }) => component)}
-            <pointLight
-              color={[1, 0.15, 0.05]}
-              castShadow
-              intensity={2000}
-              position={[0, -10, 0]}
-              shadow-mapSize-width={2048}
-              shadow-mapSize-height={2048}
-            />
             <RocketModel />
           </group>
         </group>
