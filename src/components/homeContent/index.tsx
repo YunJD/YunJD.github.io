@@ -4,7 +4,6 @@ import type { HTMLAttributes } from "react";
 import { useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { RocketScene } from "src/components/Rocket3d";
-import { SoftShadows } from "@react-three/drei";
 
 const Container = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
