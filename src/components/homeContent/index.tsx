@@ -4,6 +4,7 @@ import type { HTMLAttributes } from "react";
 import { useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { RocketScene } from "src/components/Rocket3d";
+import { SoftShadows } from "@react-three/drei";
 
 const Container = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
@@ -26,7 +27,7 @@ function Content() {
   }, []);
   return (
     <main className="bg-black relative min-h-svh">
-      <div className="lg:absolute w-full lg:h-full">
+      <div className="lg:absolute w-full lg:h-full z-50">
         <Container className="flex pt-10 justify-center text-center items-start text-slate-100 w-full lg:text-left lg:h-full lg:items-center lg:justify-start lg:pt-0">
           <div>
             <div className="text-8xl font-extrabold mb-3">Jin Ding</div>

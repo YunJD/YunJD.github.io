@@ -133,19 +133,16 @@ const useFume = (
   const groupRef = createRef<THREE.Mesh>();
   const meshRef = createRef<THREE.Mesh>();
   const component = (
-    <group
-      key={key}
-      ref={groupRef}
-      position={new THREE.Vector3(0, -3, 0).add(position)}
-      scale={[1, 8, 1]}
-    >
-      <Sphere args={[0.25, 8, 25]} ref={meshRef}>
-        <meshBasicMaterial
-          color={new THREE.Color(40, 5, 2).multiplyScalar(1.5)}
-          opacity={0.5}
-          transparent={true}
-        />
-      </Sphere>
+    <group key={key} position={new THREE.Vector3(0, -3, 0).add(position)}>
+      <group ref={groupRef} scale={[1, 8, 1]}>
+        <Sphere args={[0.25, 8, 25]} ref={meshRef}>
+          <meshBasicMaterial
+            color={new THREE.Color(1, 0.15, 0.05).multiplyScalar(40)}
+            opacity={0.5}
+            transparent={true}
+          />
+        </Sphere>
+      </group>
     </group>
   );
   useFrame((state) => {
@@ -186,11 +183,14 @@ export const RocketScene = () => {
 
   const environment = (
     <Environment
-      backgroundRotation={[0, (90 * Math.PI) / 180, (-30 * Math.PI) / 180]}
-      files="qwantani_sunset.hdr"
+      backgroundRotation={[(-30 * Math.PI) / 180, 0, (30 * Math.PI) / 180]}
+      files="orbital.hdr"
       path="/scenes3d/env-maps/"
-      environmentRotation={[0, (-60 * Math.PI) / 180, (-30 * Math.PI) / 180]}
-      environmentIntensity={0.6}
+      environmentRotation={[
+        (-80 * Math.PI) / 180,
+        (-60 * Math.PI) / 180,
+        (-120 * Math.PI) / 180,
+      ]}
     />
   );
   const fumes = [
@@ -213,9 +213,9 @@ export const RocketScene = () => {
       >
         {environment}
         <directionalLight
-          color="#ff9911"
+          color="white"
           intensity={2}
-          position={[-12, -8, 8]}
+          position={[-4, 8, 0]}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
@@ -223,6 +223,14 @@ export const RocketScene = () => {
         <group {...rocketTransformProps}>
           <group ref={rocketRef}>
             {fumes.map(({ component }) => component)}
+            <pointLight
+              color={[1, 0.15, 0.05]}
+              castShadow
+              intensity={2000}
+              position={[0, -10, 0]}
+              shadow-mapSize-width={2048}
+              shadow-mapSize-height={2048}
+            />
             <RocketModel />
           </group>
         </group>
