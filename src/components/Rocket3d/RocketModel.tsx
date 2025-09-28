@@ -74,6 +74,7 @@ export const RocketModel = forwardRef((props, ref) => {
       </Engine>
       <mesh
         receiveShadow
+        castShadow
         ref={bodyRef}
         geometry={Rocket_body.geometry}
         position={Rocket_body.position}
