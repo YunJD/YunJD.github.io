@@ -187,15 +187,18 @@ export const RocketScene = () => {
           rotation: [0, 0, 0],
         };
 
+  const envRotation: [number, number, number] = [
+    (-80 * Math.PI) / 180,
+    (10 * Math.PI) / 180,
+    (0 * Math.PI) / 180,
+  ];
   const environment = (
     <Environment
+      backgroundRotation={envRotation}
       files="orbital.hdr"
       path="/scenes3d/env-maps/"
-      environmentRotation={[
-        (-20 * Math.PI) / 180,
-        (0 * Math.PI) / 180,
-        (20 * Math.PI) / 180,
-      ]}
+      environmentIntensity={1}
+      environmentRotation={envRotation}
     />
   );
   const fumes = [
@@ -219,18 +222,16 @@ export const RocketScene = () => {
         {environment}
         <directionalLight
           color="white"
-          intensity={20}
-          position={[1.5, 7, 2]}
+          intensity={10}
+          position={[0, 15, -4]}
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
         />
         <group {...rocketTransformProps}>
-          <spotLight
-            penumbra={20}
-            angle={90}
+          <pointLight
             color={[1, 0.15, 0.05]}
-            intensity={2000}
+            intensity={10000}
             position={[0, -9, 0]}
           />
           <group ref={rocketRef}>
