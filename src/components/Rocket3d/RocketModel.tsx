@@ -2,6 +2,33 @@ import { forwardRef, useRef, useMemo, type ReactElement } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
+const Window = ({
+  nodes,
+  children,
+  part = "_1",
+}: {
+  nodes: Record<string, THREE.Mesh>;
+  part?: "_1" | "_2" | "_3" | "_hatch";
+  children: ReactElement;
+}) => {
+  const suffix = part ?? "";
+  const windowMesh = nodes[`Rocket_window${suffix}`];
+  if (!windowMesh) {
+    return null;
+  }
+  return (
+    <mesh
+      castShadow
+      receiveShadow
+      geometry={windowMesh.geometry}
+      position={windowMesh.position}
+      scale={windowMesh.scale}
+    >
+      {children}
+    </mesh>
+  );
+};
+
 const Engine = ({
   nodes,
   children,
@@ -36,6 +63,7 @@ export const RocketModel = forwardRef((props, ref) => {
     tex.flipY = false;
     return tex;
   }, []);
+
   const windowMap = useMemo(() => {
     const tex = new THREE.TextureLoader().load(
       "/scenes3d/rocket/Rocket Window.png"
@@ -46,16 +74,18 @@ export const RocketModel = forwardRef((props, ref) => {
 
   const bodyRef = useRef(null);
   const finRef = useRef(null);
-  const windowRef = useRef(null);
   const rocket = useGLTF("/scenes3d/rocket/rocket.glb");
   const { nodes } = rocket;
 
   const recordNodes = nodes as Record<string, THREE.Mesh>;
-  const { Rocket_body, Rocket_window, Rocket_fin, Rocket_hatch_window } =
-    recordNodes;
+  const { Rocket_body, Rocket_fin } = recordNodes;
 
   const engineMaterial = (
     <meshPhysicalMaterial color="#555" metalness={1} roughness={0.4} />
+  );
+
+  const windowMaterial = (
+    <meshPhysicalMaterial map={windowMap} metalness={1} roughness={0.2} />
   );
   return (
     <group ref={ref} {...props} rotation={[0, Math.PI * 0.5, 0]}>
@@ -82,17 +112,18 @@ export const RocketModel = forwardRef((props, ref) => {
       >
         <meshPhysicalMaterial map={bodyMap} metalness={1} roughness={0.3} />
       </mesh>
-      <mesh
-        ref={windowRef}
-        geometry={Rocket_window.geometry}
-        position={Rocket_window.position}
-        rotation={Rocket_window.rotation}
-        scale={Rocket_window.scale}
-        castShadow
-        receiveShadow
-      >
-        <meshPhysicalMaterial map={windowMap} metalness={1} roughness={0.2} />
-      </mesh>
+      <Window part="_1" nodes={recordNodes}>
+        {windowMaterial}
+      </Window>
+      <Window part="_2" nodes={recordNodes}>
+        {windowMaterial}
+      </Window>
+      <Window part="_3" nodes={recordNodes}>
+        {windowMaterial}
+      </Window>
+      <Window part="_hatch" nodes={recordNodes}>
+        {windowMaterial}
+      </Window>
       <mesh
         ref={finRef}
         geometry={Rocket_fin.geometry}
@@ -108,14 +139,6 @@ export const RocketModel = forwardRef((props, ref) => {
           clearcoat={1}
           clearcoatRoughness={0.1}
         />
-      </mesh>
-      <mesh
-        geometry={Rocket_hatch_window.geometry}
-        rotation={Rocket_hatch_window.rotation}
-        scale={Rocket_hatch_window.scale}
-        castShadow
-      >
-        <meshPhysicalMaterial map={windowMap} metalness={1} roughness={0.2} />
       </mesh>
     </group>
   );
