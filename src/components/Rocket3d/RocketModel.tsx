@@ -23,6 +23,7 @@ const Window = ({
       geometry={windowMesh.geometry}
       position={windowMesh.position}
       scale={windowMesh.scale}
+      rotation={windowMesh.rotation}
     >
       {children}
     </mesh>
