@@ -11,6 +11,8 @@ import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 import * as THREE from "three";
 
+const FUME_COLOR: [number, number, number] = [1, 0.1, 0.05];
+
 const FUME_VERT_SHADER = `
 varying vec2 vUv;
 uniform float height;
@@ -27,7 +29,7 @@ void main() {
         position.y,
         position.z
       ) + 
-       normal * reversedY * sin(time + vUv.y * 6.28 * 8.) * 0.2 + 
+       normal * pow(reversedY, 3.0) * sin(time + vUv.y * 6.28 * 8.) * 0.25 + 
        normal * reversedY * 10.
       ,
       1.
@@ -38,7 +40,9 @@ void main() {
 const FUME_FRAG_SHADER = `
 varying vec2 vUv;
 void main() {
-  gl_FragColor = vec4(vec3(1., 0.3, 0.1) * 3., pow(vUv.y, 3.));
+  vec3 topColor = vec3(1., 0.1, 0.05) * 5.;
+  vec3 bottomColor = vec3(0.1, 0.3, 1.);
+  gl_FragColor = vec4(mix(bottomColor, topColor, vUv.y), vUv.y * 0.25);
 }
 `;
 
@@ -82,7 +86,7 @@ const BloomEffects = ({
   );
   const renderPass = useMemo(() => new RenderPass(scene, camera), []);
   const bloomPass = useMemo(
-    () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.3, 0, 0),
+    () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.8, 0, 0),
     []
   );
   const outputPass = useMemo(() => new OutputPass(), []);
@@ -169,11 +173,11 @@ const useFume = (
       <pointLight
         distance={1.1}
         position={[0, -0.1, 0]}
-        color={[1, 0.15, 0.05]}
+        color={FUME_COLOR}
         intensity={100}
       />
-      <group position={[0, -fumeHeight * 0.5 - 0.5, 0]} scale={[0.2, 1, 0.2]}>
-        <Cylinder args={[0.6, 0.6, fumeHeight, 24, 32, true]} ref={meshRef}>
+      <group position={[0, -fumeHeight * 0.5 - 0.55, 0]} scale={[0.2, 1, 0.2]}>
+        <Cylinder args={[0.4, 0.4, fumeHeight, 32, 32, true]} ref={meshRef}>
           <shaderMaterial
             ref={fumeShaderRef}
             uniforms={{
@@ -236,10 +240,10 @@ export const RocketScene = () => {
   );
   const fumes = [
     useFume(),
-    useFume({ x: -0.33, y: 0, z: 0 }, 0.05, "1"),
-    useFume({ x: 0.33, y: 0, z: 0 }, 0.1, "2"),
-    useFume({ z: -0.33, y: 0, x: 0 }, 0.15, "3"),
-    useFume({ z: 0.33, y: 0, x: -0 }, 0.2, "4"),
+    useFume({ x: -0.33, y: 0, z: 0 }, 1, "1"),
+    useFume({ x: 0.33, y: 0, z: 0 }, 2, "2"),
+    useFume({ z: -0.33, y: 0, x: 0 }, 3, "3"),
+    useFume({ z: 0.33, y: 0, x: -0 }, 4, "4"),
   ];
   return (
     <>
@@ -263,7 +267,7 @@ export const RocketScene = () => {
         />
         <group {...rocketTransformProps}>
           <pointLight
-            color={[1, 0.15, 0.05]}
+            color={FUME_COLOR}
             intensity={10000}
             position={[0, -9, 0]}
           />
