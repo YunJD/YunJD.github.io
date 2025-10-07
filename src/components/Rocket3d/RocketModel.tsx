@@ -36,7 +36,7 @@ const Engine = ({
   part,
 }: {
   nodes: Record<string, THREE.Mesh>;
-  part?: "_a" | "_b" | "_c" | "_d";
+  part?: "_1" | "_2" | "_3" | "_4";
   children: ReactElement;
 }) => {
   const suffix = part ?? "";
@@ -91,16 +91,16 @@ export const RocketModel = forwardRef((props, ref) => {
   return (
     <group ref={ref} {...props} rotation={[0, Math.PI * 0.5, 0]}>
       <Engine nodes={recordNodes}>{engineMaterial}</Engine>
-      <Engine nodes={recordNodes} part="_a">
+      <Engine nodes={recordNodes} part="_1">
         {engineMaterial}
       </Engine>
-      <Engine nodes={recordNodes} part="_b">
+      <Engine nodes={recordNodes} part="_2">
         {engineMaterial}
       </Engine>
-      <Engine nodes={recordNodes} part="_c">
+      <Engine nodes={recordNodes} part="_3">
         {engineMaterial}
       </Engine>
-      <Engine nodes={recordNodes} part="_d">
+      <Engine nodes={recordNodes} part="_4">
         {engineMaterial}
       </Engine>
       <mesh

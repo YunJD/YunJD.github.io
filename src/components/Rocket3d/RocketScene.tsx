@@ -2,7 +2,7 @@ import type { RefObject } from "react";
 import { Suspense, createRef, useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { RocketModel } from "./RocketModel";
-import { Sphere, Environment, Html } from "@react-three/drei";
+import { Cylinder, Environment, Html } from "@react-three/drei";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
@@ -10,6 +10,37 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 import * as THREE from "three";
+
+const FUME_VERT_SHADER = `
+varying vec2 vUv;
+uniform float height;
+uniform float time;
+
+void main() {
+
+    vUv = uv;
+    float reversedY = (1. - vUv.y);
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(
+      vec3(
+        position.x,
+        position.y,
+        position.z
+      ) + 
+       normal * reversedY * sin(time + vUv.y * 6.28 * 8.) * 0.2 + 
+       normal * reversedY * 10.
+      ,
+      1.
+    );
+}
+`;
+
+const FUME_FRAG_SHADER = `
+varying vec2 vUv;
+void main() {
+  gl_FragColor = vec4(vec3(1., 0.3, 0.1) * 3., pow(vUv.y, 3.));
+}
+`;
 
 const MIX_PASS_VERT_SHADER = `
 varying vec2 vUv;
@@ -51,7 +82,7 @@ const BloomEffects = ({
   );
   const renderPass = useMemo(() => new RenderPass(scene, camera), []);
   const bloomPass = useMemo(
-    () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.125, 0, 0),
+    () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.3, 0, 0),
     []
   );
   const outputPass = useMemo(() => new OutputPass(), []);
@@ -130,35 +161,37 @@ const useFume = (
   elapsedShift: number = 0,
   key = "main"
 ) => {
-  const groupRef = createRef<THREE.Mesh>();
   const meshRef = createRef<THREE.Mesh>();
+  const fumeHeight = 2;
+  const fumeShaderRef = createRef<THREE.ShaderMaterial>();
   const component = (
-    <group key={key} position={new THREE.Vector3(0, -3, 0).add(position)}>
+    <group key={key} position={new THREE.Vector3(0, -1, 0).add(position)}>
       <pointLight
-        distance={1}
+        distance={1.1}
+        position={[0, -0.1, 0]}
         color={[1, 0.15, 0.05]}
         intensity={100}
-        position={[0, 1.5, 0]}
       />
-      <group ref={groupRef} scale={[1, 8, 1]}>
-        <Sphere args={[0.25, 8, 25]} ref={meshRef}>
-          <meshBasicMaterial
-            color={new THREE.Color(1, 0.15, 0.05).multiplyScalar(40)}
-            opacity={0.5}
-            transparent={true}
+      <group position={[0, -fumeHeight * 0.5 - 0.5, 0]} scale={[0.2, 1, 0.2]}>
+        <Cylinder args={[0.6, 0.6, fumeHeight, 24, 32, true]} ref={meshRef}>
+          <shaderMaterial
+            ref={fumeShaderRef}
+            uniforms={{
+              time: { value: 1.0 },
+              height: { value: fumeHeight },
+            }}
+            transparent
+            vertexShader={FUME_VERT_SHADER}
+            fragmentShader={FUME_FRAG_SHADER}
           />
-        </Sphere>
+        </Cylinder>
       </group>
     </group>
   );
   useFrame((state) => {
     const elapsedTime = state.clock.getElapsedTime() + elapsedShift;
-    const { current } = groupRef;
-    if (current) {
-      const scale1 = Math.sin(elapsedTime * 80 + 0.2) * 0.025;
-      const scale2 = Math.sin(elapsedTime * 10) * 0.02;
-      current.scale.x = 0.5 + scale1 + scale2;
-      current.scale.z = 0.5 + scale1 + scale2;
+    if (fumeShaderRef.current) {
+      fumeShaderRef.current.uniforms.time.value = elapsedTime * 80;
     }
   });
   return { meshRef, component };
@@ -203,10 +236,10 @@ export const RocketScene = () => {
   );
   const fumes = [
     useFume(),
-    useFume({ x: 0.2830262780189514, y: 0, z: -0.1837994009256363 }, 0.05, "a"),
-    useFume({ x: -0.2830262780189514, y: 0, z: 0.1837994009256363 }, 0.1, "b"),
-    useFume({ z: 0.2830262780189514, y: 0, x: 0.1837994009256363 }, 0.15, "c"),
-    useFume({ z: -0.2830262780189514, y: 0, x: -0.1837994009256363 }, 0.2, "d"),
+    useFume({ x: -0.33, y: 0, z: 0 }, 0.05, "1"),
+    useFume({ x: 0.33, y: 0, z: 0 }, 0.1, "2"),
+    useFume({ z: -0.33, y: 0, x: 0 }, 0.15, "3"),
+    useFume({ z: 0.33, y: 0, x: -0 }, 0.2, "4"),
   ];
   return (
     <>
