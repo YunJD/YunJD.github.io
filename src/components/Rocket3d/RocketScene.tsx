@@ -2,7 +2,7 @@ import type { RefObject } from "react";
 import { Suspense, createRef, useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { RocketModel } from "./RocketModel";
-import { Cylinder, Environment, Html } from "@react-three/drei";
+import { Cylinder, Environment, Html, useTexture } from "@react-three/drei";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
@@ -17,32 +17,54 @@ const FUME_VERT_SHADER = `
 varying vec2 vUv;
 uniform float height;
 uniform float time;
+uniform sampler2D fumesLong;
 
 void main() {
 
-    vUv = uv;
-    float reversedY = (1. - vUv.y);
+  vUv = uv;
+  float reversedY = (1. - vUv.y);
+  vec4 fumesLong = texture2D(fumesLong, 
+    vUv * vec2(1., 0.2) + 
+    vec2(0., fract(time * 0.8) * 0.8)
+  );
 
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(
-      vec3(
-        position.x,
-        position.y,
-        position.z
-      ) + 
-       normal * pow(reversedY, 3.0) * sin(time + vUv.y * 6.28 * 8.) * 0.25 + 
-       normal * reversedY * 10.
-      ,
-      1.
-    );
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(
+    vec3(
+      position.x,
+      position.y,
+      position.z
+    ) + 
+      2. * normal * sqrt(reversedY) * fumesLong.xyz +
+      normal * reversedY * 10.
+    ,
+    1.
+  );
 }
 `;
 
 const FUME_FRAG_SHADER = `
 varying vec2 vUv;
+uniform float time;
+uniform sampler2D fumesLong;
+
 void main() {
-  vec3 topColor = vec3(1., 0.1, 0.05) * 5.;
-  vec3 bottomColor = vec3(0.1, 0.3, 1.);
-  gl_FragColor = vec4(mix(bottomColor, topColor, vUv.y), vUv.y * 0.25);
+  vec3 topColor = vec3(1., 0.1, 0.05) * 100.;
+  vec3 bottomColor = vec3(0.01, 0.05, 0.1) * 3.;
+  vec4 fumesLong = texture2D(fumesLong, 
+    vUv * vec2(1., 0.2) + 
+    vec2(0., fract(time * 0.8) * 0.8)
+  );
+  gl_FragColor = vec4(
+    max(
+      mix(
+        bottomColor,
+        topColor,
+        clamp(pow(vUv.y, 7.) * pow(fumesLong.x, 2.), 0., 1.)
+      ),
+      0.
+    ),
+    clamp(pow(2. * vUv.y, 2.) * pow(fumesLong.x, 2.), 0., 1.)
+  );
 }
 `;
 
@@ -86,7 +108,7 @@ const BloomEffects = ({
   );
   const renderPass = useMemo(() => new RenderPass(scene, camera), []);
   const bloomPass = useMemo(
-    () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.8, 0, 0),
+    () => new UnrealBloomPass(new THREE.Vector2(0.5, 0.5), 0.2, 0, 1),
     []
   );
   const outputPass = useMemo(() => new OutputPass(), []);
@@ -161,6 +183,7 @@ const BloomEffects = ({
 };
 
 const useFume = (
+  fumesLongTex: THREE.Texture,
   position: THREE.Vector3Like = new THREE.Vector3(),
   elapsedShift: number = 0,
   key = "main"
@@ -177,11 +200,12 @@ const useFume = (
         intensity={100}
       />
       <group position={[0, -fumeHeight * 0.5 - 0.55, 0]} scale={[0.2, 1, 0.2]}>
-        <Cylinder args={[0.4, 0.4, fumeHeight, 32, 32, true]} ref={meshRef}>
+        <Cylinder args={[0.4, 0.4, fumeHeight, 48, 48, true]} ref={meshRef}>
           <shaderMaterial
             ref={fumeShaderRef}
             uniforms={{
-              time: { value: 1.0 },
+              fumesLong: { value: fumesLongTex },
+              time: { value: elapsedShift },
               height: { value: fumeHeight },
             }}
             transparent
@@ -195,7 +219,7 @@ const useFume = (
   useFrame((state) => {
     const elapsedTime = state.clock.getElapsedTime() + elapsedShift;
     if (fumeShaderRef.current) {
-      fumeShaderRef.current.uniforms.time.value = elapsedTime * 80;
+      fumeShaderRef.current.uniforms.time.value = elapsedTime;
     }
   });
   return { meshRef, component };
@@ -208,7 +232,7 @@ export const RocketScene = () => {
 
   useFrame(() => {
     if (rocketRef.current) {
-      rocketRef.current.rotation.y += 0.0015;
+      rocketRef.current.rotation.y += 0.002;
     }
   });
 
@@ -216,7 +240,7 @@ export const RocketScene = () => {
   const rocketTransformProps: Record<string, [number, number, number]> =
     window.innerWidth >= 1024
       ? {
-          position: [1, -0.5, 1.1 / Math.max(1.5 * aspect, 1)],
+          position: [1, -0.5, 0.8 / Math.max(1.5 * aspect, 1)],
           rotation: [-0.2, 0.3, -0.7 / Math.max(1.5 * aspect, 1)],
         }
       : {
@@ -238,12 +262,13 @@ export const RocketScene = () => {
       environmentRotation={envRotation}
     />
   );
+  const fumesLongTex = useTexture("/scenes3d/rocket/Fumes Long.png");
   const fumes = [
-    useFume(),
-    useFume({ x: -0.33, y: 0, z: 0 }, 1, "1"),
-    useFume({ x: 0.33, y: 0, z: 0 }, 2, "2"),
-    useFume({ z: -0.33, y: 0, x: 0 }, 3, "3"),
-    useFume({ z: 0.33, y: 0, x: -0 }, 4, "4"),
+    useFume(fumesLongTex),
+    useFume(fumesLongTex, { x: -0.33, y: 0, z: 0 }, 1, "1"),
+    useFume(fumesLongTex, { x: 0.33, y: 0, z: 0 }, 2, "2"),
+    useFume(fumesLongTex, { z: -0.33, y: 0, x: 0 }, 3, "3"),
+    useFume(fumesLongTex, { z: 0.33, y: 0, x: -0 }, 4, "4"),
   ];
   return (
     <>
