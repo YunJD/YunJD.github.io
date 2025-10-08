@@ -240,7 +240,7 @@ export const RocketScene = () => {
   const rocketTransformProps: Record<string, [number, number, number]> =
     window.innerWidth >= 1024
       ? {
-          position: [1, -0.5, 0.8 / Math.max(1.5 * aspect, 1)],
+          position: [1.5, 0, 1.5 / Math.max(1.5 * aspect, 1)],
           rotation: [-0.2, 0.3, -0.7 / Math.max(1.5 * aspect, 1)],
         }
       : {
