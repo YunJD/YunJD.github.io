@@ -30,32 +30,6 @@ const Window = ({
   );
 };
 
-const Engine = ({
-  nodes,
-  children,
-  part,
-}: {
-  nodes: Record<string, THREE.Mesh>;
-  part?: "_1" | "_2" | "_3" | "_4";
-  children: ReactElement;
-}) => {
-  const suffix = part ?? "";
-  const engine = nodes[`Rocket_engine${suffix}`];
-  if (!engine) {
-    return null;
-  }
-  return (
-    <mesh
-      castShadow
-      receiveShadow
-      geometry={engine.geometry}
-      position={engine.position}
-      scale={engine.scale}
-    >
-      {children}
-    </mesh>
-  );
-};
 export const RocketModel = forwardRef((props, ref) => {
   const bodyMap = useMemo(() => {
     const tex = new THREE.TextureLoader().load(
@@ -81,28 +55,11 @@ export const RocketModel = forwardRef((props, ref) => {
   const recordNodes = nodes as Record<string, THREE.Mesh>;
   const { Rocket_body, Rocket_fin } = recordNodes;
 
-  const engineMaterial = (
-    <meshPhysicalMaterial color="#555" metalness={1} roughness={0.4} />
-  );
-
   const windowMaterial = (
     <meshPhysicalMaterial map={windowMap} metalness={1} roughness={0.2} />
   );
   return (
     <group ref={ref} {...props} rotation={[0, Math.PI * 0.5, 0]}>
-      <Engine nodes={recordNodes}>{engineMaterial}</Engine>
-      <Engine nodes={recordNodes} part="_1">
-        {engineMaterial}
-      </Engine>
-      <Engine nodes={recordNodes} part="_2">
-        {engineMaterial}
-      </Engine>
-      <Engine nodes={recordNodes} part="_3">
-        {engineMaterial}
-      </Engine>
-      <Engine nodes={recordNodes} part="_4">
-        {engineMaterial}
-      </Engine>
       <mesh
         receiveShadow
         castShadow

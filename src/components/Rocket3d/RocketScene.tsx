@@ -219,30 +219,19 @@ const useFume = (
       }),
     []
   );
-  const polars = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875].map(
-    (n) => n * 2 * Math.PI
-  );
   const component = (
     <group key={key} position={new THREE.Vector3(0, -1, 0).add(position)}>
-      {polars.map((p) => (
-        <pointLight
-          decay={4}
-          position={[0.6 * Math.cos(p), -0.25, 0.6 * Math.sin(p)]}
-          color={FUME_COLOR}
-          intensity={1}
-        />
-      ))}
       <pointLight
         decay={4}
         distance={0.7}
-        position={[0, -0.01, 0]}
+        position={[0, -0.41, 0]}
         color={FUME_COLOR}
         intensity={2000}
       />
-      <group position={[0, -fumeHeight * 0.5 - 0.51, 0]} scale={[0.2, 1, 0.2]}>
+      <group position={[0, -fumeHeight * 0.5, 0]} scale={[0.2, 1, 0.2]}>
         <Cylinder
           material={fumesMaterial}
-          args={[2.3, 2.3, fumeHeight, 128, 128, true]}
+          args={[1.5, 1.5, fumeHeight, 128, 128, true]}
           ref={meshRef}
         />
       </group>
@@ -324,9 +313,10 @@ export const RocketScene = () => {
         />
         <group {...rocketTransformProps}>
           <pointLight
+            decay={1.8}
             color={FUME_COLOR}
             intensity={10000}
-            position={[0, -9, 0]}
+            position={[0, -12, 0]}
           />
           <group ref={rocketRef}>
             {fumes.map(({ component }) => component)}
