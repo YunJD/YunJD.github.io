@@ -49,7 +49,7 @@ export const RocketModel = forwardRef((props, ref) => {
     <meshPhysicalMaterial color="#050515" metalness={0} clearcoat={1} />
   );
   const windowFrameMaterial = (
-    <meshPhysicalMaterial color="#777" metalness={1} roughness={0.4} />
+    <meshPhysicalMaterial color="#555" metalness={1} roughness={0.25} />
   );
 
   return (
