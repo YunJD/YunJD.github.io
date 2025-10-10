@@ -53,7 +53,7 @@ export const RocketModel = forwardRef((props, ref) => {
   const { nodes } = rocket;
 
   const recordNodes = nodes as Record<string, THREE.Mesh>;
-  const { Rocket_body, Rocket_fin } = recordNodes;
+  const { Engine, Rocket_body, Rocket_fin } = recordNodes;
 
   const windowMaterial = (
     <meshPhysicalMaterial map={windowMap} metalness={1} roughness={0.2} />
@@ -82,6 +82,15 @@ export const RocketModel = forwardRef((props, ref) => {
       <Window part="_hatch" nodes={recordNodes}>
         {windowMaterial}
       </Window>
+      <mesh
+        geometry={Engine.geometry}
+        position={Engine.position}
+        scale={Engine.scale}
+        castShadow
+        receiveShadow
+      >
+        <meshPhysicalMaterial color="#777" metalness={1} roughness={0.4} />
+      </mesh>
       <mesh
         ref={finRef}
         geometry={Rocket_fin.geometry}
