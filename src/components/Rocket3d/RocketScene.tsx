@@ -229,7 +229,7 @@ const useFume = (
           decay={4}
           position={[0.6 * Math.cos(p), -0.25, 0.6 * Math.sin(p)]}
           color={FUME_COLOR}
-          intensity={50}
+          intensity={1}
         />
       ))}
       <group position={[0, -fumeHeight * 0.5 - 0.51, 0]} scale={[0.2, 1, 0.2]}>
