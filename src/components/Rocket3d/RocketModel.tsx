@@ -46,10 +46,10 @@ export const RocketModel = forwardRef((props, ref) => {
     Rocket_window_frame,
   } = recordNodes;
   const windowMaterial = (
-    <meshPhysicalMaterial color="#050515" metalness={0} clearcoat={1} />
+    <meshPhysicalMaterial color="#000" metalness={1} clearcoat={1} />
   );
   const windowFrameMaterial = (
-    <meshPhysicalMaterial color="#555" metalness={1} roughness={0.25} />
+    <meshPhysicalMaterial color="#aaa" metalness={1} roughness={0.2} />
   );
 
   return (
