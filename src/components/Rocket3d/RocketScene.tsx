@@ -23,8 +23,8 @@ void main() {
   vUv = uv;
   float reversedY = (1. - vUv.y);
   float fumesValue = texture2D(fumesLong, 
-    vUv * vec2(1., 0.2) + 
-    vec2(0., fract(time) * 0.8)
+    vUv * vec2(1., 0.1) + 
+    vec2(0., fract(time * 0.3) * 0.9)
   ).y;
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(
@@ -33,9 +33,9 @@ void main() {
       position.y,
       position.z
     ) + normal * (
-      fumesValue * reversedY * 15. +
-      sqrt(reversedY) * 4. +
-      reversedY * 10.
+      fumesValue * pow(reversedY, 2.) * 5. +
+      fumesValue * sqrt(reversedY) * 3. +
+      reversedY * 25.
     ),
     1.
   );
@@ -49,20 +49,20 @@ uniform sampler2D fumesLong;
 
 void main() {
   vec3 topColor = vec3(1., 0.1, 0.05);
-  vec3 bottomColor = vec3(0.01, 0.05, 0.1);
+  vec3 bottomColor = vec3(0.015, 0.03, 0.07);
   float fumesValue = texture2D(
     fumesLong,
     vUv * vec2(1., 0.1) + 
-    vec2(0., fract(time * 0.8) * 0.8)
+    vec2(0., fract(time * 0.2))
   ).y;
   float fumesContrast = clamp(1.1 * (fumesValue - 0.05), 0., 1.);
   float reverseY = 1. - vUv.y;
   vec3 baseColor = max(
     mix(
-      bottomColor * 2.2,
-      topColor * (1. + vUv.y * 25.),
+      bottomColor * 3.,
+      topColor * (1. + vUv.y * 20.),
       clamp(
-        pow(vUv.y, 7.) * pow(2. * fumesContrast, 2.), 
+        pow(vUv.y, 7.) * pow(2. * fumesContrast, 2.),
         0., 1.
       )
     ),
@@ -122,7 +122,7 @@ const BloomEffects = ({
   );
   const renderPass = useMemo(() => new RenderPass(scene, camera), []);
   const bloomPass = useMemo(
-    () => new UnrealBloomPass(new THREE.Vector2(0.25, 0.25), 0.2, 0, 0.8),
+    () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.5, 0, 1),
     []
   );
   const outputPass = useMemo(() => new OutputPass(), []);
@@ -207,7 +207,6 @@ const useFume = (
   const fumesMaterial = useMemo(
     () =>
       new THREE.ShaderMaterial({
-        side: THREE.DoubleSide,
         transparent: true,
         uniforms: {
           fumesLong: { value: fumesLongTex },
@@ -224,14 +223,38 @@ const useFume = (
     <group key={key} position={new THREE.Vector3(0, -1, 0).add(position)}>
       <pointLight
         distance={1.1}
+        position={[-0.53, -0.1, 0.0]}
+        color={FUME_COLOR}
+        intensity={100}
+      />
+      <pointLight
+        distance={1.1}
+        position={[0.53, -0.1, 0.0]}
+        color={FUME_COLOR}
+        intensity={100}
+      />
+      <pointLight
+        distance={1.1}
+        position={[0, -0.1, 0.53]}
+        color={FUME_COLOR}
+        intensity={100}
+      />
+      <pointLight
+        distance={1.1}
+        position={[0, -0.1, -0.53]}
+        color={FUME_COLOR}
+        intensity={100}
+      />
+      <pointLight
+        distance={1.1}
         position={[0, -0.1, 0]}
         color={FUME_COLOR}
         intensity={100}
       />
-      <group position={[0, -fumeHeight * 0.5 - 0.52, 0]} scale={[0.2, 1, 0.2]}>
+      <group position={[0, -fumeHeight * 0.5 - 0.55, 0]} scale={[0.2, 1, 0.2]}>
         <Cylinder
           material={fumesMaterial}
-          args={[0.4, 0.4, fumeHeight, 64, 64, true]}
+          args={[2.3, 2.3, fumeHeight, 128, 128, true]}
           ref={meshRef}
         />
       </group>
@@ -283,14 +306,14 @@ export const RocketScene = () => {
       environmentRotation={envRotation}
     />
   );
-  const fumesLongTex = useTexture("/scenes3d/rocket/Fumes Long.png");
-  const fumes = [
-    useFume(fumesLongTex),
-    useFume(fumesLongTex, { x: -0.33, y: 0, z: 0 }, 1, "1"),
-    useFume(fumesLongTex, { x: 0.33, y: 0, z: 0 }, 2, "2"),
-    useFume(fumesLongTex, { z: -0.33, y: 0, x: 0 }, 3, "3"),
-    useFume(fumesLongTex, { z: 0.33, y: 0, x: -0 }, 4, "4"),
-  ];
+  const fumesLongTex = useTexture(
+    "/scenes3d/rocket/Fumes Long.png",
+    (tex: THREE.Texture) => {
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+    }
+  );
+  const fumes = [useFume(fumesLongTex)];
   return (
     <>
       <Suspense
