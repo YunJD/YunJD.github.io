@@ -219,38 +219,19 @@ const useFume = (
       }),
     []
   );
+  const polars = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875].map(
+    (n) => n * 2 * Math.PI
+  );
   const component = (
     <group key={key} position={new THREE.Vector3(0, -1, 0).add(position)}>
-      <pointLight
-        distance={1.1}
-        position={[-0.53, -0.1, 0.0]}
-        color={FUME_COLOR}
-        intensity={100}
-      />
-      <pointLight
-        distance={1.1}
-        position={[0.53, -0.1, 0.0]}
-        color={FUME_COLOR}
-        intensity={100}
-      />
-      <pointLight
-        distance={1.1}
-        position={[0, -0.1, 0.53]}
-        color={FUME_COLOR}
-        intensity={100}
-      />
-      <pointLight
-        distance={1.1}
-        position={[0, -0.1, -0.53]}
-        color={FUME_COLOR}
-        intensity={100}
-      />
-      <pointLight
-        distance={1.1}
-        position={[0, -0.1, 0]}
-        color={FUME_COLOR}
-        intensity={100}
-      />
+      {polars.map((p) => (
+        <pointLight
+          decay={4}
+          position={[0.6 * Math.cos(p), -0.25, 0.6 * Math.sin(p)]}
+          color={FUME_COLOR}
+          intensity={50}
+        />
+      ))}
       <group position={[0, -fumeHeight * 0.5 - 0.51, 0]} scale={[0.2, 1, 0.2]}>
         <Cylinder
           material={fumesMaterial}
