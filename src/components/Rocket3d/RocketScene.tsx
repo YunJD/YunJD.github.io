@@ -251,7 +251,7 @@ const useFume = (
         color={FUME_COLOR}
         intensity={100}
       />
-      <group position={[0, -fumeHeight * 0.5 - 0.55, 0]} scale={[0.2, 1, 0.2]}>
+      <group position={[0, -fumeHeight * 0.5 - 0.51, 0]} scale={[0.2, 1, 0.2]}>
         <Cylinder
           material={fumesMaterial}
           args={[2.3, 2.3, fumeHeight, 128, 128, true]}
