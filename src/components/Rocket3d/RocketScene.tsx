@@ -23,10 +23,10 @@ void main() {
 
   vUv = uv;
   float reversedY = (1. - vUv.y);
-  vec4 fumesLong = texture2D(fumesLong, 
+  float fumesValue = texture2D(fumesLong, 
     vUv * vec2(1., 0.2) + 
     vec2(0., fract(time * 0.8) * 0.8)
-  );
+  ).y;
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(
     vec3(
@@ -34,8 +34,8 @@ void main() {
       position.y,
       position.z
     ) + 
-      2. * normal * sqrt(reversedY) * fumesLong.xyz +
-      normal * reversedY * 10.
+      normal * (reversedY * 10. * fumesValue + sqrt(5. * reversedY) * fumesValue) +
+      normal * reversedY * 2.
     ,
     1.
   );
@@ -48,22 +48,36 @@ uniform float time;
 uniform sampler2D fumesLong;
 
 void main() {
-  vec3 topColor = vec3(1., 0.1, 0.05) * 100.;
-  vec3 bottomColor = vec3(0.01, 0.05, 0.1) * 3.;
-  vec4 fumesLong = texture2D(fumesLong, 
-    vUv * vec2(1., 0.2) + 
+  vec3 topColor = vec3(1., 0.1, 0.05);
+  vec3 bottomColor = vec3(0.01, 0.05, 0.1);
+  float fumesValue = texture2D(
+    fumesLong,
+    vUv * vec2(1., 0.1) + 
     vec2(0., fract(time * 0.8) * 0.8)
+  ).y;
+  float fumesContrast = clamp(1.1 * (fumesValue - 0.05), 0., 1.);
+  float reverseY = 1. - vUv.y;
+  vec3 baseColor = max(
+    mix(
+      bottomColor * 2.2,
+      topColor * (1. + vUv.y * 25.),
+      clamp(
+        pow(vUv.y, 7.) * pow(2. * fumesContrast, 2.), 
+        0., 1.
+      )
+    ),
+    0.
   );
   gl_FragColor = vec4(
-    max(
-      mix(
-        bottomColor,
-        topColor,
-        clamp(pow(vUv.y, 7.) * pow(fumesLong.x, 2.), 0., 1.)
-      ),
-      0.
-    ),
-    clamp(pow(2. * vUv.y, 2.) * pow(fumesLong.x, 2.), 0., 1.)
+    baseColor,
+    clamp(
+      pow(fumesContrast, 4.) * 
+      min(vUv.y * 3., 1.) + // y * c = 1, y = 1 / c: reaches 1 at y / c
+      max(0., (vUv.y - 0.93) * 10.) +
+      pow(fumesContrast, 4.) * 
+      pow(max(0., 5. * (vUv.y - 0.5)), 6.),
+      0., 1.
+    )
   );
 }
 `;
@@ -108,7 +122,7 @@ const BloomEffects = ({
   );
   const renderPass = useMemo(() => new RenderPass(scene, camera), []);
   const bloomPass = useMemo(
-    () => new UnrealBloomPass(new THREE.Vector2(0.5, 0.5), 0.2, 0, 1),
+    () => new UnrealBloomPass(new THREE.Vector2(0.25, 0.25), 0.2, 0, 0.8),
     []
   );
   const outputPass = useMemo(() => new OutputPass(), []);
@@ -189,7 +203,7 @@ const useFume = (
   key = "main"
 ) => {
   const meshRef = createRef<THREE.Mesh>();
-  const fumeHeight = 2;
+  const fumeHeight = 3;
   const fumeShaderRef = createRef<THREE.ShaderMaterial>();
   const component = (
     <group key={key} position={new THREE.Vector3(0, -1, 0).add(position)}>
@@ -199,8 +213,8 @@ const useFume = (
         color={FUME_COLOR}
         intensity={100}
       />
-      <group position={[0, -fumeHeight * 0.5 - 0.55, 0]} scale={[0.2, 1, 0.2]}>
-        <Cylinder args={[0.4, 0.4, fumeHeight, 48, 48, true]} ref={meshRef}>
+      <group position={[0, -fumeHeight * 0.5 - 0.52, 0]} scale={[0.2, 1, 0.2]}>
+        <Cylinder args={[0.4, 0.4, fumeHeight, 64, 64, true]} ref={meshRef}>
           <shaderMaterial
             ref={fumeShaderRef}
             uniforms={{
@@ -208,6 +222,7 @@ const useFume = (
               time: { value: elapsedShift },
               height: { value: fumeHeight },
             }}
+            defines={{}}
             transparent
             vertexShader={FUME_VERT_SHADER}
             fragmentShader={FUME_FRAG_SHADER}
