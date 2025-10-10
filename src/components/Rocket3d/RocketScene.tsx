@@ -34,8 +34,8 @@ void main() {
       position.y,
       position.z
     ) + 
-      normal * (reversedY * 10. * fumesValue + sqrt(5. * reversedY) * fumesValue) +
-      normal * reversedY * 2.
+      fumesValue * normal * (reversedY * 5. + sqrt(25. * reversedY)) +
+      normal * reversedY * 10.
     ,
     1.
   );
@@ -204,7 +204,21 @@ const useFume = (
 ) => {
   const meshRef = createRef<THREE.Mesh>();
   const fumeHeight = 3;
-  const fumeShaderRef = createRef<THREE.ShaderMaterial>();
+  const fumesMaterial = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        transparent: true,
+        uniforms: {
+          fumesLong: { value: fumesLongTex },
+          time: { value: elapsedShift },
+          height: { value: fumeHeight },
+        },
+        defines: {},
+        vertexShader: FUME_VERT_SHADER,
+        fragmentShader: FUME_FRAG_SHADER,
+      }),
+    []
+  );
   const component = (
     <group key={key} position={new THREE.Vector3(0, -1, 0).add(position)}>
       <pointLight
@@ -214,27 +228,18 @@ const useFume = (
         intensity={100}
       />
       <group position={[0, -fumeHeight * 0.5 - 0.52, 0]} scale={[0.2, 1, 0.2]}>
-        <Cylinder args={[0.4, 0.4, fumeHeight, 64, 64, true]} ref={meshRef}>
-          <shaderMaterial
-            ref={fumeShaderRef}
-            uniforms={{
-              fumesLong: { value: fumesLongTex },
-              time: { value: elapsedShift },
-              height: { value: fumeHeight },
-            }}
-            defines={{}}
-            transparent
-            vertexShader={FUME_VERT_SHADER}
-            fragmentShader={FUME_FRAG_SHADER}
-          />
-        </Cylinder>
+        <Cylinder
+          material={fumesMaterial}
+          args={[0.4, 0.4, fumeHeight, 64, 64, true]}
+          ref={meshRef}
+        />
       </group>
     </group>
   );
   useFrame((state) => {
     const elapsedTime = state.clock.getElapsedTime() + elapsedShift;
-    if (fumeShaderRef.current) {
-      fumeShaderRef.current.uniforms.time.value = elapsedTime;
+    if (fumesMaterial) {
+      fumesMaterial.uniforms.time.value = elapsedTime;
     }
   });
   return { meshRef, component };
