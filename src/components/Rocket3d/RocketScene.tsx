@@ -8,7 +8,6 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-
 import * as THREE from "three";
 
 const FUME_COLOR: [number, number, number] = [1, 0.1, 0.05];
@@ -25,7 +24,7 @@ void main() {
   float reversedY = (1. - vUv.y);
   float fumesValue = texture2D(fumesLong, 
     vUv * vec2(1., 0.2) + 
-    vec2(0., fract(time * 0.8) * 0.8)
+    vec2(0., fract(time) * 0.8)
   ).y;
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(
@@ -33,10 +32,11 @@ void main() {
       position.x,
       position.y,
       position.z
-    ) + 
-      fumesValue * normal * (reversedY * 5. + sqrt(25. * reversedY)) +
-      normal * reversedY * 10.
-    ,
+    ) + normal * (
+      fumesValue * reversedY * 15. +
+      sqrt(reversedY) * 4. +
+      reversedY * 10.
+    ),
     1.
   );
 }
@@ -203,10 +203,11 @@ const useFume = (
   key = "main"
 ) => {
   const meshRef = createRef<THREE.Mesh>();
-  const fumeHeight = 3;
+  const fumeHeight = 4;
   const fumesMaterial = useMemo(
     () =>
       new THREE.ShaderMaterial({
+        side: THREE.DoubleSide,
         transparent: true,
         uniforms: {
           fumesLong: { value: fumesLongTex },
@@ -260,11 +261,11 @@ export const RocketScene = () => {
   const rocketTransformProps: Record<string, [number, number, number]> =
     window.innerWidth >= 1024
       ? {
-          position: [1.5, 0, 1.5 / Math.max(1.5 * aspect, 1)],
-          rotation: [-0.2, 0.3, -0.7 / Math.max(1.5 * aspect, 1)],
+          position: [1.5, 0, -7.5],
+          rotation: [-0.2, 0.3, -0.7 / Math.max(1.42 * aspect, 1)],
         }
       : {
-          position: [0, 0, -1],
+          position: [0, 0, -11],
           rotation: [0, 0, 0],
         };
 

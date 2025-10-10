@@ -1,9 +1,10 @@
 import "/src/css/index.css";
 import classNames from "classnames";
 import type { HTMLAttributes } from "react";
-import { useEffect, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { RocketScene } from "src/components/Rocket3d";
+import * as THREE from "three";
 
 const Container = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
@@ -24,6 +25,10 @@ function Content() {
       window.removeEventListener("resize", callback);
     };
   }, []);
+  const camera = useMemo(
+    () => new THREE.PerspectiveCamera(40, 1.5, 0.1, 1000),
+    []
+  );
   return (
     <main className="bg-black relative min-h-svh">
       <div className="lg:absolute w-full lg:h-full z-50">
@@ -37,6 +42,7 @@ function Content() {
         </Container>
       </div>
       <Canvas
+        camera={camera}
         shadows
         dpr={[1, 4]}
         style={{
