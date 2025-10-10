@@ -232,6 +232,13 @@ const useFume = (
           intensity={1}
         />
       ))}
+      <pointLight
+        decay={4}
+        distance={0.7}
+        position={[0, -0.01, 0]}
+        color={FUME_COLOR}
+        intensity={2000}
+      />
       <group position={[0, -fumeHeight * 0.5 - 0.51, 0]} scale={[0.2, 1, 0.2]}>
         <Cylinder
           material={fumesMaterial}
