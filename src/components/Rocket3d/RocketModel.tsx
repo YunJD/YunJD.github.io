@@ -2,46 +2,29 @@ import { forwardRef, useRef, useMemo, type ReactElement } from "react";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
-const Window = ({
-  nodes,
+const EasyNodeToMesh = ({
+  node,
   children,
-  part = "_1",
 }: {
-  nodes: Record<string, THREE.Mesh>;
-  part?: "_1" | "_2" | "_3" | "_hatch";
+  node: THREE.Mesh;
   children: ReactElement;
-}) => {
-  const suffix = part ?? "";
-  const windowMesh = nodes[`Rocket_window${suffix}`];
-  if (!windowMesh) {
-    return null;
-  }
-  return (
-    <mesh
-      castShadow
-      receiveShadow
-      geometry={windowMesh.geometry}
-      position={windowMesh.position}
-      scale={windowMesh.scale}
-      rotation={windowMesh.rotation}
-    >
-      {children}
-    </mesh>
-  );
-};
+}) => (
+  <mesh
+    castShadow
+    receiveShadow
+    geometry={node.geometry}
+    position={node.position}
+    scale={node.scale}
+    rotation={node.rotation}
+  >
+    {children}
+  </mesh>
+);
 
 export const RocketModel = forwardRef((props, ref) => {
   const bodyMap = useMemo(() => {
     const tex = new THREE.TextureLoader().load(
       "/scenes3d/rocket/Rocket Body.png"
-    );
-    tex.flipY = false;
-    return tex;
-  }, []);
-
-  const windowMap = useMemo(() => {
-    const tex = new THREE.TextureLoader().load(
-      "/scenes3d/rocket/Rocket Window.png"
     );
     tex.flipY = false;
     return tex;
@@ -53,11 +36,22 @@ export const RocketModel = forwardRef((props, ref) => {
   const { nodes } = rocket;
 
   const recordNodes = nodes as Record<string, THREE.Mesh>;
-  const { Engine, Rocket_body, Rocket_fin } = recordNodes;
-
+  const {
+    Engine,
+    Rocket_body,
+    Rocket_fin,
+    Rocket_window_hatch,
+    Rocket_frame_hatch,
+    Rocket_window,
+    Rocket_window_frame,
+  } = recordNodes;
   const windowMaterial = (
-    <meshPhysicalMaterial map={windowMap} metalness={1} roughness={0.2} />
+    <meshPhysicalMaterial color="#050515" metalness={0} clearcoat={1} />
   );
+  const windowFrameMaterial = (
+    <meshPhysicalMaterial color="#777" metalness={1} roughness={0.4} />
+  );
+
   return (
     <group ref={ref} {...props} rotation={[0, Math.PI * 0.5, 0]}>
       <mesh
@@ -70,18 +64,16 @@ export const RocketModel = forwardRef((props, ref) => {
       >
         <meshPhysicalMaterial map={bodyMap} metalness={1} roughness={0.3} />
       </mesh>
-      <Window part="_1" nodes={recordNodes}>
+      <EasyNodeToMesh node={Rocket_window}>{windowMaterial}</EasyNodeToMesh>
+      <EasyNodeToMesh node={Rocket_window_frame}>
+        {windowFrameMaterial}
+      </EasyNodeToMesh>
+      <EasyNodeToMesh node={Rocket_frame_hatch}>
+        {windowFrameMaterial}
+      </EasyNodeToMesh>
+      <EasyNodeToMesh node={Rocket_window_hatch}>
         {windowMaterial}
-      </Window>
-      <Window part="_2" nodes={recordNodes}>
-        {windowMaterial}
-      </Window>
-      <Window part="_3" nodes={recordNodes}>
-        {windowMaterial}
-      </Window>
-      <Window part="_hatch" nodes={recordNodes}>
-        {windowMaterial}
-      </Window>
+      </EasyNodeToMesh>
       <mesh
         geometry={Engine.geometry}
         position={Engine.position}
