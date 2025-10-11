@@ -222,13 +222,6 @@ const useFume = (
   );
   const component = (
     <group key={key} position={new THREE.Vector3(0, -1, 0).add(position)}>
-      <pointLight
-        decay={4}
-        distance={0.7}
-        position={[0, -0.41, 0]}
-        color={FUME_COLOR}
-        intensity={2000}
-      />
       <group position={[0, -FUMES_HEIGHT * 0.5 - 0.8, 0]} scale={[0.2, 1, 0.2]}>
         <Cylinder
           material={fumesMaterial}
