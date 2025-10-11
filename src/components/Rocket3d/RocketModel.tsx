@@ -29,9 +29,9 @@ export const RocketModel = forwardRef((props, ref) => {
     tex.flipY = false;
     return tex;
   }, []);
-  const bodyMap = useMemo(() => {
+  const bodyRoughnessMap = useMemo(() => {
     const tex = new THREE.TextureLoader().load(
-      "/scenes3d/rocket/Rocket Body.png"
+      "/scenes3d/rocket/Body Roughness.png"
     );
     tex.flipY = false;
     return tex;
@@ -80,7 +80,12 @@ export const RocketModel = forwardRef((props, ref) => {
         position={Rocket_body.position}
         scale={Rocket_body.scale}
       >
-        <meshPhysicalMaterial map={bodyMap} metalness={1} roughness={0.3} />
+        <meshPhysicalMaterial
+          color="#ccc"
+          metalness={1}
+          roughness={0.7}
+          roughnessMap={bodyRoughnessMap}
+        />
       </mesh>
       <EasyNodeToMesh node={Rocket_window}>{windowMaterial}</EasyNodeToMesh>
       <EasyNodeToMesh node={Rocket_window_frame}>
