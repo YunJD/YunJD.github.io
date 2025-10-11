@@ -334,7 +334,7 @@ export const RocketScene = () => {
         />
         <group {...rocketTransformProps}>
           <pointLight
-            decay={1.8}
+            decay={2}
             color={FUME_COLOR}
             intensity={5000}
             position={[0, -12, 0]}
