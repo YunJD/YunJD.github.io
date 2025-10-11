@@ -11,20 +11,22 @@ import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import * as THREE from "three";
 
 const FUME_COLOR: [number, number, number] = [1, 0.1, 0.05];
+const FUMES_HEIGHT = 4;
 
 const FUME_VERT_SHADER = `
 varying vec2 vUv;
 uniform float height;
 uniform float time;
 uniform sampler2D fumesLong;
+uniform float intensity;
 
 void main() {
 
   vUv = uv;
   float reversedY = (1. - vUv.y);
   float fumesValue = texture2D(fumesLong, 
-    vUv * vec2(1., 0.1) + 
-    vec2(0., fract(time * 0.3) * 0.9)
+    vUv * vec2(1., mix(0.3, 0.1, intensity)) + 
+    vec2(0., fract(time * mix(0.3, 0.7, intensity)) * 0.9)
   ).y;
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(
@@ -35,7 +37,7 @@ void main() {
     ) + normal * (
       fumesValue * pow(reversedY, 2.) * 5. +
       fumesValue * sqrt(reversedY) * 3. +
-      reversedY * 25.
+      reversedY * mix(5., 25., intensity)
     ),
     1.
   );
@@ -46,21 +48,21 @@ const FUME_FRAG_SHADER = `
 varying vec2 vUv;
 uniform float time;
 uniform sampler2D fumesLong;
+uniform float intensity;
 
 void main() {
-  vec3 topColor = vec3(1., 0.1, 0.05);
-  vec3 bottomColor = vec3(0.015, 0.03, 0.07);
   float fumesValue = texture2D(
     fumesLong,
-    vUv * vec2(1., 0.1) + 
-    vec2(0., fract(time * 0.2))
+    vUv * vec2(1., mix(0.3, 0.1, intensity)) + 
+    vec2(0., fract(time * 0.7))
   ).y;
   float fumesContrast = clamp(1.1 * (fumesValue - 0.05), 0., 1.);
-  float reverseY = 1. - vUv.y;
+  vec3 topColor = mix(vec3(1., 0.00, 0.00), vec3(1., 0.3, 0.15), max(0., 5. * (vUv.y - 0.8)));
+  vec3 bottomColor = vec3(0.015, 0.03, 0.07);
   vec3 baseColor = max(
     mix(
-      bottomColor * 3.,
-      topColor * (1. + vUv.y * 20.),
+      bottomColor * 2.,
+      topColor * (1. + vUv.y * mix(10., 20., intensity)),
       clamp(
         pow(vUv.y, 7.) * pow(2. * fumesContrast, 2.),
         0., 1.
@@ -71,13 +73,12 @@ void main() {
   gl_FragColor = vec4(
     baseColor,
     clamp(
-      pow(fumesContrast, 4.) * 
-      min(vUv.y * 3., 1.) + // y * c = 1, y = 1 / c: reaches 1 at y / c
-      max(0., (vUv.y - 0.93) * 10.) +
+      pow(fumesContrast, 3.) + 
+      max(0., (vUv.y - 0.93) * 10.) + // Tiny amount at the top
       pow(fumesContrast, 4.) * 
       pow(max(0., 5. * (vUv.y - 0.5)), 6.),
       0., 1.
-    )
+    ) * min(vUv.y * mix(1.5, 3., intensity), 1.) // 0 to 1 opacity from 0 to 1 / 3 (the vUv.y coefficient)
   );
 }
 `;
@@ -203,15 +204,15 @@ const useFume = (
   key = "main"
 ) => {
   const meshRef = createRef<THREE.Mesh>();
-  const fumeHeight = 4;
   const fumesMaterial = useMemo(
     () =>
       new THREE.ShaderMaterial({
         transparent: true,
         uniforms: {
+          intensity: { value: 0.5 },
           fumesLong: { value: fumesLongTex },
           time: { value: elapsedShift },
-          height: { value: fumeHeight },
+          height: { value: FUMES_HEIGHT },
         },
         defines: {},
         vertexShader: FUME_VERT_SHADER,
@@ -228,15 +229,28 @@ const useFume = (
         color={FUME_COLOR}
         intensity={2000}
       />
-      <group position={[0, -fumeHeight * 0.5 - 0.8, 0]} scale={[0.2, 1, 0.2]}>
+      <group position={[0, -FUMES_HEIGHT * 0.5 - 0.8, 0]} scale={[0.2, 1, 0.2]}>
         <Cylinder
           material={fumesMaterial}
-          args={[1.5, 1.5, fumeHeight, 128, 128, true]}
+          args={[1.5, 1.5, FUMES_HEIGHT, 128, 128, true]}
           ref={meshRef}
         />
       </group>
     </group>
   );
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const deltaX = (1.5 * e.movementX) / window.innerWidth;
+      fumesMaterial.uniforms.intensity.value = Math.min(
+        1,
+        Math.max(0, fumesMaterial.uniforms.intensity.value + deltaX)
+      );
+    };
+    window.addEventListener("mousemove", handler);
+    return () => {
+      window.removeEventListener("mousemove", handler);
+    };
+  }, []);
   useFrame((state) => {
     const elapsedTime = state.clock.getElapsedTime() + elapsedShift;
     if (fumesMaterial) {
@@ -250,12 +264,26 @@ export const RocketScene = () => {
   const rocketRef = createRef<THREE.Mesh>();
   const { size } = useThree();
   const aspect = size.height / size.width;
+  const mouseRotation = useMemo(() => ({ value: 1 }), []);
 
   useFrame(() => {
     if (rocketRef.current) {
       rocketRef.current.rotation.y += 0.002;
     }
   });
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      mouseRotation.value = THREE.MathUtils.clamp(
+        mouseRotation.value + (1.5 * e.movementY) / window.innerHeight,
+        0,
+        1
+      );
+    };
+    window.addEventListener("mousemove", handler);
+    return () => {
+      window.removeEventListener("mousemove", handler);
+    };
+  }, []);
 
   //Window inner width is not affected by scrollbar.  It is needed to match css @media.
   const rocketTransformProps: Record<string, [number, number, number]> =
