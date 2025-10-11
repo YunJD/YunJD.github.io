@@ -22,7 +22,14 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
-  const windowFrameBump = useMemo(() => {
+  const windowFrameRoughnessMap = useMemo(() => {
+    const tex = new THREE.TextureLoader().load(
+      "/scenes3d/rocket/Window Frame Roughness.png"
+    );
+    tex.flipY = false;
+    return tex;
+  }, []);
+  const windowFrameBumpMap = useMemo(() => {
     const tex = new THREE.TextureLoader().load(
       "/scenes3d/rocket/Rocket window frame bump.png"
     );
@@ -32,6 +39,13 @@ export const RocketModel = forwardRef((props, ref) => {
   const bodyRoughnessMap = useMemo(() => {
     const tex = new THREE.TextureLoader().load(
       "/scenes3d/rocket/Body Roughness.png"
+    );
+    tex.flipY = false;
+    return tex;
+  }, []);
+  const bodyNormalMap = useMemo(() => {
+    const tex = new THREE.TextureLoader().load(
+      "/scenes3d/rocket/Body Normal.png"
     );
     tex.flipY = false;
     return tex;
@@ -63,10 +77,11 @@ export const RocketModel = forwardRef((props, ref) => {
   const windowFrameMaterial = (
     <meshPhysicalMaterial
       color="#888"
-      bumpMap={windowFrameBump}
+      roughnessMap={windowFrameRoughnessMap}
+      bumpMap={windowFrameBumpMap}
       bumpScale={5}
       metalness={1}
-      roughness={0.3}
+      roughness={0.5}
     />
   );
 
@@ -81,9 +96,10 @@ export const RocketModel = forwardRef((props, ref) => {
         scale={Rocket_body.scale}
       >
         <meshPhysicalMaterial
-          color="#ccc"
+          color="#eee"
           metalness={1}
-          roughness={0.7}
+          roughness={1}
+          normalMap={bodyNormalMap}
           roughnessMap={bodyRoughnessMap}
         />
       </mesh>
@@ -116,10 +132,10 @@ export const RocketModel = forwardRef((props, ref) => {
       >
         <meshPhysicalMaterial
           color="#dd0109"
-          metalness={1}
+          metalness={0}
           roughness={0.5}
           clearcoat={1}
-          clearcoatRoughness={0.1}
+          clearcoatRoughness={0.0}
         />
       </mesh>
     </group>
