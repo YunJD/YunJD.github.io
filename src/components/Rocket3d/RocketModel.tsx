@@ -22,6 +22,13 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
+  const windowFrameBump = useMemo(() => {
+    const tex = new THREE.TextureLoader().load(
+      "/scenes3d/rocket/Rocket window frame bump.png"
+    );
+    tex.flipY = false;
+    return tex;
+  }, []);
   const bodyMap = useMemo(() => {
     const tex = new THREE.TextureLoader().load(
       "/scenes3d/rocket/Rocket Body.png"
@@ -54,7 +61,13 @@ export const RocketModel = forwardRef((props, ref) => {
     />
   );
   const windowFrameMaterial = (
-    <meshPhysicalMaterial color="#aaa" metalness={1} roughness={0.2} />
+    <meshPhysicalMaterial
+      color="#888"
+      bumpMap={windowFrameBump}
+      bumpScale={5}
+      metalness={1}
+      roughness={0.3}
+    />
   );
 
   return (
