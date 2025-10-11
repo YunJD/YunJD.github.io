@@ -336,7 +336,7 @@ export const RocketScene = () => {
           <pointLight
             decay={1.8}
             color={FUME_COLOR}
-            intensity={10000}
+            intensity={5000}
             position={[0, -12, 0]}
           />
           <group ref={rocketRef}>
