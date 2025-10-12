@@ -22,13 +22,6 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
-  const windowFrameRoughnessMap = useMemo(() => {
-    const tex = new THREE.TextureLoader().load(
-      "/scenes3d/rocket/Window Frame Roughness.png"
-    );
-    tex.flipY = false;
-    return tex;
-  }, []);
   const bodyRoughnessMap = useTexture(
     "/scenes3d/rocket/Body Roughness.png",
     (tex) => {
@@ -59,7 +52,7 @@ export const RocketModel = forwardRef((props, ref) => {
     />
   );
   const windowFrameMaterial = (
-    <meshPhysicalMaterial color="#fff" metalness={1} roughness={0.25} />
+    <meshPhysicalMaterial color="#999" metalness={1} roughness={0.2} />
   );
 
   return (
