@@ -62,7 +62,6 @@ export const RocketModel = forwardRef((props, ref) => {
     <meshPhysicalMaterial
       color="#aaa"
       roughnessMap={windowFrameRoughnessMap}
-      bumpScale={5}
       metalness={1}
       roughness={0.5}
     />
@@ -92,7 +91,7 @@ export const RocketModel = forwardRef((props, ref) => {
         {windowFrameMaterial}
       </EasyNodeToMesh>
       <EasyNodeToMesh node={Rocket_frame_hatch}>
-        {windowFrameMaterial}
+        <meshPhysicalMaterial color="#aaa" metalness={1} roughness={0.2} />
       </EasyNodeToMesh>
       <EasyNodeToMesh node={Rocket_window_hatch}>
         {windowMaterial}
