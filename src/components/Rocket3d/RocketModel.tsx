@@ -1,5 +1,5 @@
 import { forwardRef, useRef, useMemo, type ReactElement } from "react";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
 const EasyNodeToMesh = ({
@@ -29,28 +29,12 @@ export const RocketModel = forwardRef((props, ref) => {
     tex.flipY = false;
     return tex;
   }, []);
-  const windowFrameBumpMap = useMemo(() => {
-    const tex = new THREE.TextureLoader().load(
-      "/scenes3d/rocket/Rocket window frame bump.png"
-    );
-    tex.flipY = false;
-    return tex;
-  }, []);
-  const bodyRoughnessMap = useMemo(() => {
-    const tex = new THREE.TextureLoader().load(
-      "/scenes3d/rocket/Body Roughness.png"
-    );
-    tex.flipY = false;
-    return tex;
-  }, []);
-  const bodyNormalMap = useMemo(() => {
-    const tex = new THREE.TextureLoader().load(
-      "/scenes3d/rocket/Body Normal.png"
-    );
-    tex.flipY = false;
-    return tex;
-  }, []);
-
+  const bodyRoughnessMap = useTexture(
+    "/scenes3d/rocket/Body Roughness.png",
+    (tex) => {
+      tex.flipY = false;
+    }
+  );
   const bodyRef = useRef(null);
   const finRef = useRef(null);
   const rocket = useGLTF("/scenes3d/rocket/rocket.glb");
@@ -76,9 +60,8 @@ export const RocketModel = forwardRef((props, ref) => {
   );
   const windowFrameMaterial = (
     <meshPhysicalMaterial
-      color="#888"
+      color="#aaa"
       roughnessMap={windowFrameRoughnessMap}
-      bumpMap={windowFrameBumpMap}
       bumpScale={5}
       metalness={1}
       roughness={0.5}
@@ -96,11 +79,12 @@ export const RocketModel = forwardRef((props, ref) => {
         scale={Rocket_body.scale}
       >
         <meshPhysicalMaterial
-          color="#eee"
+          color="#fff"
           metalness={1}
           roughness={1}
-          normalMap={bodyNormalMap}
           roughnessMap={bodyRoughnessMap}
+          clearcoat={1}
+          clearcoatRoughness={0.1}
         />
       </mesh>
       <EasyNodeToMesh node={Rocket_window}>{windowMaterial}</EasyNodeToMesh>
@@ -133,9 +117,9 @@ export const RocketModel = forwardRef((props, ref) => {
         <meshPhysicalMaterial
           color="#dd0109"
           metalness={0}
-          roughness={0.5}
+          roughness={0.4}
           clearcoat={1}
-          clearcoatRoughness={0.0}
+          clearcoatRoughness={0.1}
         />
       </mesh>
     </group>
