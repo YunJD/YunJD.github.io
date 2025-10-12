@@ -1,4 +1,4 @@
-import { forwardRef, useRef, useMemo, type ReactElement } from "react";
+import { forwardRef, useRef, type ReactElement } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
