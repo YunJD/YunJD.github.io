@@ -42,6 +42,7 @@ export const RocketModel = forwardRef((props, ref) => {
     Rocket_frame_hatch,
     Rocket_window,
     Rocket_window_frame,
+    Rocket_window_frame_screws,
   } = recordNodes;
   const windowMaterial = (
     <meshPhysicalMaterial color="#555" metalness={1} roughness={0} ior={1.4} />
@@ -68,6 +69,9 @@ export const RocketModel = forwardRef((props, ref) => {
         />
       </mesh>
       <EasyNodeToMesh node={Rocket_window}>{windowMaterial}</EasyNodeToMesh>
+      <EasyNodeToMesh node={Rocket_window_frame_screws}>
+        {windowFrameMaterial}
+      </EasyNodeToMesh>
       <EasyNodeToMesh node={Rocket_window_frame}>
         {windowFrameMaterial}
       </EasyNodeToMesh>
