@@ -22,6 +22,9 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
+  const finNormalMap = useTexture("/scenes3d/rocket/Fin Normal.png", (tex) => {
+    tex.flipY = false;
+  });
   const bodyRoughnessMap = useTexture(
     "/scenes3d/rocket/Body Roughness.png",
     (tex) => {
@@ -101,12 +104,13 @@ export const RocketModel = forwardRef((props, ref) => {
         receiveShadow
       >
         <meshPhysicalMaterial
-          color="#aa0105"
+          color="#700000"
           metalness={0}
           roughness={0.1}
           specularColor="#ffaadd"
           clearcoat={1}
-          clearcoatRoughness={0.1}
+          clearcoatRoughness={0.2}
+          normalMap={finNormalMap}
         />
       </mesh>
     </group>
