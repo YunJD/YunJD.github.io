@@ -287,7 +287,7 @@ export const RocketScene = () => {
         }
       : {
           position: [0, 0, -11],
-          rotation: [0, 0, 0],
+          rotation: [0.8, 0, 0],
         };
 
   const envRotation: [number, number, number] = [
