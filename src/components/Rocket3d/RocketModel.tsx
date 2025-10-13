@@ -101,9 +101,10 @@ export const RocketModel = forwardRef((props, ref) => {
         receiveShadow
       >
         <meshPhysicalMaterial
-          color="#dd0109"
+          color="#aa0105"
           metalness={0}
-          roughness={0.4}
+          roughness={0.1}
+          specularColor="#ffaadd"
           clearcoat={1}
           clearcoatRoughness={0.1}
         />
