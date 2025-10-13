@@ -282,8 +282,8 @@ export const RocketScene = () => {
   const rocketTransformProps: Record<string, [number, number, number]> =
     window.innerWidth >= 1024
       ? {
-          position: [0.5, -0.25, -7.5],
-          rotation: [0.4, 1.3, 0.8 / Math.max(1.32 * aspect, 1)],
+          position: [0.5, 0.25, -7.5],
+          rotation: [-0.2, 0.3, 1.12 / Math.max(1.32 * aspect, 1)],
         }
       : {
           position: [0, 0, -11],
