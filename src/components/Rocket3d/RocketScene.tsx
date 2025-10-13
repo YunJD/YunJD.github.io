@@ -73,12 +73,12 @@ void main() {
   gl_FragColor = vec4(
     baseColor,
     clamp(
-      pow(fumesContrast, 3.) + 
+      pow(fumesContrast, 2.) + 
       max(0., (vUv.y - 0.93) * 10.) + // Tiny amount at the top
-      pow(fumesContrast, 4.) * 
-      pow(max(0., 5. * (vUv.y - 0.5)), 6.),
+      pow(fumesContrast, 3.) * 
+      pow(max(0., 5. * (vUv.y - 0.45)), 4.),
       0., 1.
-    ) * min(vUv.y * mix(1.5, 3., intensity), 1.) // 0 to 1 opacity from 0 to 1 / 3 (the vUv.y coefficient)
+    ) * min(vUv.y * mix(2., 5., intensity), 1.) // 0 to 1 opacity from 0 to 1 / 3 (the vUv.y coefficient)
   );
 }
 `;
@@ -282,8 +282,8 @@ export const RocketScene = () => {
   const rocketTransformProps: Record<string, [number, number, number]> =
     window.innerWidth >= 1024
       ? {
-          position: [1.5, 0, -7.5],
-          rotation: [-0.2, 0.3, -0.7 / Math.max(1.42 * aspect, 1)],
+          position: [0.5, 0.25, -7.5],
+          rotation: [-0.2, 0.3, 1.12 / Math.max(1.32 * aspect, 1)],
         }
       : {
           position: [0, 0, -11],
@@ -291,12 +291,14 @@ export const RocketScene = () => {
         };
 
   const envRotation: [number, number, number] = [
-    (-80 * Math.PI) / 180,
-    (10 * Math.PI) / 180,
-    (0 * Math.PI) / 180,
+    (-5 * Math.PI) / 180,
+    (45 * Math.PI) / 180,
+    (30 * Math.PI) / 180,
   ];
   const environment = (
     <Environment
+      background
+      backgroundIntensity={0.6}
       backgroundRotation={envRotation}
       files="orbital.hdr"
       path="/scenes3d/env-maps/"
@@ -327,8 +329,8 @@ export const RocketScene = () => {
         <group {...rocketTransformProps}>
           <directionalLight
             color="white"
-            intensity={10}
-            position={[3, 20, 1]}
+            intensity={3}
+            position={[-8, 5, 12]}
             castShadow
             shadow-mapSize-width={2048}
             shadow-mapSize-height={2048}
