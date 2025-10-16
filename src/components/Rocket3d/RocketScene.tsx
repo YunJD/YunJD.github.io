@@ -57,8 +57,8 @@ void main() {
     vec2(0., fract(time * 0.7))
   ).y;
   float fumesContrast = clamp(1.1 * (fumesValue - 0.05), 0., 1.);
-  vec3 topColor = mix(vec3(1., 0.00, 0.00), vec3(1., 0.3, 0.15), max(0., 5. * (vUv.y - 0.8)));
-  vec3 bottomColor = vec3(0.015, 0.03, 0.07);
+  vec3 topColor = mix(vec3(1., 0., 0.), vec3(1., 0.3, 0.15), max(0., fumesValue * 20. * (vUv.y - 0.95)));
+  vec3 bottomColor = vec3(0.01, 0.01, 0.015);
   vec3 baseColor = max(
     mix(
       bottomColor * 2.,
@@ -240,8 +240,32 @@ const useFume = (
       );
     };
     window.addEventListener("mousemove", handler);
+
+    let lastTouchX: number | null = null;
+    const touchHandler = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        if (lastTouchX !== null) {
+          const deltaX =
+            (1.5 * (touch.clientX - lastTouchX)) / window.innerWidth;
+          fumesMaterial.uniforms.intensity.value = Math.min(
+            1,
+            Math.max(0, fumesMaterial.uniforms.intensity.value + deltaX)
+          );
+        }
+        lastTouchX = touch.clientX;
+      }
+    };
+    window.addEventListener("touchmove", touchHandler);
+    window.addEventListener("touchend", () => {
+      lastTouchX = null;
+    });
     return () => {
       window.removeEventListener("mousemove", handler);
+      window.removeEventListener("touchmove", touchHandler);
+      window.removeEventListener("touchend", () => {
+        lastTouchX = null;
+      });
     };
   }, []);
   useFrame((state) => {

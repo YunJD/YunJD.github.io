@@ -66,7 +66,7 @@ export const RocketModel = forwardRef((props, ref) => {
           roughness={0.65}
           roughnessMap={bodyRoughnessMap}
           bumpMap={bodyRoughnessMap}
-          bumpScale={1}
+          bumpScale={1.25}
         />
       </mesh>
       <EasyNodeToMesh node={Rocket_window}>{windowMaterial}</EasyNodeToMesh>
