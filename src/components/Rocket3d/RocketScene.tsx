@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import { Suspense, createRef, useEffect, useMemo } from "react";
+import { Suspense, createRef, useEffect, useMemo, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { RocketModel } from "./RocketModel";
 import { Cylinder, Environment, Html, useTexture } from "@react-three/drei";
@@ -25,8 +25,8 @@ void main() {
   vUv = uv;
   float reversedY = (1. - vUv.y);
   float fumesValue = texture2D(fumesLong, 
-    vUv * vec2(1., mix(0.3, 0.1, intensity)) + 
-    vec2(0., fract(time * mix(0.3, 0.7, intensity)) * 0.9)
+    vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
+    vec2(0., fract(time * 0.5))
   ).y;
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(
@@ -53,16 +53,20 @@ uniform float intensity;
 void main() {
   float fumesValue = texture2D(
     fumesLong,
-    vUv * vec2(1., mix(0.3, 0.1, intensity)) + 
-    vec2(0., fract(time * 0.7))
+    vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
+    vec2(0., fract(time * 0.5))
   ).y;
   float fumesContrast = clamp(1.1 * (fumesValue - 0.05), 0., 1.);
-  vec3 topColor = mix(vec3(1., 0., 0.), vec3(1., 0.3, 0.15), max(0., fumesValue * 20. * (vUv.y - 0.95)));
+  vec3 topColor = mix(
+    vec3(1., 0.15, 0.0),
+    vec3(1., 0.1, 0.),
+    clamp(vUv.y / 0.5 - 0.5, 0., 1.)
+  );
   vec3 bottomColor = vec3(0.01, 0.01, 0.015);
   vec3 baseColor = max(
     mix(
-      bottomColor * 2.,
-      topColor * (1. + vUv.y * mix(10., 20., intensity)),
+      bottomColor,
+      topColor * 20.,
       clamp(
         pow(vUv.y, 7.) * pow(2. * fumesContrast, 2.),
         0., 1.
@@ -123,7 +127,7 @@ const BloomEffects = ({
   );
   const renderPass = useMemo(() => new RenderPass(scene, camera), []);
   const bloomPass = useMemo(
-    () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.5, 0, 1),
+    () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.2, 0, 1),
     []
   );
   const outputPass = useMemo(() => new OutputPass(), []);
@@ -288,30 +292,76 @@ export const RocketScene = () => {
       rocketRef.current.rotation.y += 0.002;
     }
   });
+  const [verticalTransformMod, setVerticalTransformMod] = useState<number>(0.5);
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
+    let lastTouchY: number | null = null;
+    const mouseHandler = (e: MouseEvent) => {
+      setVerticalTransformMod((oldValue) =>
+        THREE.MathUtils.clamp(
+          oldValue + (1.5 * e.movementY) / window.innerHeight,
+          0,
+          1
+        )
+      );
       mouseRotation.value = THREE.MathUtils.clamp(
         mouseRotation.value + (1.5 * e.movementY) / window.innerHeight,
         0,
         1
       );
     };
-    window.addEventListener("mousemove", handler);
-    return () => {
-      window.removeEventListener("mousemove", handler);
+    const touchHandler = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        const touchY = e.touches[0].clientY;
+        if (lastTouchY !== null) {
+          const movementY = touchY - lastTouchY;
+          setVerticalTransformMod((oldValue) =>
+            THREE.MathUtils.clamp(
+              oldValue + (1.5 * movementY) / window.innerHeight,
+              0,
+              1
+            )
+          );
+          mouseRotation.value = THREE.MathUtils.clamp(
+            mouseRotation.value + (1.5 * movementY) / window.innerHeight,
+            0,
+            1
+          );
+        }
+        lastTouchY = touchY;
+      }
     };
-  }, []);
+    const touchEndHandler = () => {
+      lastTouchY = null;
+    };
+    window.addEventListener("mousemove", mouseHandler);
+    window.addEventListener("touchmove", touchHandler);
+    window.addEventListener("touchend", touchEndHandler);
+    return () => {
+      window.removeEventListener("mousemove", mouseHandler);
+      window.removeEventListener("touchmove", touchHandler);
+      window.removeEventListener("touchend", touchEndHandler);
+    };
+  }, [setVerticalTransformMod]);
+  const verticalRotation = THREE.MathUtils.lerp(
+    (-30 * Math.PI) / 180,
+    (30 * Math.PI) / 180,
+    verticalTransformMod
+  );
 
   //Window inner width is not affected by scrollbar.  It is needed to match css @media.
   const rocketTransformProps: Record<string, [number, number, number]> =
     window.innerWidth >= 1024
       ? {
           position: [0.5, 0.25, -7.5],
-          rotation: [-0.2, 0.3, 1.12 / Math.max(1.32 * aspect, 1)],
+          rotation: [
+            -0.2 + verticalRotation,
+            0.3,
+            1.12 / Math.max(1.32 * aspect, 1),
+          ],
         }
       : {
-          position: [0, 0, -11],
-          rotation: [0.8, 0, 0],
+          position: [0, 0, -12],
+          rotation: [verticalRotation, 0, 0],
         };
 
   const envRotation: [number, number, number] = [

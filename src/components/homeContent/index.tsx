@@ -17,7 +17,7 @@ function Content() {
   const [canvasHeight, setCanvasHeight] = useState<string>("700px");
   useEffect(() => {
     const callback = () => {
-      setCanvasHeight(window.innerHeight < 700 ? "700px" : "100vh");
+      setCanvasHeight(window.innerHeight < 800 ? "800px" : "100vh");
     };
     callback();
     window.addEventListener("resize", callback);
