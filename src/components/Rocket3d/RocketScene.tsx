@@ -26,7 +26,7 @@ void main() {
   float reversedY = (1. - vUv.y);
   float fumesValue = texture2D(fumesLong, 
     vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
-    vec2(0., fract(time * 0.5))
+    vec2(-0.05 * pow(vUv.y, 2.), fract(time * 0.5))
   ).y;
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(
@@ -54,7 +54,7 @@ void main() {
   float fumesValue = texture2D(
     fumesLong,
     vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
-    vec2(0., fract(time * 0.5))
+    vec2(-0.05 * pow(vUv.y, 2.), fract(time * 0.5))
   ).y;
   float fumesContrast = clamp(1.1 * (fumesValue - 0.05), 0., 1.);
   vec3 topColor = mix(
@@ -226,10 +226,10 @@ const useFume = (
   );
   const component = (
     <group key={key} position={new THREE.Vector3(0, -1, 0).add(position)}>
-      <group position={[0, -FUMES_HEIGHT * 0.5 - 0.8, 0]} scale={[0.2, 1, 0.2]}>
+      <group position={[0, -FUMES_HEIGHT * 0.5 - 0.7, 0]} scale={[0.2, 1, 0.2]}>
         <Cylinder
           material={fumesMaterial}
-          args={[1.5, 1.5, FUMES_HEIGHT, 128, 128, true]}
+          args={[1.2, 1.2, FUMES_HEIGHT, 128, 128, true]}
           ref={meshRef}
         />
       </group>
