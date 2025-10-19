@@ -66,11 +66,11 @@ export const RocketModel = forwardRef((props, ref) => {
         <meshPhysicalMaterial
           color="#ddd"
           roughnessMap={bodyRoughnessMap}
-          aoMapIntensity={1}
           metalness={1}
-          roughness={0.8}
-          anisotropy={0.4}
+          roughness={1}
+          anisotropy={0.9}
           anisotropyRotation={0.5 * Math.PI}
+          bumpMap={bodyRoughnessMap}
           bumpScale={1.25}
         />
       </mesh>

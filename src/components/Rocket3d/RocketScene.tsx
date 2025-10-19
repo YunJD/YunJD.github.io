@@ -237,7 +237,7 @@ const useFume = (
   );
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      const deltaX = (1.5 * e.movementX) / window.innerWidth;
+      const deltaX = (4 * e.movementX) / window.innerWidth;
       fumesMaterial.uniforms.intensity.value = Math.min(
         1,
         Math.max(0, fumesMaterial.uniforms.intensity.value + deltaX)
@@ -250,11 +250,11 @@ const useFume = (
       if (e.touches.length === 1) {
         const touch = e.touches[0];
         if (lastTouchX !== null) {
-          const deltaX =
-            (1.5 * (touch.clientX - lastTouchX)) / window.innerWidth;
-          fumesMaterial.uniforms.intensity.value = Math.min(
-            1,
-            Math.max(0, fumesMaterial.uniforms.intensity.value + deltaX)
+          const deltaX = (4 * (touch.clientX - lastTouchX)) / window.innerWidth;
+          fumesMaterial.uniforms.intensity.value = THREE.MathUtils.clamp(
+            fumesMaterial.uniforms.intensity.value + deltaX,
+            0,
+            1
           );
         }
         lastTouchX = touch.clientX;
@@ -298,13 +298,13 @@ export const RocketScene = () => {
     const mouseHandler = (e: MouseEvent) => {
       setVerticalTransformMod((oldValue) =>
         THREE.MathUtils.clamp(
-          oldValue + (1.5 * e.movementY) / window.innerHeight,
+          oldValue + (4 * e.movementY) / window.innerHeight,
           0,
           1
         )
       );
       mouseRotation.value = THREE.MathUtils.clamp(
-        mouseRotation.value + (1.5 * e.movementY) / window.innerHeight,
+        mouseRotation.value + (4 * e.movementY) / window.innerHeight,
         0,
         1
       );
@@ -316,13 +316,13 @@ export const RocketScene = () => {
           const movementY = touchY - lastTouchY;
           setVerticalTransformMod((oldValue) =>
             THREE.MathUtils.clamp(
-              oldValue + (1.5 * movementY) / window.innerHeight,
+              oldValue - (4 * movementY) / window.innerHeight,
               0,
               1
             )
           );
           mouseRotation.value = THREE.MathUtils.clamp(
-            mouseRotation.value + (1.5 * movementY) / window.innerHeight,
+            mouseRotation.value + (4 * movementY) / window.innerHeight,
             0,
             1
           );

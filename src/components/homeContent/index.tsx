@@ -34,7 +34,9 @@ function Content() {
       <div className="lg:absolute w-full lg:h-full z-50">
         <Container className="flex px-20 pt-10 justify-center text-center items-start text-slate-100 w-full lg:text-left lg:h-full lg:items-center lg:justify-start lg:pt-0">
           <div>
-            <div className="text-7xl font-extrabold mb-3">Jin Ding</div>
+            <div className="text-6xl lg:text-8xl font-extrabold mb-3">
+              Jin Ding
+            </div>
             <div className="inline-block text-2xl bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-pink-500 font-medium">
               Software developer
             </div>
