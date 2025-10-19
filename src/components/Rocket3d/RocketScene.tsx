@@ -15,7 +15,7 @@ const FUMES_HEIGHT = 4;
 
 const fumesUV = `
 vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
-vec2(-0.3 * pow(vUv.y, 10.), fract(time * 0.2 / (1. + intensity)))
+vec2(-0.1 * pow(vUv.y, 10.), fract(time * 0.3 / (1. + intensity)))
 `;
 const FUME_VERT_SHADER = `
 varying vec2 vUv;
@@ -38,7 +38,7 @@ ${fumesUV}
       position.y,
       position.z
     ) + normal * (
-      fumesValue * pow(reversedY, 2.) * 5. +
+      fumesValue * pow(reversedY, 2.) * 2. +
       fumesValue * sqrt(reversedY) * 3. +
       reversedY * mix(5., 25., intensity)
     ),
@@ -72,9 +72,9 @@ ${fumesUV}
   vec3 baseColor = max(
     mix(
       bottomColor,
-      topColor * 20.,
+      topColor * 15.,
       clamp(
-        pow(vUv.y, 10.) * pow(2. * fumesContrast, 4.),
+        pow(vUv.y, 7.) * pow(2.5 * fumesContrast, 6.),
         0., 1.
       )
     ),
@@ -82,7 +82,7 @@ ${fumesUV}
   );
   gl_FragColor = vec4(
     baseColor,
-    min((pow(0.7 + fumesContrast, 2.)) * vUv.y * mix(2., 5., intensity), 1.) // 0 to 1 opacity from 0 to 1 / 3 (the vUv.y coefficient)
+    min((pow(0.6 + fumesContrast, 4.)) * vUv.y * mix(2., 3., intensity), 1.) // 0 to 1 opacity from 0 to 1 / 3 (the vUv.y coefficient)
   );
 }
 `;
