@@ -15,7 +15,7 @@ const FUMES_HEIGHT = 4;
 
 const fumesUV = `
 vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
-vec2(-0.3 * pow(vUv.y, 10.), fract(time * 0.1))
+vec2(-0.3 * pow(vUv.y, 10.), fract(time * 0.2 / (1. + intensity)))
 `;
 const FUME_VERT_SHADER = `
 varying vec2 vUv;
@@ -64,13 +64,17 @@ ${fumesUV}
     vec3(1., 0.1, 0.),
     clamp(vUv.y / 0.5 - 0.5, 0., 1.)
   );
-  vec3 bottomColor = vec3(0.01, 0.01, 0.015);
+  vec3 bottomColor = mix(
+    vec3(0.000, 0.000, 0.000),
+    vec3(0.05, 0.009, 0.009),
+    clamp(vUv.y / 0.5 - 0.5, 0., 1.)
+  );
   vec3 baseColor = max(
     mix(
       bottomColor,
       topColor * 20.,
       clamp(
-        pow(vUv.y, 7.) * pow(2. * fumesContrast, 2.),
+        pow(vUv.y, 10.) * pow(2. * fumesContrast, 4.),
         0., 1.
       )
     ),
@@ -78,13 +82,7 @@ ${fumesUV}
   );
   gl_FragColor = vec4(
     baseColor,
-    clamp(
-      pow(fumesContrast, 2.) + 
-      max(0., (vUv.y - 0.93) * 10.) + // Tiny amount at the top
-      pow(fumesContrast, 3.) * 
-      pow(max(0., 5. * (vUv.y - 0.45)), 4.),
-      0., 1.
-    ) * min(vUv.y * mix(2., 5., intensity), 1.) // 0 to 1 opacity from 0 to 1 / 3 (the vUv.y coefficient)
+    min((pow(0.7 + fumesContrast, 2.)) * vUv.y * mix(2., 5., intensity), 1.) // 0 to 1 opacity from 0 to 1 / 3 (the vUv.y coefficient)
   );
 }
 `;
@@ -345,8 +343,8 @@ export const RocketScene = () => {
     };
   }, [setVerticalTransformMod]);
   const verticalRotation = THREE.MathUtils.lerp(
-    (-30 * Math.PI) / 180,
-    (30 * Math.PI) / 180,
+    (-15 * Math.PI) / 180,
+    (60 * Math.PI) / 180,
     verticalTransformMod
   );
 
