@@ -74,7 +74,7 @@ ${fumesUV}
       bottomColor,
       topColor * 15.,
       clamp(
-        pow(vUv.y, 7.) * pow(2.5 * fumesContrast, 6.),
+        pow(vUv.y, 7.) * pow(3.2 * fumesContrast, 6.),
         0., 1.
       )
     ),
