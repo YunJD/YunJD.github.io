@@ -15,7 +15,7 @@ const FUMES_HEIGHT = 4;
 
 const fumesUV = `
 vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
-vec2(-0.05 * pow(vUv.y, 2.), fract(time * 0.5))
+vec2(-0.3 * pow(vUv.y, 10.), fract(time * 0.1))
 `;
 const FUME_VERT_SHADER = `
 varying vec2 vUv;
@@ -291,7 +291,7 @@ export const RocketScene = () => {
 
   useFrame(() => {
     if (rocketRef.current) {
-      rocketRef.current.rotation.y += 0.002;
+      rocketRef.current.rotation.y += 0.005;
     }
   });
   const [verticalTransformMod, setVerticalTransformMod] = useState<number>(0.5);
@@ -417,8 +417,8 @@ export const RocketScene = () => {
             intensity={5000}
             position={[0, -12, 0]}
           />
+          {fumes.map(({ component }) => component)}
           <group ref={rocketRef}>
-            {fumes.map(({ component }) => component)}
             <RocketModel />
           </group>
         </group>
