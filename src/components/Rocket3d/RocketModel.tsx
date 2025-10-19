@@ -1,4 +1,4 @@
-import { forwardRef, useRef, type ReactElement } from "react";
+import { forwardRef, useEffect, useRef, type ReactElement } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -22,6 +22,9 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
+  const bodyAOMap = useTexture("/scenes3d/rocket/Body AO.png", (tex) => {
+    tex.flipY = false;
+  });
   const bodyRoughnessMap = useTexture(
     "/scenes3d/rocket/Body Roughness.png",
     (tex) => {
@@ -49,6 +52,9 @@ export const RocketModel = forwardRef((props, ref) => {
   const windowFrameMaterial = (
     <meshPhysicalMaterial color="#999" metalness={1} roughness={0.2} />
   );
+  useEffect(() => {
+    Rocket_body.geometry.computeTangents();
+  }, []);
 
   return (
     <group ref={ref} {...props} rotation={[0, Math.PI * 0.5, 0]}>
@@ -61,11 +67,13 @@ export const RocketModel = forwardRef((props, ref) => {
         scale={Rocket_body.scale}
       >
         <meshPhysicalMaterial
-          color="#ccc"
-          metalness={1}
-          roughness={0.65}
+          color="#ddd"
           roughnessMap={bodyRoughnessMap}
-          bumpMap={bodyRoughnessMap}
+          aoMapIntensity={1}
+          metalness={1}
+          roughness={0.8}
+          anisotropy={0.4}
+          anisotropyRotation={0.5 * Math.PI}
           bumpScale={1.25}
         />
       </mesh>

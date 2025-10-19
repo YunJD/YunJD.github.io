@@ -13,6 +13,10 @@ import * as THREE from "three";
 const FUME_COLOR: [number, number, number] = [1, 0.1, 0.05];
 const FUMES_HEIGHT = 4;
 
+const fumesUV = `
+vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
+vec2(-0.05 * pow(vUv.y, 2.), fract(time * 0.5))
+`;
 const FUME_VERT_SHADER = `
 varying vec2 vUv;
 uniform float height;
@@ -25,8 +29,7 @@ void main() {
   vUv = uv;
   float reversedY = (1. - vUv.y);
   float fumesValue = texture2D(fumesLong, 
-    vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
-    vec2(-0.05 * pow(vUv.y, 2.), fract(time * 0.5))
+${fumesUV}
   ).y;
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(
@@ -53,8 +56,7 @@ uniform float intensity;
 void main() {
   float fumesValue = texture2D(
     fumesLong,
-    vUv * vec2(1., mix(0.3, 0.1, intensity) + 0.05 * pow(vUv.y, 4.)) + 
-    vec2(-0.05 * pow(vUv.y, 2.), fract(time * 0.5))
+${fumesUV}
   ).y;
   float fumesContrast = clamp(1.1 * (fumesValue - 0.05), 0., 1.);
   vec3 topColor = mix(
