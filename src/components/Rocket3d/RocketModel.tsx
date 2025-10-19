@@ -22,9 +22,6 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
-  const bodyAOMap = useTexture("/scenes3d/rocket/Body AO.png", (tex) => {
-    tex.flipY = false;
-  });
   const bodyRoughnessMap = useTexture(
     "/scenes3d/rocket/Body Roughness.png",
     (tex) => {
