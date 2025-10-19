@@ -22,6 +22,9 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
+  const bodyAO = useTexture("/scenes3d/rocket/Body AO.png", (tex) => {
+    tex.flipY = false;
+  });
   const bodyAnisotropyMap = useTexture(
     "/scenes3d/rocket/Body Anisotropy.png",
     (tex) => {
@@ -71,6 +74,8 @@ export const RocketModel = forwardRef((props, ref) => {
       >
         <meshPhysicalMaterial
           color="#ddd"
+          aoMap={bodyAO}
+          aoMapIntensity={0.5}
           roughnessMap={bodyRoughnessMap}
           metalness={1}
           roughness={1}
