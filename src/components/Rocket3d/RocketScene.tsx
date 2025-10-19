@@ -74,7 +74,7 @@ ${fumesUV}
       bottomColor,
       topColor * 15.,
       clamp(
-        pow(vUv.y, 7.) * pow(3.2 * fumesContrast, 6.),
+        pow(vUv.y, 7.) * pow(2.4 * fumesContrast, 3.),
         0., 1.
       )
     ),
@@ -82,7 +82,7 @@ ${fumesUV}
   );
   gl_FragColor = vec4(
     baseColor,
-    min((pow(0.6 + fumesContrast, 4.)) * vUv.y * mix(2., 3., intensity), 1.) // 0 to 1 opacity from 0 to 1 / 3 (the vUv.y coefficient)
+    min((pow(0.4 + fumesContrast, 4.)) * vUv.y * mix(2., 3., intensity), 1.) // 0 to 1 opacity from 0 to 1 / 3 (the vUv.y coefficient)
   );
 }
 `;
