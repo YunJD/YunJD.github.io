@@ -22,6 +22,12 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
+  const bodyAnisotropyMap = useTexture(
+    "/scenes3d/rocket/Body Anisotropy.png",
+    (tex) => {
+      tex.flipY = false;
+    }
+  );
   const bodyRoughnessMap = useTexture(
     "/scenes3d/rocket/Body Roughness.png",
     (tex) => {
@@ -68,10 +74,11 @@ export const RocketModel = forwardRef((props, ref) => {
           roughnessMap={bodyRoughnessMap}
           metalness={1}
           roughness={1}
-          anisotropy={0.9}
-          anisotropyRotation={0.5 * Math.PI}
+          anisotropy={1}
+          anisotropyMap={bodyAnisotropyMap}
+          anisotropyRotation={0.25 * Math.PI}
           bumpMap={bodyRoughnessMap}
-          bumpScale={1.25}
+          bumpScale={1.5}
         />
       </mesh>
       <EasyNodeToMesh node={Rocket_window}>{windowMaterial}</EasyNodeToMesh>
