@@ -89,7 +89,7 @@ export const RocketModel = forwardRef((props, ref) => {
           roughnessMap={bodyRoughnessMap}
           metalness={1}
           roughness={1}
-          anisotropy={1}
+          anisotropy={0.23}
           anisotropyMap={bodyAnisotropyMap}
           anisotropyRotation={0.25 * Math.PI}
           bumpMap={bodyRoughnessMap}
