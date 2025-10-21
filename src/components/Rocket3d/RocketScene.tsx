@@ -354,7 +354,7 @@ export const RocketScene = () => {
       ? {
           position: [0.5, 0.25, -7.5],
           rotation: [
-            -0.2 + verticalRotation,
+            -0.5 + verticalRotation,
             0.3,
             1.12 / Math.max(1.32 * aspect, 1),
           ],
@@ -400,15 +400,15 @@ export const RocketScene = () => {
         }
       >
         {environment}
+        <directionalLight
+          color="white"
+          intensity={3}
+          position={[-8, 5, 12]}
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+        />
         <group {...rocketTransformProps}>
-          <directionalLight
-            color="white"
-            intensity={3}
-            position={[-8, 5, 12]}
-            castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-          />
           <pointLight
             decay={2}
             color={FUME_COLOR}

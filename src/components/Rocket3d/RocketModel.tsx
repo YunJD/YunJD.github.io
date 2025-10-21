@@ -22,6 +22,9 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
+  const engineAO = useTexture("/scenes3d/rocket/Engine AO.png", (tex) => {
+    tex.flipY = false;
+  });
   const finRoughnessMap = useTexture(
     "/scenes3d/rocket/Fin Roughness.png",
     (tex) => {
@@ -106,15 +109,9 @@ export const RocketModel = forwardRef((props, ref) => {
       <EasyNodeToMesh node={Rocket_window_hatch}>
         {windowMaterial}
       </EasyNodeToMesh>
-      <mesh
-        geometry={Engine.geometry}
-        position={Engine.position}
-        scale={Engine.scale}
-        castShadow
-        receiveShadow
-      >
-        <meshPhysicalMaterial color="#777" metalness={1} roughness={0.4} />
-      </mesh>
+      <EasyNodeToMesh node={Engine}>
+        <meshPhysicalMaterial color="#7a7a7a" metalness={1} roughness={0.45} />
+      </EasyNodeToMesh>
       <mesh
         geometry={Rocket_fin.geometry}
         position={Rocket_fin.position}
