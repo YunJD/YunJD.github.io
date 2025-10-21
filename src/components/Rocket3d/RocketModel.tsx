@@ -126,7 +126,7 @@ export const RocketModel = forwardRef((props, ref) => {
           metalness={1}
           roughnessMap={finRoughnessMap}
           bumpMap={finRoughnessMap}
-          bumpScale={1}
+          bumpScale={1.5}
           roughness={1}
           clearcoat={1}
           clearcoatRoughness={0.03}
