@@ -22,6 +22,9 @@ const EasyNodeToMesh = ({
 );
 
 export const RocketModel = forwardRef((props, ref) => {
+  const finAO = useTexture("/scenes3d/rocket/Fin AO.png", (tex) => {
+    tex.flipY = false;
+  });
   const finRoughnessMap = useTexture(
     "/scenes3d/rocket/Fin Roughness.png",
     (tex) => {
@@ -118,10 +121,12 @@ export const RocketModel = forwardRef((props, ref) => {
       >
         <meshPhysicalMaterial
           color="#d02035"
+          aoMap={finAO}
+          aoMapIntensity={1}
           metalness={1}
           roughnessMap={finRoughnessMap}
           bumpMap={finRoughnessMap}
-          bumpScale={0.2}
+          bumpScale={1}
           roughness={1}
           clearcoat={1}
           clearcoatRoughness={0.03}
